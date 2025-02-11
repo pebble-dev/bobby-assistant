@@ -1,0 +1,76 @@
+[
+    {
+        "type": "heading",
+        "defaultValue": "Tiny Assistant",
+        "size": 1
+    },
+    {
+        "type": "section",
+        "items": [
+            {
+                "type": "heading",
+                "defaultValue": "Language"
+            },
+            {
+                "type": "select",
+                "id": "languageCode",
+                "messageKey": "LANGUAGE_CODE",
+                "label": "Response language",
+                "description": "Controls the language of the assistant's replies. Does not currently translate the rest of the UI. If 'automatic', the assistant will attempt to respond in the same language the question was asked.",
+                "defaultValue": "",
+                "options": [
+                    {"label": "Automatic", "value": ""},
+                    {"label": "Afrikaans", "value": "af_ZA"},
+                    {"label": "Bahasa Indonesia", "value": "id_ID"},
+                    {"label": "Bahasa Melayu", "value": "ms_MY"},
+                    {"label": "Čeština", "value": "cs_CZ"},
+                    {"label": "Dansk", "value": "da_DK"},
+                    {"label": "Deutsch", "value": "de_DE"},
+                    {"label": "English", "value": "en_US"},
+                    {"label": "Español", "value": "es_ES"},
+                    {"label": "Filipino", "value": "fil_PH"},
+                    {"label": "Français", "value": "fr_FR"},
+                    {"label": "Galego", "value": "gl_ES"},
+                    {"label": "Hrvatski", "value": "hr_HR"},
+                    {"label": "Íslenska", "value": "is_IS"},
+                    {"label": "Italiano", "value": "it_IT"},
+                    {"label": "Kiswahili", "value": "sw_TZ"},
+                    {"label": "Latviešu", "value": "lv_LV"},
+                    {"label": "Lietuvių", "value": "lt_LT"},
+                    {"label": "Magyar", "value": "hu_HU"},
+                    {"label": "Nederlands", "value": "nl_NL"},
+                    {"label": "Norsk", "value": "no_NO"},
+                    {"label": "Polski", "value": "pl_PL"},
+                    {"label": "Português", "value": "pt_PT"},
+                    {"label": "Română", "value": "ro_RO"},
+                    {"label": "Русский", "value": "ru_RU"},
+                    {"label": "Slovenčina", "value": "sk_SK"},
+                    {"label": "Slovenščina", "value": "sl_SI"},
+                    {"label": "Suomi", "value": "fi_FI"},
+                    {"label": "Svenska", "value": "sv_SE"},
+                    {"label": "Türkçe", "value": "tr_TR"},
+                    {"label": "IsiZulu", "value": "zu-ZA"}
+                ]
+            },
+            {
+                "type": "select",
+                "id": "unitPreference",
+                "messageKey": "UNIT_PREFERENCE",
+                "label": "Unit preference",
+                "description": "Your preferred units. If 'both', units will be provided in both systems.",
+                "defaultValue": "",
+                "options": [
+                    {"label": "Automatic", "value": ""},
+                    {"label": "Metric", "value": "metric"},
+                    {"label": "Imperial", "value": "imperial"},
+                    {"label": "UK", "value": "uk"},
+                    {"label": "Both", "value": "both"}
+                ]
+            }
+        ]
+    },
+    {
+        "type": "submit",
+        "defaultValue": "Save"
+    }
+]

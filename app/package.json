@@ -1,0 +1,68 @@
+{
+  "name": "Tiny-Assistant",
+  "author": "Katharine Berry",
+  "version": "0.9.0",
+  "keywords": [
+    "pebble-app"
+  ],
+  "private": true,
+  "dependencies": {
+    "pebble-clay": "^1.0.4",
+    "pebble-events": "^1.2.0"
+  },
+  "pebble": {
+    "displayName": "Tiny Assistant",
+    "uuid": "1d272bb4-cf00-4e3e-a7f3-7394309e0341",
+    "sdkVersion": "3",
+    "enableMultiJS": true,
+    "capabilities": [],
+    "targetPlatforms": [
+      "basalt",
+      "diorite"
+    ],
+    "watchapp": {
+      "watchface": false
+    },
+    "messageKeys": [
+      "CHAT",
+      "FUNCTION",
+      "PROMPT",
+      "PROMPT_CONTEXT",
+      "CLOSE_CODE",
+      "CLOSE_REASON",
+      "CLOSE_WAS_CLEAN",
+      "CHAT_DONE",
+      "THREAD_ID",
+      "SET_ALARM_TIME",
+      "SET_ALARM_IS_TIMER",
+      "SET_ALARM_RESULT",
+      "GET_ALARM_OR_TIMER",
+      "GET_ALARM_RESULT[9]",
+      "ACTION_REMINDER_WAS_SET",
+      "CURRENT_TIME",
+      "CANCEL_ALARM_TIME",
+      "CANCEL_ALARM_IS_TIMER",
+      "LANGUAGE_CODE",
+      "UNIT_PREFERENCE"
+    ],
+    "resources": {
+      "media": [
+        {
+          "file": "icons/dictation_icon.png",
+          "name": "DICTATION_ICON",
+          "type": "bitmap"
+        },
+        {
+          "file": "icons/more_icon.png",
+          "name": "MORE_ICON",
+          "type": "bitmap"
+        },
+        {
+          "file": "button_indicator.png",
+          "name": "BUTTON_INDICATOR",
+          "type": "bitmap"
+        }
+      ]
+    }
+  }
+}

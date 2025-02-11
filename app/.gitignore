@@ -1,0 +1,5 @@
+.lock-waf*
+node_modules/
+build/
+sdk-include/
+cmake-build-debug/
