@@ -152,6 +152,7 @@ func (ps *PromptSession) Run(ctx context.Context) {
 			var functionCall *genai.FunctionCall
 			content := ""
 			var usageData *genai.GenerateContentResponseUsageMetadata
+		read_loop:
 			for resp, err := range s {
 				if errors.Is(err, iterator.Done) {
 					break
@@ -187,7 +188,7 @@ func (ps *PromptSession) Run(ctx context.Context) {
 						if err := ps.conn.Write(streamCtx, websocket.MessageText, []byte("c"+w)); err != nil {
 							streamSpan.AddField("error", err)
 							log.Printf("write to websocket failed: %v\n", err)
-							break
+							break read_loop
 						}
 						time.Sleep(time.Millisecond * 25)
 					}
