@@ -117,6 +117,9 @@ static void prv_time_changed(struct tm *tick_time, TimeUnits time_changed, void 
   } else if (tick_time->tm_hour > 0 && tick_time->tm_hour < 10) {
     snprintf(rw->time_string, 2, "%d", tick_time->tm_hour);
     strftime(rw->time_string + 1, 5, ":%M", tick_time);
+  } else if (tick_time->tm_hour > 12 && tick_time->tm_hour < 22) {
+    snprintf(rw->time_string, 2, "%d", tick_time->tm_hour - 12);
+    strftime(rw->time_string + 1, 5, ":%M", tick_time);
   } else {
     strftime(rw->time_string, 6, "%I:%M", tick_time);
   }
