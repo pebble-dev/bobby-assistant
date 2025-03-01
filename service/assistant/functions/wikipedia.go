@@ -87,7 +87,7 @@ func queryWikipediaInternal(ctx context.Context, query string, allowSearch bool)
 	if err != nil {
 		return "", err
 	}
-	request.Header.Set("User-Agent", "bobby-service")
+	request.Header.Set("User-Agent", "Bobby/0.1 (https://github.com/pebble-dev/bobby-assistant)")
 	response, err := http.DefaultClient.Do(request)
 	if err != nil {
 		return "", err
@@ -114,7 +114,7 @@ func queryWikipediaInternal(ctx context.Context, query string, allowSearch bool)
 			return "", errors.New("wikipedia page not found")
 		}
 		if len(searchResult) == 0 {
-			return "", errors.New("Wikipedia page nto found. Try to answer using your general knowledge.")
+			return "", errors.New("Wikipedia page not found. Try to answer using your general knowledge.")
 		}
 		return queryWikipediaInternal(ctx, searchResult[0], false)
 	}
