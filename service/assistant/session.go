@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
 	"log"
 	"net/http"
 	"net/url"
@@ -37,6 +38,7 @@ import (
 type PromptSession struct {
 	conn             *websocket.Conn
 	prompt           string
+	userToken        string
 	query            url.Values
 	redis            *redis.Client
 	threadId         uuid.UUID
@@ -49,6 +51,7 @@ type QueryContext struct {
 
 func NewPromptSession(redisClient *redis.Client, rw http.ResponseWriter, r *http.Request) (*PromptSession, error) {
 	prompt := r.URL.Query().Get("prompt")
+	userToken := r.URL.Query().Get("token")
 	originalThreadId := r.URL.Query().Get("threadId")
 	c, err := websocket.Accept(rw, r, &websocket.AcceptOptions{
 		OriginPatterns:     []string{"null"},
@@ -61,6 +64,7 @@ func NewPromptSession(redisClient *redis.Client, rw http.ResponseWriter, r *http
 	return &PromptSession{
 		conn:             c,
 		prompt:           prompt,
+		userToken:        userToken,
 		query:            r.URL.Query(),
 		redis:            redisClient,
 		threadId:         uuid.New(),
@@ -96,6 +100,30 @@ func (ps *PromptSession) Run(ctx context.Context) {
 			messages = append(oldMessages, messages...)
 		}
 	}
+	user, err := quota.GetUserInfo(ctx, ps.userToken)
+	if err != nil {
+		log.Printf("get user info failed: %v\n", err)
+		_ = ps.conn.Close(websocket.StatusInternalError, "get user info failed")
+		return
+	}
+	if !user.HasSubscription {
+		log.Printf("user %d has no subscription\n", user.UserId)
+		_ = ps.conn.Close(websocket.StatusPolicyViolation, "You need an active Rebble subscription to use Bobby.")
+		return
+	}
+	qt := quota.NewTracker(ps.redis, user.UserId)
+	used, remaining, err := qt.GetQuota(ctx)
+	if err != nil {
+		log.Printf("get quota failed: %v\n", err)
+		_ = ps.conn.Close(websocket.StatusInternalError, "Quota lookup failed.")
+		return
+	}
+	if remaining < 1 {
+		log.Printf("quota exceeded for user %d\n", user.UserId)
+		_ = ps.conn.Close(websocket.StatusPolicyViolation, "You have exceeded your quota for this month.")
+		return
+	}
+	log.Printf("user %d has used %d / %d credits\n", user.UserId, used, remaining)
 	totalInputTokens := 0
 	totalOutputTokens := 0
 	iterations := 0
@@ -153,9 +181,17 @@ func (ps *PromptSession) Run(ctx context.Context) {
 			}
 			if usageData != nil {
 				if usageData.PromptTokenCount != nil {
+					_, err = qt.ChargeOutputQuota(ctx, int(*usageData.PromptTokenCount))
+					if err != nil {
+						log.Printf("charge output quota failed: %v\n", err)
+					}
 					totalInputTokens += int(*usageData.PromptTokenCount)
 				}
 				if usageData.CandidatesTokenCount != nil {
+					_, err = qt.ChargeInputQuota(ctx, int(*usageData.CandidatesTokenCount))
+					if err != nil {
+						log.Printf("charge input quota failed: %v\n", err)
+					}
 					totalOutputTokens += int(*usageData.CandidatesTokenCount)
 				}
 			}

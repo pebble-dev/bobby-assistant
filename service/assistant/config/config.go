@@ -21,6 +21,7 @@ import "os"
 type Config struct {
 	GeminiKey             string
 	RedisURL              string
+	UserIdentificationURL string
 }
 
 var c Config
@@ -33,5 +34,6 @@ func init() {
 	c = Config{
 		GeminiKey:             os.Getenv("GEMINI_KEY"),
 		RedisURL:              os.Getenv("REDIS_URL"),
+		UserIdentificationURL: os.Getenv("USER_IDENTIFICATION_URL"),
 	}
 }

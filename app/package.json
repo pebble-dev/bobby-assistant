@@ -43,7 +43,10 @@
       "CANCEL_ALARM_TIME",
       "CANCEL_ALARM_IS_TIMER",
       "LANGUAGE_CODE",
-      "UNIT_PREFERENCE"
+      "UNIT_PREFERENCE",
+      "QUOTA_REQUEST",
+      "QUOTA_RESPONSE_USED",
+      "QUOTA_RESPONSE_REMAINING"
     ],
     "resources": {
       "media": [

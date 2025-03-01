@@ -15,11 +15,13 @@
  */
 
 #include "root_menu.h"
+#include "quota_window.h"
 #include "alarm_menu.h"
 #include <pebble.h>
 
 static void prv_window_load(Window* window);
 static void prv_window_unload(Window* window);
+static void prv_push_quota_screen(int index, void* context);
 static void prv_push_alarm_screen(int index, void* context);
 static void prv_push_timer_screen(int index, void* context);
 
@@ -45,7 +47,7 @@ static void prv_window_load(Window* window) {
   static SimpleMenuSection section = {
     .num_items = 0,
   };
-  static SimpleMenuItem items[2];
+  static SimpleMenuItem items[3];
   // This setup has to be done separately because otherwise the initializer isn't constant.
   if (section.num_items == 0) {
     items[0] = (SimpleMenuItem) {
@@ -56,7 +58,11 @@ static void prv_window_load(Window* window) {
       .title = "Timers",
       .callback = prv_push_timer_screen,
     };
-    section.num_items = 2;
+    items[2] = (SimpleMenuItem) {
+      .title = "Quota",
+      .callback = prv_push_quota_screen,
+    };
+    section.num_items = 3;
     section.items = items;
   }
 
@@ -77,6 +83,10 @@ static void prv_window_unload(Window* window) {
   simple_menu_layer_destroy(data->menu_layer);
   status_bar_layer_destroy(data->status_bar);
   free(data);
+}
+
+static void prv_push_quota_screen(int index, void* context) {
+  push_quota_window();
 }
 
 static void prv_push_alarm_screen(int index, void* context) {

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
-// put your server here.
-exports.QUERY_URL = 'ws://computer.local:8080/query';
-exports.QUOTA_URL = 'http://computer.local:8080/quota';
+#ifndef BOBBY_APP_QUOTA_WINDOW_H
+#define BOBBY_APP_QUOTA_WINDOW_H
+
+void push_quota_window();
+
+#endif //BOBBY_APP_QUOTA_WINDOW_H

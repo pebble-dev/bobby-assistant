@@ -50,6 +50,7 @@ add_executable(tiny_assistant_app
         src/c/assistant.c
         src/c/root_window.c
         src/c/menus/root_menu.c
+        src/c/menus/quota_window.c
         src/c/menus/usage_layer.c
         src/c/menus/alarm_menu.c
         src/c/menus/alarm_menu.h

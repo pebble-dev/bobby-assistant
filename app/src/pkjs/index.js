@@ -15,6 +15,7 @@
  */
 
 var session = require('./session');
+var quota = require('./quota');
 var Clay = require('pebble-clay');
 var clayConfig = require('./config.json');
 var customConfigFunction = require('./custom_config');
@@ -35,6 +36,10 @@ function handleAppMessage(e) {
         var s = new session.Session(data.PROMPT, data.THREAD_ID);
         s.run();
         return;
+    }
+    if (data.QUOTA_REQUEST) {
+        console.log("Requesting quota...");
+        quota.fetchQuota();
     }
 }
 

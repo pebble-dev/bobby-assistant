@@ -15,6 +15,8 @@
 package assistant
 
 import (
+	"encoding/json"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
 	"log"
 	"net/http"
 
@@ -32,12 +34,60 @@ func NewService(r *redis.Client) *Service {
 		redis: r,
 	}
 	s.mux.HandleFunc("/query", s.handleQuery)
+	s.mux.HandleFunc("/quota", s.handleQuota)
 	s.mux.HandleFunc("/heartbeat", s.handleHeartbeat)
 	return s
 }
 
 func (s *Service) handleHeartbeat(rw http.ResponseWriter, r *http.Request) {
 	_, _ = rw.Write([]byte("tiny-assistant"))
+}
+
+func (s *Service) handleQuota(rw http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	token := r.URL.Query().Get("token")
+	if token == "" {
+		log.Printf("No token provided.")
+		http.Error(rw, "No token provided.", http.StatusNotFound)
+		return
+	}
+	userInfo, err := quota.GetUserInfo(ctx, token)
+	if err != nil {
+		log.Printf("Error getting user info: %v", err)
+		http.Error(rw, err.Error(), http.StatusNotFound)
+		return
+	}
+	if !userInfo.HasSubscription {
+		response, err := json.Marshal(map[string]interface{}{
+			"user":           0,
+			"remaining":      0,
+			"hasSubcription": false,
+		})
+		if err != nil {
+			log.Printf("Error marshalling quota response: %v", err)
+			http.Error(rw, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		_, _ = rw.Write(response)
+		return
+	}
+	qt := quota.NewTracker(s.redis, userInfo.UserId)
+	used, remaining, err := qt.GetQuota(ctx)
+	if err != nil {
+		log.Printf("Error getting quota: %v", err)
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	response, err := json.Marshal(map[string]int{
+		"used":      used,
+		"remaining": remaining,
+	})
+	if err != nil {
+		log.Printf("Error marshalling quota response: %v", err)
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	_, _ = rw.Write(response)
 }
 
 func (s *Service) handleQuery(rw http.ResponseWriter, r *http.Request) {

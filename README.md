@@ -18,6 +18,8 @@ You will also need to set a few environment variables:
   [Google AI Studio](https://aistudio.google.com)
 - `REDIS_URL` - a URL for a functioning Redis server. No data is persisted
   long-term, so a purely in-memory server is fine.
+- `USER_IDENTIFICATION_URL` - a URL pointing to an instance of
+  [user-identifier](https://github.com/pebble-dev/user-identifier).
 
 ### Client
 
