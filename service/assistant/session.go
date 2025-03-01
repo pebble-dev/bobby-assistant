@@ -226,9 +226,9 @@ func (ps *PromptSession) Run(ctx context.Context) {
 				var result string
 				var err error
 				if functions.IsAction(functionCall.Name) {
-					result, err = functions.CallAction(ctx, functionCall.Name, fnArgs, ps.conn)
+					result, err = functions.CallAction(ctx, qt, functionCall.Name, fnArgs, ps.conn)
 				} else {
-					result, err = functions.CallFunction(ctx, functionCall.Name, fnArgs)
+					result, err = functions.CallFunction(ctx, qt, functionCall.Name, fnArgs)
 				}
 				if err != nil {
 					log.Printf("call function failed: %v\n", err)

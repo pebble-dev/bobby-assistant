@@ -17,6 +17,7 @@ package functions
 import (
 	"context"
 	"github.com/honeycombio/beeline-go"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
 	"log"
 
 	"github.com/pebble-dev/bobby-assistant/service/assistant/query"
@@ -101,7 +102,7 @@ func init() {
 	})
 }
 
-func alarmImpl(ctx context.Context, args interface{}, requests chan<- map[string]interface{}, responses <-chan map[string]interface{}) interface{} {
+func alarmImpl(ctx context.Context, quotaTracker *quota.Tracker, args interface{}, requests chan<- map[string]interface{}, responses <-chan map[string]interface{}) interface{} {
 	ctx, span := beeline.StartSpan(ctx, "set_alarm")
 	defer span.Send()
 	if !query.SupportsAction(ctx, "set_alarm") {
@@ -139,7 +140,7 @@ func alarmThought(i interface{}) string {
 	}
 }
 
-func getAlarmImpl(ctx context.Context, args interface{}, requests chan<- map[string]interface{}, responses <-chan map[string]interface{}) interface{} {
+func getAlarmImpl(ctx context.Context, quotaTracker *quota.Tracker, args interface{}, requests chan<- map[string]interface{}, responses <-chan map[string]interface{}) interface{} {
 	ctx, span := beeline.StartSpan(ctx, "get_alarm")
 	defer span.Send()
 	if !query.SupportsAction(ctx, "get_alarm") {

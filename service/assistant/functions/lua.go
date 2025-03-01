@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/honeycombio/beeline-go"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
 	"log"
 	"math"
 	"strings"
@@ -68,7 +69,7 @@ func luaThought(args interface{}) string {
 	return "Getting a calculator"
 }
 
-func luaImplementation(ctx context.Context, args interface{}) interface{} {
+func luaImplementation(ctx context.Context, quotaTracker *quota.Tracker, args interface{}) interface{} {
 	ctx, span := beeline.StartSpan(ctx, "run_lua")
 	defer span.Send()
 	arg := args.(*LuaInput)

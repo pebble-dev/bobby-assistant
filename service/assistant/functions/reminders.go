@@ -17,6 +17,7 @@ package functions
 import (
 	"context"
 	"github.com/honeycombio/beeline-go"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
 	"google.golang.org/genai"
 	"log"
 	"time"
@@ -68,7 +69,7 @@ func init() {
 	})
 }
 
-func setReminder(ctx context.Context, args interface{}, requestChan chan<- map[string]interface{}, responseChan <-chan map[string]interface{}) interface{} {
+func setReminder(ctx context.Context, quotaTracker *quota.Tracker, args interface{}, requestChan chan<- map[string]interface{}, responseChan <-chan map[string]interface{}) interface{} {
 	ctx, span := beeline.StartSpan(ctx, "set_reminder")
 	defer span.Send()
 	if !query.SupportsAction(ctx, "set_reminder") {

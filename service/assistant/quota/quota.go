@@ -27,6 +27,7 @@ import (
 // one credit is worth $0.0000001.
 const InputTokenCredits = 1
 const OutputTokenCredits = 4
+const WeatherQueryCredits = 5_250
 const MonthlyQuotaCredits = 20_000_000
 
 type Tracker struct {

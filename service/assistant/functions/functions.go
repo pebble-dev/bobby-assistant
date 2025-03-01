@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
 	"log"
 	"reflect"
 	"strings"
@@ -28,8 +29,8 @@ import (
 	"nhooyr.io/websocket"
 )
 
-type ToolFunction func(context.Context, interface{}) interface{}
-type CallbackFunction func(context.Context, interface{}, chan<- map[string]interface{}, <-chan map[string]interface{}) interface{}
+type ToolFunction func(context.Context, *quota.Tracker, interface{}) interface{}
+type CallbackFunction func(context.Context, *quota.Tracker, interface{}, chan<- map[string]interface{}, <-chan map[string]interface{}) interface{}
 type ThoughtFunction func(interface{}) string
 
 const MaxResponseSize = 20000
@@ -75,7 +76,7 @@ func IsAction(fn string) bool {
 
 // CallFunction calls a function by name with the given arguments. The arguments are expected to be
 // a string containing a JSON object (presumably from GPT). The result is returned as a JSON string.
-func CallFunction(ctx context.Context, fn, args string) (string, error) {
+func CallFunction(ctx context.Context, qt *quota.Tracker, fn, args string) (string, error) {
 	if _, ok := functionMap[fn]; !ok || functionMap[fn].Fn == nil {
 		return "", fmt.Errorf("function %q not found", fn)
 	}
@@ -84,7 +85,7 @@ func CallFunction(ctx context.Context, fn, args string) (string, error) {
 	if err := json.Unmarshal([]byte(FixupBrokenJson(args)), in); err != nil {
 		result = Error{"Invalid JSON: " + err.Error()}
 	} else {
-		result = functionMap[fn].Fn(ctx, in)
+		result = functionMap[fn].Fn(ctx, qt, in)
 	}
 	r, err := json.Marshal(result)
 	if err != nil {
@@ -96,7 +97,7 @@ func CallFunction(ctx context.Context, fn, args string) (string, error) {
 	return string(r), nil
 }
 
-func CallAction(ctx context.Context, fn, args string, ws *websocket.Conn) (string, error) {
+func CallAction(ctx context.Context, qt *quota.Tracker, fn, args string, ws *websocket.Conn) (string, error) {
 	if _, ok := functionMap[fn]; !ok || functionMap[fn].Cb == nil {
 		return "", fmt.Errorf("function %q not found", fn)
 	}
@@ -162,7 +163,7 @@ func CallAction(ctx context.Context, fn, args string, ws *websocket.Conn) (strin
 				respChan <- resp
 			}
 		}()
-		result = functionMap[fn].Cb(ctx, a, reqChan, respChan)
+		result = functionMap[fn].Cb(ctx, qt, a, reqChan, respChan)
 	}
 	r, err := json.Marshal(result)
 	if err != nil {
