@@ -139,11 +139,12 @@ func (ps *PromptSession) Run(ctx context.Context) {
 			if iterations <= 10 {
 				tools = []*genai.Tool{{FunctionDeclarations: functions.GetFunctionDefinitionsForCapabilities(query.SupportedActionsFromContext(ctx))}}
 			}
+			systemPrompt := ps.generateSystemPrompt(ctx)
 			streamCtx, streamSpan := beeline.StartSpan(ctx, "chat_stream")
 			temperature := float64(0.5)
 			one := int64(1)
 			s := geminiClient.Models.GenerateContentStream(streamCtx, "models/gemini-2.0-flash", messages, &genai.GenerateContentConfig{
-				SystemInstruction: &genai.Content{Parts: []*genai.Part{{Text: ps.generateSystemPrompt(streamCtx)}}},
+				SystemInstruction: &genai.Content{Parts: []*genai.Part{{Text: systemPrompt}}},
 				Temperature:       &temperature,
 				CandidateCount:    &one,
 				Tools:             tools,
