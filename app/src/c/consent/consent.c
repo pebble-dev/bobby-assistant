@@ -125,11 +125,11 @@ static void prv_set_stage(Window* window, int stage) {
   ConsentWindowData *data = window_get_user_data(window);
   switch (stage) {
   case STAGE_LLM_WARNING:
-    data->current_text = "Tiny Assistant uses an AI language model to respond to your requests. Like all other AI language models, the assistant may lie, do the wrong thing, or make offensive or inappropriate comments.";
+    data->current_text = "Bobby uses an AI language model to respond to your requests. Like all other AI language models, Bobby may lie, do the wrong thing, or make offensive or inappropriate comments.";
     data->title_text = "Important";
     break;
   case STAGE_GEMINI_CONSENT:
-    data->current_text = "Tiny Assistant uses Google's Gemini API to process requests. To do this, all of your requests will be sent verbatim to Google. If you do not agree, you cannot use the assistant.";
+    data->current_text = "Bobby uses Google's Gemini API to process requests. To do this, all of your requests will be sent verbatim to Google. If you do not agree, you cannot use Bobby.";
     data->title_text = "Privacy";
     break;
   default:

@@ -1,5 +1,5 @@
 {
-  "name": "Tiny-Assistant",
+  "name": "Bobby",
   "author": "Katharine Berry",
   "version": "0.9.0",
   "keywords": [
@@ -11,7 +11,7 @@
     "pebble-events": "^1.2.0"
   },
   "pebble": {
-    "displayName": "Tiny Assistant",
+    "displayName": "Bobby",
     "uuid": "1d272bb4-cf00-4e3e-a7f3-7394309e0341",
     "sdkVersion": "3",
     "enableMultiJS": true,

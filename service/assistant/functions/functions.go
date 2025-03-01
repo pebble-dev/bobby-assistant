@@ -176,11 +176,11 @@ func CallAction(ctx context.Context, fn, args string, ws *websocket.Conn) (strin
 
 func SummariseFunction(fn, args string) string {
 	if _, ok := functionMap[fn]; !ok {
-		return "The assistant is slightly lost"
+		return "Bobby is slightly lost"
 	}
 	a := reflect.New(reflect.TypeOf(functionMap[fn].InputType)).Interface()
 	if err := json.Unmarshal([]byte(FixupBrokenJson(args)), &a); err != nil {
-		return "The assistant is doing the wrong thing"
+		return "Bobby is doing the wrong thing"
 	} else {
 		return functionMap[fn].Thought(a)
 	}

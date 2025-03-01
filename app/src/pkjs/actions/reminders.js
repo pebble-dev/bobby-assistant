@@ -22,7 +22,7 @@ exports.setReminder = function(message, callback) {
     var date = (new Date(when)).toISOString();
     console.log("Setting a reminder: \"" + what + "\" at " + date);
     var pin = {
-        "id": "tiny-assistant-reminder-" + Math.random(),
+        "id": "bobby-reminder-" + Math.random(),
         "time": date,
         "layout": {
             "type": "genericPin",

@@ -40,7 +40,7 @@ func NewService(r *redis.Client) *Service {
 }
 
 func (s *Service) handleHeartbeat(rw http.ResponseWriter, r *http.Request) {
-	_, _ = rw.Write([]byte("tiny-assistant"))
+	_, _ = rw.Write([]byte("bobby"))
 }
 
 func (s *Service) handleQuota(rw http.ResponseWriter, r *http.Request) {

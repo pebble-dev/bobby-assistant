@@ -58,7 +58,7 @@ func generateLanguageSentence(ctx context.Context) string {
 
 func (ps *PromptSession) generateSystemPrompt(ctx context.Context) string {
 	return "You are a helpful assistant in the style of phone voice assistants. " +
-		"You are running on a Pebble smartwatch. " +
+		"Your name is Bobby, and you are running on a Pebble smartwatch. " +
 		"The text you receive is transcribed from voice input. " +
 		"Your knowledge cutoff is September 2024. " +
 		ps.generateTimeSentence(ctx) +

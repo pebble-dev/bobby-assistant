@@ -1,7 +1,7 @@
 [
     {
         "type": "heading",
-        "defaultValue": "Tiny Assistant",
+        "defaultValue": "Bobby",
         "size": 1
     },
     {
@@ -16,7 +16,7 @@
                 "id": "languageCode",
                 "messageKey": "LANGUAGE_CODE",
                 "label": "Response language",
-                "description": "Controls the language of the assistant's replies. Does not currently translate the rest of the UI. If 'automatic', the assistant will attempt to respond in the same language the question was asked.",
+                "description": "Controls the language of the Bobby's replies. Does not currently translate the rest of the UI. If 'automatic', Bobby will attempt to respond in the same language the question was asked.",
                 "defaultValue": "",
                 "options": [
                     {"label": "Automatic", "value": ""},

@@ -52,7 +52,7 @@ SegmentLayer* segment_layer_create(GRect rect, ConversationEntry* entry) {
       if (type == EntryTypePrompt) {
         text_layer_set_text(data->speaker_layer, "You");
       } else if (type == EntryTypeResponse) {
-        text_layer_set_text(data->speaker_layer, "Assistant");
+        text_layer_set_text(data->speaker_layer, "Bobby");
       }
       layer_add_child(layer, (Layer *)data->speaker_layer);
     } else {
@@ -145,7 +145,7 @@ static char *prv_get_content_text(SegmentLayer *layer) {
       }
       return data->content_text;
   }
-  return "(tiny assistant bug)";
+  return "(Bobby bug)";
 }
 
 static int prv_get_content_height(SegmentLayer* layer) {

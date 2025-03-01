@@ -102,7 +102,7 @@ static void prv_app_message_received(DictionaryIterator* iter, void* context) {
   }
   int remaining = tuple->value->int32;
   APP_LOG(APP_LOG_LEVEL_INFO, "Quota: %d used, %d remaining", used, remaining);
-  snprintf(data->explanation, sizeof(data->explanation), "You've used %d%% of your assistant quota for this month. Once you've used 100%%, assistant will stop working until next month. Quota resets on the first day of each month.", ((used * 100) / (used + remaining)));
+  snprintf(data->explanation, sizeof(data->explanation), "You've used %d%% of your Bobby quota for this month. Once you've used 100%%, Bobby will stop working until next month. Quota resets on the first day of each month.", ((used * 100) / (used + remaining)));
   text_layer_set_text(data->explanation_layer, data->explanation);
   usage_layer_set_percentage(data->usage_layer, (int16_t)((used * PERCENTAGE_MAX) / (used + remaining)));
   layer_remove_from_parent(data->thinking_layer);
