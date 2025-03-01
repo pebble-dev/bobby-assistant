@@ -48,6 +48,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: |
             ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:${{ env.COMMIT_SHORT_SHA }}
+            ghcr.io/${{ github.repository }}:g${{ env.COMMIT_SHORT_SHA }}
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.licenses=Apache-2.0
