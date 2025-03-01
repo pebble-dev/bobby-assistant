@@ -16,11 +16,13 @@ package main
 
 import (
 	"github.com/honeycombio/beeline-go"
+	"github.com/honeycombio/beeline-go/wrappers/hnynethttp"
 	"github.com/pebble-dev/bobby-assistant/service/assistant"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/config"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/util/redact"
 	"github.com/redis/go-redis/v9"
 	"log"
+	"net/http"
 )
 
 func connectRedis() (*redis.Client, error) {
@@ -43,6 +45,7 @@ func main() {
 		PresendHook: redact.CleanHoneycomb,
 	})
 	defer beeline.Close()
+	http.DefaultTransport = hnynethttp.WrapRoundTripper(http.DefaultTransport)
 	service := assistant.NewService(r)
 	addr := "0.0.0.0:8080"
 	log.Printf("Listening on %s.", addr)
