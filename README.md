@@ -20,6 +20,8 @@ You will also need to set a few environment variables:
   long-term, so a purely in-memory server is fine.
 - `USER_IDENTIFICATION_URL` - a URL pointing to an instance of
   [user-identifier](https://github.com/pebble-dev/user-identifier).
+- `MAPBOX_KEY` - an API key for [Mapbox](https://www.mapbox.com), which is
+  used for geocoding. If no key is provided, geocoding will be unavailable.
 
 ### Client
 

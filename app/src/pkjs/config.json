@@ -70,6 +70,21 @@
         ]
     },
     {
+        "type": "section",
+        "items": [
+            {
+                "type": "heading",
+                "defaultValue": "Permissions"
+            },
+            {
+                "type": "toggle",
+                "messageKey": "LOCATION_ENABLED",
+                "label": "Allow location access",
+                "description": "Bobby can use your location to provide contextually relevant information, including local weather and transit as well as more broadly understanding your local context."
+            }
+        ]
+    },
+    {
         "type": "submit",
         "defaultValue": "Save"
     }

@@ -29,7 +29,7 @@
 #define PERSIST_KEY_ALARM_WAKEUP_IDS 4
 #define PERSIST_KEY_ALARM_IS_TIMERS 5
 
-// Store whether we have shown the first-run consent.
-#define PERSIST_KEY_CONSENT_GRANTED 6
+// Store whether we have successfully requested location consent.
+#define PERSIST_KEY_LOCATION_ENABLED 6
 
 #endif //APP_PERSIST_KEYS_H

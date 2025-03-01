@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+var location = require('./location');
 var config = require('./config');
 var actions = require('./actions');
 
@@ -34,6 +35,12 @@ function getSettings() {
 Session.prototype.run = function() {
     console.log("Opening websocket connection...");
     var url = API_URL + '?prompt=' + encodeURIComponent(this.prompt) + '&token=' + exports.userToken;
+    if (location.isReady() && config.isLocationEnabled()) {
+        var loc = location.getPos();
+        url += '&lon=' + loc.lon + '&lat=' + loc.lat;
+    } else {
+        url += '&location=unknown';
+    }
     if (this.threadId) {
         url += '&threadId=' + encodeURIComponent(this.threadId);
     }

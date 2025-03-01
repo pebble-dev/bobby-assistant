@@ -23,6 +23,7 @@
 
 #define STAGE_LLM_WARNING 0
 #define STAGE_GEMINI_CONSENT 1
+#define STAGE_LOCATION_CONSENT 2
 
 typedef struct {
   ScrollLayer *scroll_layer;
@@ -33,7 +34,9 @@ typedef struct {
   const char* title_text;
   GBitmap* select_indicator_bitmap;
   BitmapLayer* select_indicator_layer;
+  ActionMenu* action_menu;
   int stage;
+  EventHandle app_message_handle;
 } ConsentWindowData;
 
 static void prv_set_stage(Window* window, int stage);
@@ -43,6 +46,10 @@ static void prv_window_appear(Window *window);
 static void prv_click_config_provider(void *context);
 static void prv_select_click_handler(ClickRecognizerRef recognizer, void *context);
 static bool prv_did_scroll_to_bottom(Window* window);
+static void prv_present_consent_menu(Window* window);
+static void prv_consent_menu_select_callback(ActionMenu *action_menu, const ActionMenuItem *action, void *context);
+static void prv_action_menu_close(ActionMenu* action_menu, const ActionMenuItem* item, void* context);
+static void prv_app_message_handler(DictionaryIterator *iter, void *context);
 
 void consent_window_push() {
   Window* window = window_create();
@@ -58,7 +65,7 @@ void consent_window_push() {
 }
 
 bool must_present_consent() {
-  return !persist_exists(PERSIST_KEY_CONSENT_GRANTED);
+  return !persist_exists(PERSIST_KEY_LOCATION_ENABLED);
 }
 
 static void prv_window_load(Window *window) {
@@ -99,6 +106,7 @@ static void prv_window_load(Window *window) {
     .click_config_provider = prv_click_config_provider,
   });
   scroll_layer_set_context(data->scroll_layer, window);
+  data->app_message_handle = events_app_message_register_inbox_received(prv_app_message_handler, window);
 }
 
 static void prv_click_config_provider(void *context) {
@@ -129,8 +137,12 @@ static void prv_set_stage(Window* window, int stage) {
     data->title_text = "Important";
     break;
   case STAGE_GEMINI_CONSENT:
-    data->current_text = "Bobby uses Google's Gemini API to process requests. To do this, all of your requests will be sent verbatim to Google. If you do not agree, you cannot use Bobby.";
+    data->current_text = "Bobby uses Google's Gemini API to process requests. To do this, all of your requests will be sent verbatim to Google. Google does not use these requests for training or for any other purpose. If you do not agree, you cannot use Bobby.";
     data->title_text = "Privacy";
+    break;
+  case STAGE_LOCATION_CONSENT:
+    data->current_text = "In order to provide contextually relevant information, Bobby would like to use your precise location. The name of the city you are in will be sent to Google's Gemini along with your requests. This decision can be changed later in app's config page.\n\nCan Bobby access your location?";
+    data->title_text = "Location";
     break;
   default:
     APP_LOG(APP_LOG_LEVEL_ERROR, "Unknown consent stage: %d", stage);
@@ -171,10 +183,59 @@ static void prv_select_click_handler(ClickRecognizerRef recognizer, void *contex
       prv_set_stage(window, STAGE_GEMINI_CONSENT);
       break;
     case STAGE_GEMINI_CONSENT:
-      persist_write_bool(PERSIST_KEY_CONSENT_GRANTED, true);
-      RootWindow *root_window = root_window_create();
-      window_stack_push(root_window_get_window(root_window), true);
-      window_stack_remove(window, false);
+      prv_set_stage(window, STAGE_LOCATION_CONSENT);
+      break;
+    case STAGE_LOCATION_CONSENT:
+      prv_present_consent_menu(window);
       break;
   }
+}
+
+static void prv_present_consent_menu(Window* window) {
+  ConsentWindowData* data = window_get_user_data(window);
+  ActionMenuLevel* root_level = action_menu_level_create(2);
+  action_menu_level_add_action(root_level, "Allow", prv_consent_menu_select_callback, (void *)true);
+  action_menu_level_add_action(root_level, "Deny", prv_consent_menu_select_callback, (void *)false);
+  ActionMenuConfig config = (ActionMenuConfig) {
+    .root_level = root_level,
+    .colors = {
+      .background = GColorWhite,
+      .foreground = GColorBlack,
+    },
+    .align = ActionMenuAlignCenter,
+    .context = window,
+    .did_close = prv_action_menu_close,
+  };
+  data->action_menu = action_menu_open(&config);
+}
+
+static void prv_consent_menu_select_callback(ActionMenu *action_menu, const ActionMenuItem *action, void *context) {
+  bool choice = (int)action_menu_item_get_action_data(action);
+  action_menu_freeze(action_menu);
+  // We need to inform the phone of the user's choice.
+  DictionaryIterator *iter;
+  app_message_outbox_begin(&iter);
+  dict_write_int16(iter, MESSAGE_KEY_LOCATION_ENABLED, choice);
+  app_message_outbox_send();
+}
+
+static void prv_app_message_handler(DictionaryIterator *iter, void *context) {
+  Window* window = context;
+  ConsentWindowData* data = window_get_user_data(window);
+  Tuple *tuple = dict_find(iter, MESSAGE_KEY_LOCATION_ENABLED);
+  if (tuple == NULL) {
+    return;
+  }
+  APP_LOG(APP_LOG_LEVEL_INFO, "Got location enabled reply, dismissing dialog.");
+  events_app_message_unsubscribe(data->app_message_handle);
+  bool location_enabled = tuple->value->int16;
+  persist_write_bool(PERSIST_KEY_LOCATION_ENABLED, location_enabled);
+  RootWindow *root_window = root_window_create();
+  action_menu_set_result_window(data->action_menu, root_window_get_window(root_window));
+  action_menu_close(data->action_menu, true);
+  window_stack_remove(window, false);
+}
+
+static void prv_action_menu_close(ActionMenu* action_menu, const ActionMenuItem* item, void* context) {
+  action_menu_hierarchy_destroy(action_menu_get_root_level(action_menu), NULL, NULL);
 }

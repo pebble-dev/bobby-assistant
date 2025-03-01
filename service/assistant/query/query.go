@@ -23,7 +23,13 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+type Location struct {
+	Lat float64
+	Lon float64
+}
+
 type queryContext struct {
+	location          *Location
 	tzOffset          int
 	supportedActions  []string
 	preferredLanguage string
@@ -35,11 +41,23 @@ type qckt int
 var queryContextKey qckt
 
 func ContextWith(ctx context.Context, q url.Values) context.Context {
+	var location *Location
+	if q.Get("lat") != "" && q.Get("lon") != "" {
+		lat, letErr := strconv.ParseFloat(q.Get("lat"), 64)
+		lon, lonErr := strconv.ParseFloat(q.Get("lon"), 64)
+		if letErr == nil && lonErr == nil {
+			location = &Location{
+				Lat: lat,
+				Lon: lon,
+			}
+		}
+	}
 	offset, _ := strconv.Atoi(q.Get("tzOffset"))
 	supportedActions := strings.Split(q.Get("actions"), ",")
 	preferredLanguage := q.Get("lang")
 	preferredUnits := q.Get("units")
 	qc := queryContext{
+		location:          location,
 		tzOffset:          offset,
 		supportedActions:  supportedActions,
 		preferredLanguage: preferredLanguage,
@@ -63,6 +81,10 @@ func PreferredLanguageFromContext(ctx context.Context) string {
 
 func PreferredUnitsFromContext(ctx context.Context) string {
 	return ctx.Value(queryContextKey).(queryContext).preferredUnits
+}
+
+func LocationFromContext(ctx context.Context) *Location {
+	return ctx.Value(queryContextKey).(queryContext).location
 }
 
 func SupportsAction(ctx context.Context, action string) bool {

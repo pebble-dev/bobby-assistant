@@ -15,7 +15,9 @@
     "uuid": "1d272bb4-cf00-4e3e-a7f3-7394309e0341",
     "sdkVersion": "3",
     "enableMultiJS": true,
-    "capabilities": [],
+    "capabilities": [
+      "location"
+    ],
     "targetPlatforms": [
       "basalt",
       "diorite"
@@ -46,7 +48,8 @@
       "UNIT_PREFERENCE",
       "QUOTA_REQUEST",
       "QUOTA_RESPONSE_USED",
-      "QUOTA_RESPONSE_REMAINING"
+      "QUOTA_RESPONSE_REMAINING",
+      "LOCATION_ENABLED"
     ],
     "resources": {
       "media": [

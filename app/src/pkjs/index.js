@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+var location = require('./location');
 var session = require('./session');
 var quota = require('./quota');
 var Clay = require('pebble-clay');
@@ -24,6 +25,7 @@ var config = require('./config');
 var clay = new Clay(clayConfig, customConfigFunction);
 
 function main() {
+    location.update();
     Pebble.addEventListener('appmessage', handleAppMessage);
 }
 
@@ -40,6 +42,14 @@ function handleAppMessage(e) {
     if (data.QUOTA_REQUEST) {
         console.log("Requesting quota...");
         quota.fetchQuota();
+    }
+    if ('LOCATION_ENABLED' in data) {
+        config.setSetting("LOCATION_ENABLED", !!data.LOCATION_ENABLED);
+        console.log("Location enabled: " + config.isLocationEnabled());
+        // We need to confirm that we received this for the watch to proceed.
+        Pebble.sendAppMessage({
+            LOCATION_ENABLED: data.LOCATION_ENABLED,
+        });
     }
 }
 

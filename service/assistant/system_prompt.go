@@ -16,8 +16,12 @@ package assistant
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"github.com/honeycombio/beeline-go"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/util/mapbox"
 	"log"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -57,13 +61,41 @@ func generateLanguageSentence(ctx context.Context) string {
 	return sentence
 }
 
+func (ps *PromptSession) getPlaceFromLocation(ctx context.Context) (string, error) {
+	// Use the Mapbox API to turn the user's longitude and latitude into a place name.
+	// We don't want anything more specific than their town name, so we filter at that level ("place" in Mapbox terms).
+	// We will return just a region or country if there isn't a nearby place.
+	location := query.LocationFromContext(ctx)
+	collection, err := mapbox.GeocodingRequest(ctx, fmt.Sprintf("%f,%f", location.Lon, location.Lat), url.Values{"types": {"place,region,country"}})
+	if err != nil {
+		return "", err
+	}
+	if len(collection.Features) == 0 {
+		return "", errors.New("the user isn't anywhere")
+	}
+	return collection.Features[0].PlaceName, nil
+}
+
 func (ps *PromptSession) generateSystemPrompt(ctx context.Context) string {
 	ctx, span := beeline.StartSpan(ctx, "generate_system_prompt")
 	defer span.Send()
+	locationString := ""
+	location := query.LocationFromContext(ctx)
+	if location != nil {
+		if place, err := ps.getPlaceFromLocation(ctx); err == nil {
+			locationString = "The user is in " + place + ". "
+		} else {
+			span.AddField("error", err)
+			log.Printf("Failed to get user location: %v", err)
+		}
+	} else {
+		locationString = "The user has not granted permission to access their location, but they could enable it on the settings page if needed. "
+	}
 	return "You are a helpful assistant in the style of phone voice assistants. " +
 		"Your name is Bobby, and you are running on a Pebble smartwatch. " +
 		"The text you receive is transcribed from voice input. " +
 		"Your knowledge cutoff is September 2024. " +
+		locationString +
 		ps.generateTimeSentence(ctx) +
 		"You may call multiple functions before responding to the user, if necessary. If executing a lua script fails, try hard to fix the script using the error message, and consider alternate approaches to solve the problem. " +
 		"If the user asks to set an alarm, assume they always want to set it for a time in the future. " +

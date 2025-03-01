@@ -23,3 +23,7 @@ exports.setSetting = function(key, value) {
     settings[key] = value;
     localStorage.setItem('clay-settings', JSON.stringify(settings));
 }
+
+exports.isLocationEnabled = function() {
+    return !!exports.getSettings()['LOCATION_ENABLED'];
+}
