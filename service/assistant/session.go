@@ -179,10 +179,17 @@ func (ps *PromptSession) Run(ctx context.Context) {
 					}
 				}
 				if strings.TrimSpace(ourContent) != "" {
-					if err := ps.conn.Write(streamCtx, websocket.MessageText, []byte("c"+ourContent)); err != nil {
-						streamSpan.AddField("error", err)
-						log.Printf("write to websocket failed: %v\n", err)
-						break
+					words := strings.Split(ourContent, " ")
+					for i, w := range words {
+						if i != len(words)-1 {
+							w += " "
+						}
+						if err := ps.conn.Write(streamCtx, websocket.MessageText, []byte("c"+w)); err != nil {
+							streamSpan.AddField("error", err)
+							log.Printf("write to websocket failed: %v\n", err)
+							break
+						}
+						time.Sleep(time.Millisecond * 25)
 					}
 				}
 				content += ourContent
