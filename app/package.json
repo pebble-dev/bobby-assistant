@@ -55,6 +55,12 @@
     "resources": {
       "media": [
         {
+          "file": "icons/menu_icon.png",
+          "menuIcon": true,
+          "name": "IMAGE_MENU_ICON",
+          "type": "bitmap"
+        },
+        {
           "file": "icons/dictation_icon.png",
           "name": "DICTATION_ICON",
           "type": "bitmap"
