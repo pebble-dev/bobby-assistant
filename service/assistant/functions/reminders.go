@@ -16,6 +16,7 @@ package functions
 
 import (
 	"context"
+	"github.com/honeycombio/beeline-go"
 	"google.golang.org/genai"
 	"log"
 	"time"
@@ -68,6 +69,8 @@ func init() {
 }
 
 func setReminder(ctx context.Context, args interface{}, requestChan chan<- map[string]interface{}, responseChan <-chan map[string]interface{}) interface{} {
+	ctx, span := beeline.StartSpan(ctx, "set_reminder")
+	defer span.Send()
 	if !query.SupportsAction(ctx, "set_reminder") {
 		return Error{Error: "You need to update the app on your watch to set reminders."}
 	}

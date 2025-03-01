@@ -17,6 +17,7 @@ package quota
 import (
 	"context"
 	"fmt"
+	"github.com/honeycombio/beeline-go"
 	"log"
 	"time"
 
@@ -52,6 +53,8 @@ func (q *Tracker) ChargeOutputQuota(ctx context.Context, tokenCount int) (credit
 }
 
 func (q *Tracker) GetQuota(ctx context.Context) (used, remaining int, err error) {
+	ctx, span := beeline.StartSpan(ctx, "get_quota")
+	defer span.Send()
 	result := q.redis.Get(ctx, keyForUserQuota(q.userId))
 	if result.Err() == redis.Nil {
 		return 0, MonthlyQuotaCredits, nil
@@ -72,17 +75,22 @@ func keyForUserQuota(user int) string {
 }
 
 func (q *Tracker) chargeCredits(ctx context.Context, user, credits int) (int, error) {
+	ctx, span := beeline.StartSpan(ctx, "charge_credits")
+	defer span.Send()
 	result := q.redis.IncrBy(ctx, keyForUserQuota(user), int64(credits))
 	if result.Err() != nil {
+		span.AddField("error", result.Err())
 		return 0, result.Err()
 	}
 	i, err := result.Uint64()
 	if err != nil {
+		span.AddField("error", result.Err())
 		return 0, err
 	}
 	if int(i) == credits {
 		_, err = q.redis.Expire(ctx, keyForUserQuota(user), 45*24*time.Hour).Result()
 		if err != nil {
+			span.AddField("error", result.Err())
 			return 0, err
 		}
 	}

@@ -15,8 +15,10 @@
 package main
 
 import (
+	"github.com/honeycombio/beeline-go"
 	"github.com/pebble-dev/bobby-assistant/service/assistant"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/config"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/util/redact"
 	"github.com/redis/go-redis/v9"
 	"log"
 )
@@ -34,6 +36,13 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	beeline.Init(beeline.Config{
+		WriteKey:    config.GetConfig().HoneycombKey,
+		Dataset:     "rws",
+		ServiceName: "bobby",
+		PresendHook: redact.CleanHoneycomb,
+	})
+	defer beeline.Close()
 	service := assistant.NewService(r)
 	addr := "0.0.0.0:8080"
 	log.Printf("Listening on %s.", addr)

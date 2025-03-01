@@ -17,6 +17,7 @@ package functions
 import (
 	"context"
 	"fmt"
+	"github.com/honeycombio/beeline-go"
 	"log"
 	"math"
 	"strings"
@@ -68,6 +69,8 @@ func luaThought(args interface{}) string {
 }
 
 func luaImplementation(ctx context.Context, args interface{}) interface{} {
+	ctx, span := beeline.StartSpan(ctx, "run_lua")
+	defer span.Send()
 	arg := args.(*LuaInput)
 	result, err := runLua(ctx, arg.Timezone, arg.Script)
 	if err != nil || result == nil {
@@ -78,9 +81,11 @@ func luaImplementation(ctx context.Context, args interface{}) interface{} {
 			arg.Script = strings.Join(lines, "\n")
 			result, err = runLua(ctx, arg.Timezone, arg.Script)
 			if err != nil {
+				span.AddField("error", err)
 				return Error{"Script execution failed: " + err.Error()}
 			}
 		} else {
+			span.AddField("error", err)
 			return Error{"Script execution failed: " + err.Error()}
 		}
 	}

@@ -16,6 +16,7 @@ package assistant
 
 import (
 	"encoding/json"
+	"github.com/honeycombio/beeline-go/wrappers/hnynethttp"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
 	"log"
 	"net/http"
@@ -101,5 +102,5 @@ func (s *Service) handleQuery(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) ListenAndServe(addr string) error {
-	return http.ListenAndServe(addr, s.mux)
+	return http.ListenAndServe(addr, hnynethttp.WrapHandler(s.mux))
 }

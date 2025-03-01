@@ -22,6 +22,7 @@ type Config struct {
 	GeminiKey             string
 	RedisURL              string
 	UserIdentificationURL string
+	HoneycombKey          string
 }
 
 var c Config
@@ -35,5 +36,6 @@ func init() {
 		GeminiKey:             os.Getenv("GEMINI_KEY"),
 		RedisURL:              os.Getenv("REDIS_URL"),
 		UserIdentificationURL: os.Getenv("USER_IDENTIFICATION_URL"),
+		HoneycombKey:          os.Getenv("HONEYCOMB_KEY"),
 	}
 }

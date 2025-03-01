@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/honeycombio/beeline-go"
 	"io"
 	"log"
 	"net/http"
@@ -33,6 +34,8 @@ type UserInfo struct {
 }
 
 func GetUserInfo(ctx context.Context, token string) (*UserInfo, error) {
+	ctx, span := beeline.StartSpan(ctx, "get_user_info")
+	defer span.Send()
 	if token == "" {
 		return nil, fmt.Errorf("no token provided")
 	}

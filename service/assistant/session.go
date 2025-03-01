@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/honeycombio/beeline-go"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
 	"log"
 	"net/http"
@@ -106,7 +107,9 @@ func (ps *PromptSession) Run(ctx context.Context) {
 		_ = ps.conn.Close(websocket.StatusInternalError, "get user info failed")
 		return
 	}
+	beeline.AddField(ctx, "user_id", user.UserId)
 	if !user.HasSubscription {
+		beeline.AddField(ctx, "error", "no subscription")
 		log.Printf("user %d has no subscription\n", user.UserId)
 		_ = ps.conn.Close(websocket.StatusPolicyViolation, "You need an active Rebble subscription to use Bobby.")
 		return
@@ -129,13 +132,14 @@ func (ps *PromptSession) Run(ctx context.Context) {
 	iterations := 0
 	for {
 		cont, err := func() (bool, error) {
+			ctx, span := beeline.StartSpan(ctx, "chat_iteration")
+			defer span.Send()
 			iterations++
 			var tools []*genai.Tool
 			if iterations <= 10 {
 				tools = []*genai.Tool{{FunctionDeclarations: functions.GetFunctionDefinitionsForCapabilities(query.SupportedActionsFromContext(ctx))}}
 			}
-			streamCtx := ctx
-
+			streamCtx, streamSpan := beeline.StartSpan(ctx, "chat_stream")
 			temperature := float64(0.5)
 			one := int64(1)
 			s := geminiClient.Models.GenerateContentStream(streamCtx, "models/gemini-2.0-flash", messages, &genai.GenerateContentConfig{
@@ -152,8 +156,10 @@ func (ps *PromptSession) Run(ctx context.Context) {
 					break
 				}
 				if err != nil {
+					streamSpan.AddField("error", err)
 					log.Printf("recv from Google failed: %v\n", err)
 					_ = ps.conn.Close(websocket.StatusInternalError, "request to Google failed")
+					streamSpan.Send()
 					return false, err
 				}
 				usageData = resp.UsageMetadata
@@ -173,12 +179,14 @@ func (ps *PromptSession) Run(ctx context.Context) {
 				}
 				if strings.TrimSpace(ourContent) != "" {
 					if err := ps.conn.Write(streamCtx, websocket.MessageText, []byte("c"+ourContent)); err != nil {
+						streamSpan.AddField("error", err)
 						log.Printf("write to websocket failed: %v\n", err)
 						break
 					}
 				}
 				content += ourContent
 			}
+			streamSpan.Send()
 			if usageData != nil {
 				if usageData.PromptTokenCount != nil {
 					_, err = qt.ChargeOutputQuota(ctx, int(*usageData.PromptTokenCount))
@@ -255,6 +263,9 @@ func (ps *PromptSession) Run(ctx context.Context) {
 		}
 		log.Println("Going around again")
 	}
+	beeline.AddField(ctx, "total_input_tokens", totalInputTokens)
+	beeline.AddField(ctx, "total_output_tokens", totalOutputTokens)
+	beeline.AddField(ctx, "total_cost", totalInputTokens*quota.InputTokenCredits+totalOutputTokens*quota.OutputTokenCredits)
 	if err := ps.storeThread(ctx, messages); err != nil {
 		log.Printf("store thread failed: %v\n", err)
 		_ = ps.conn.Close(websocket.StatusInternalError, "store thread failed")
@@ -273,6 +284,8 @@ type SerializedMessage struct {
 }
 
 func (ps *PromptSession) storeThread(ctx context.Context, messages []*genai.Content) error {
+	ctx, span := beeline.StartSpan(ctx, "store_thread")
+	defer span.Send()
 	var toStore []SerializedMessage
 	for _, m := range messages {
 		if len(m.Parts) != 0 && (m.Role == "user" || m.Role == "model") && len(strings.TrimSpace(m.Parts[0].Text)) > 0 {
@@ -284,6 +297,7 @@ func (ps *PromptSession) storeThread(ctx context.Context, messages []*genai.Cont
 	}
 	j, err := json.Marshal(toStore)
 	if err != nil {
+		span.AddField("error", err)
 		return err
 	}
 	ps.redis.Set(ctx, "thread:"+ps.threadId.String(), j, 10*time.Minute)
@@ -291,12 +305,16 @@ func (ps *PromptSession) storeThread(ctx context.Context, messages []*genai.Cont
 }
 
 func (ps *PromptSession) restoreThread(ctx context.Context, oldThreadId string) ([]*genai.Content, error) {
+	ctx, span := beeline.StartSpan(ctx, "restore_thread")
+	defer span.Send()
 	j, err := ps.redis.Get(ctx, "thread:"+oldThreadId).Result()
 	if err != nil {
+		span.AddField("error", err)
 		return nil, err
 	}
 	var messages []SerializedMessage
 	if err := json.Unmarshal([]byte(j), &messages); err != nil {
+		span.AddField("error", err)
 		return nil, err
 	}
 	var result []*genai.Content

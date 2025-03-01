@@ -16,6 +16,7 @@ package assistant
 
 import (
 	"context"
+	"github.com/honeycombio/beeline-go"
 	"log"
 	"strconv"
 	"time"
@@ -57,6 +58,8 @@ func generateLanguageSentence(ctx context.Context) string {
 }
 
 func (ps *PromptSession) generateSystemPrompt(ctx context.Context) string {
+	ctx, span := beeline.StartSpan(ctx, "generate_system_prompt")
+	defer span.Send()
 	return "You are a helpful assistant in the style of phone voice assistants. " +
 		"Your name is Bobby, and you are running on a Pebble smartwatch. " +
 		"The text you receive is transcribed from voice input. " +
