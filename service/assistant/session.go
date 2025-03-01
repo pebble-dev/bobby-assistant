@@ -25,9 +25,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/Katharine/tiny-assistant/service/assistant/config"
-	"github.com/Katharine/tiny-assistant/service/assistant/functions"
-	"github.com/Katharine/tiny-assistant/service/assistant/query"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/config"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/functions"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/query"
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/api/iterator"
 	"google.golang.org/genai"

@@ -20,9 +20,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Katharine/tiny-assistant/service/assistant/query"
-	"github.com/Katharine/tiny-assistant/service/assistant/util"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/query"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/util"
 )
+
 func (ps *PromptSession) generateTimeSentence(ctx context.Context) string {
 	tzOffset := ps.query.Get("tzOffset")
 	tzOffsetInt, err := strconv.Atoi(tzOffset)

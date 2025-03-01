@@ -1,4 +1,4 @@
-module github.com/Katharine/tiny-assistant/service
+module github.com/pebble-dev/bobby-assistant/service
 
 go 1.23
 

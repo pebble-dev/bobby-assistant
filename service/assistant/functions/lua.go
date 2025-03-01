@@ -22,7 +22,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Katharine/tiny-assistant/service/assistant/query"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/query"
 	"github.com/yuin/gopher-lua"
 	"google.golang.org/genai"
 )

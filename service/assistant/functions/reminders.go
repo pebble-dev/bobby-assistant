@@ -20,7 +20,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Katharine/tiny-assistant/service/assistant/query"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/query"
 )
 
 type SetReminderInput struct {

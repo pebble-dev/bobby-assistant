@@ -15,8 +15,8 @@
 package main
 
 import (
-	"github.com/Katharine/tiny-assistant/service/assistant"
-	"github.com/Katharine/tiny-assistant/service/assistant/config"
+	"github.com/pebble-dev/bobby-assistant/service/assistant"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/config"
 	"github.com/redis/go-redis/v9"
 	"log"
 )
