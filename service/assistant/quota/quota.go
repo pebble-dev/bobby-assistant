@@ -28,6 +28,8 @@ import (
 const InputTokenCredits = 1
 const OutputTokenCredits = 4
 const WeatherQueryCredits = 5_250
+const PoiSearchCredits = 17_000
+const RouteCalculationCredits = 20_000
 const MonthlyQuotaCredits = 20_000_000
 
 type Tracker struct {
