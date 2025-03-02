@@ -190,7 +190,7 @@ func (ps *PromptSession) Run(ctx context.Context) {
 							log.Printf("write to websocket failed: %v\n", err)
 							break read_loop
 						}
-						time.Sleep(time.Millisecond * 25)
+						time.Sleep(time.Millisecond * 40)
 					}
 				}
 				content += ourContent
