@@ -17,13 +17,16 @@
 #include "root_menu.h"
 #include "quota_window.h"
 #include "alarm_menu.h"
+#include "credits_window.h"
 #include <pebble.h>
+
 
 static void prv_window_load(Window* window);
 static void prv_window_unload(Window* window);
 static void prv_push_quota_screen(int index, void* context);
 static void prv_push_alarm_screen(int index, void* context);
 static void prv_push_timer_screen(int index, void* context);
+static void prv_push_credits_screen(int index, void* context);
 
 typedef struct {
   SimpleMenuLayer *menu_layer;
@@ -47,7 +50,7 @@ static void prv_window_load(Window* window) {
   static SimpleMenuSection section = {
     .num_items = 0,
   };
-  static SimpleMenuItem items[3];
+  static SimpleMenuItem items[4];
   // This setup has to be done separately because otherwise the initializer isn't constant.
   if (section.num_items == 0) {
     items[0] = (SimpleMenuItem) {
@@ -62,7 +65,11 @@ static void prv_window_load(Window* window) {
       .title = "Quota",
       .callback = prv_push_quota_screen,
     };
-    section.num_items = 3;
+    items[3] = (SimpleMenuItem) {
+      .title = "Credits",
+      .callback = prv_push_credits_screen,
+    };
+    section.num_items = 4;
     section.items = items;
   }
 
@@ -95,4 +102,8 @@ static void prv_push_alarm_screen(int index, void* context) {
 
 static void prv_push_timer_screen(int index, void* context) {
   alarm_menu_window_push(true);
+}
+
+static void prv_push_credits_screen(int index, void* context) {
+  credits_menu_window_push();
 }
