@@ -26,6 +26,7 @@ function Session(prompt, threadId) {
     this.ws = undefined;
     this.queue = [];
     this.hasOpenDialog = false;
+    this.messagesInFlight = 0;
 }
 
 function getSettings() {
@@ -61,29 +62,29 @@ Session.prototype.handleMessage = function(event) {
     console.log(message);
     if (message[0] == 'c') {
         this.hasOpenDialog = true;
-        Pebble.sendAppMessage({
+        this.enqueue({
             CHAT: message.substring(1)
         });
     } else if (message[0] == 'f') {
         if (this.hasOpenDialog) {
             console.log('Received a thought while a dialog is open. Closing the dialog.');
-            Pebble.sendAppMessage({
+            this.enqueue({
                 CHAT_DONE: true
             });
             this.hasOpenDialog = false;
         }
-        Pebble.sendAppMessage({
+        this.enqueue({
             FUNCTION: message.substring(1)
         });
     } else if (message[0] == 'd') {
         this.hasOpenDialog = false;
-        Pebble.sendAppMessage({
+        this.enqueue({
             CHAT_DONE: true
         });
     } else if (message[0] == 'a') {
-        actions.handleAction(this.ws, message.substring(1));
+        actions.handleAction(this, this.ws, message.substring(1));
     } else if (message[0] == 't') {
-        Pebble.sendAppMessage({
+        this.enqueue({
             THREAD_ID: message.substring(1)
         });
     }
@@ -91,20 +92,21 @@ Session.prototype.handleMessage = function(event) {
 
 Session.prototype.enqueue = function(message) {
     this.queue.push(message);
-    if (this.queue.length == 1) {
-        console.log('sending immediately');
+    if (this.messagesInFlight < 10) {
+        console.log('sending immediately, messages in flight: ' + this.messagesInFlight);
         this.dequeue();
     } else {
-        console.log('enqueued');
+        console.log('enqueued, queue length: ' + this.queue.length);
     }
 }
 
 Session.prototype.dequeue = function() {
-    var m = this.queue[0];
-    console.log('sending message');
+    var m = this.queue.shift();
+    console.log('sending message, remaining: ' + this.queue.length);
+    this.messagesInFlight++;
     Pebble.sendAppMessage(m, (function() {
+        this.messagesInFlight--;
         console.log('sent successfully');
-        this.queue.shift();
         if (this.queue.length > 0) {
             console.log('next');
             this.dequeue();
@@ -112,7 +114,8 @@ Session.prototype.dequeue = function() {
             console.log('done');
         }
     }).bind(this), (function() {
-        console.log('failed. retrying soon...');
+        this.messagesInFlight--;
+        console.log('failed, message lost. carrying on shortly.');
         setTimeout(function() {
             this.dequeue();
             }, 10);

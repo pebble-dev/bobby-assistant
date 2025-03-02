@@ -24,12 +24,12 @@ var actionMap = {
     'get_alarm': alarms.getAlarm,
 };
 
-exports.handleAction = function(ws, actionParamString) {
+exports.handleAction = function(session, ws, actionParamString) {
     var params = JSON.parse(actionParamString);
     var name = params['action'];
     console.log("got an action: ", actionParamString);
     if (name in actionMap) {
-        actionMap[name](params, function(result) {
+        actionMap[name](session, params, function(result) {
             console.log("Sending websocket response...");
             ws.send(JSON.stringify(result));
             console.log("Send");

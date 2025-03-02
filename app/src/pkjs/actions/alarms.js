@@ -16,7 +16,7 @@
 
 var message_keys = require('message_keys');
 
-function setAlarm(message, callback) {
+function setAlarm(session, message, callback) {
     var time = message['time'];
     var isTimer = !!message['isTimer'];
     var cancelling = !!message['cancel'];
@@ -90,12 +90,12 @@ function setAlarm(message, callback) {
     };
     Pebble.addEventListener('appmessage', handleMessage);
     if (!cancelling) {
-        Pebble.sendAppMessage({
+        session.enqueue({
             SET_ALARM_TIME: unixTime,
             SET_ALARM_IS_TIMER: isTimer,
         });
     } else {
-        Pebble.sendAppMessage({
+        session.enqueue({
             CANCEL_ALARM_TIME: unixTime,
             CANCEL_ALARM_IS_TIMER: isTimer,
         });
@@ -161,7 +161,7 @@ function getAlarm(message, callback) {
         cleanup();
     }
     Pebble.addEventListener('appmessage', handleMessage);
-    Pebble.sendAppMessage({
+    session.enqueue({
         GET_ALARM_OR_TIMER: isTimer,
     });
 }

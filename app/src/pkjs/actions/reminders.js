@@ -16,7 +16,7 @@
 
 var timeline = require('./timeline');
 
-exports.setReminder = function(message, callback) {
+exports.setReminder = function(session, message, callback) {
     var when = message['time'];
     var what = message['what'];
     var date = (new Date(when)).toISOString();
@@ -40,7 +40,7 @@ exports.setReminder = function(message, callback) {
     };
     timeline.insertUserPin(pin, function() {
         var unixTime = (new Date(when)).getTime() / 1000;
-        Pebble.sendAppMessage({ACTION_REMINDER_WAS_SET: unixTime});
+        session.enqueue({ACTION_REMINDER_WAS_SET: unixTime});
         if (unixTime < (new Date()).getTime() / 1000 + 3600) {
             callback({"warning": "Your reminder was set. It is **critical** you warn the user: Due to timeline delays, reminders set in the near future may not appear on time."});
         } else {

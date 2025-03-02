@@ -165,6 +165,7 @@ static void prv_handle_app_message_inbox_received(DictionaryIterator *iter, void
 }
 
 static void prv_handle_app_message_inbox_dropped(AppMessageResult reason, void *context) {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Received message dropped: %d", reason);
   ConversationManager* manager = context;
   conversation_add_error(manager->conversation, "Response from service lost.");
   prv_conversation_updated(manager, true);
