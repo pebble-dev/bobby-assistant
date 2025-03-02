@@ -11,8 +11,9 @@ var sensitiveQueryParams = []string{
 	"prompt",       // the user's prompt
 	"threadId",     // the thread the prompt belongs to, if any
 	"lon", "lat",   // user's location as sent to us
-	"tzOffset", // user's timezone offset as sent to us
-	"token",    // user's auth (timeline) token, identifies them uniquely.
+	"proximity", // the target location for a POI lookup
+	"tzOffset",  // user's timezone offset as sent to us
+	"token",     // user's auth (timeline) token, identifies them uniquely.
 }
 var mapboxPathRegex = regexp.MustCompile(`^/geocoding/v5/mapbox\.places/.+?.json$`)
 
