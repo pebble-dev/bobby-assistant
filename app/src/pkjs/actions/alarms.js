@@ -103,7 +103,7 @@ function setAlarm(session, message, callback) {
     console.log("Sent set_alarm request to Pebble.");
 }
 
-function getAlarm(message, callback) {
+function getAlarm(session, message, callback) {
     var isTimer = message['isTimer'];
     console.log("Getting " + (isTimer ? "timers" : "alarms") + "...");
 
