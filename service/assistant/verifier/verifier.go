@@ -110,6 +110,11 @@ func FindLies(ctx context.Context, qt *quota.Tracker, message []*genai.Content) 
 		return nil, nil
 	}
 
+	// If the last assistant message is empty, there's nothing to do here.
+	if len(lastAssistantMessage.Parts) == 0 || lastAssistantMessage.Parts[0].Text == "" {
+		return nil, nil
+	}
+
 	actions, err := DetermineActions(ctx, qt, lastAssistantMessage.Parts[0].Text)
 	if err != nil {
 		return nil, err
