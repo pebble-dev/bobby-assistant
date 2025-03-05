@@ -28,7 +28,8 @@ function setAlarm(session, message, callback) {
             callback({"error": "Need to specify a duration for a timer."});
             return;
         }
-        unixTime = ((new Date()).getTime() / 1000) + duration;
+        // the real unix time will be calculated by the watch to avoid time sync errors.
+        unixTime = duration;
     }
     if (isNaN(unixTime) && (!cancelling)) {
         callback({"error": "Invalid time string '" + time + "'."});
@@ -37,7 +38,7 @@ function setAlarm(session, message, callback) {
     if (isNaN(unixTime)) {
         unixTime = 0;
     }
-    console.log("Trying to set alarm for " + unixTime + " (" + time + ")");
+    console.log("Trying to set " + (isTimer ? "timer" : "alarm") + " for " + unixTime + " (" + time + ")");
     
     var timeout = setTimeout(2000, function() {
         console.log("Timed out, returning error message.");

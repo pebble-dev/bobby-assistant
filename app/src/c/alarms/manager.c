@@ -291,6 +291,9 @@ static void prv_handle_set_alarm_request(DictionaryIterator *iterator, void *con
     return;
   }
   bool is_timer = tuple->value->int16;
+  if (is_timer) {
+    alarm_time += time(NULL);
+  }
   StatusCode result = alarm_manager_add_alarm(alarm_time, is_timer);
   prv_send_alarm_response(result);
   if (result == S_SUCCESS) {
