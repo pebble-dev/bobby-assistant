@@ -75,6 +75,16 @@
           "file": "button_indicator.png",
           "name": "BUTTON_INDICATOR",
           "type": "bitmap"
+        },
+        {
+          "file": "images/root_screen/pony.pdc",
+          "name": "ROOT_SCREEN_PONY",
+          "type": "raw"
+        },
+        {
+          "file": "images/root_screen/speech_bubble.pdc",
+          "name": "ROOT_SCREEN_SPEECH_BUBBLE",
+          "type": "raw"
         }
       ]
     }
