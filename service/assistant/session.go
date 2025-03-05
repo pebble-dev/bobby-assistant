@@ -20,6 +20,7 @@ import (
 	"errors"
 	"github.com/honeycombio/beeline-go"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/verifier"
 	"log"
 	"net/http"
 	"net/url"
@@ -260,11 +261,6 @@ func (ps *PromptSession) Run(ctx context.Context) {
 					},
 				})
 				return true, nil
-			} else {
-				if err := ps.conn.Write(ctx, websocket.MessageText, []byte("d")); err != nil {
-					log.Printf("write to websocket failed: %v\n", err)
-					return false, err
-				}
 			}
 			return false, nil
 		}()
@@ -277,6 +273,40 @@ func (ps *PromptSession) Run(ctx context.Context) {
 		}
 		log.Println("Going around again")
 	}
+
+	lies, err := verifier.FindLies(ctx, qt, messages)
+	if err != nil {
+		// Bobby doesn't usually lie, so this isn't worth killing the session over.
+		log.Printf("find lies failed: %v\n", err)
+	}
+	if len(lies) > 0 {
+		beeline.AddField(ctx, "lies", lies)
+		log.Printf("lies detected: %v\n", lies)
+		var formattedLies []string
+		for _, l := range lies {
+			switch l {
+			case "alarm":
+				formattedLies = append(formattedLies, "set an alarm")
+			case "timer":
+				formattedLies = append(formattedLies, "set a timer")
+			case "reminder":
+				formattedLies = append(formattedLies, "set a reminder")
+			}
+		}
+		prettyLies := strings.Join(formattedLies, ", ")
+		if len(formattedLies) > 1 {
+			prettyLies = strings.Join(formattedLies[:len(formattedLies)-1], ", ") + ", or " + formattedLies[len(formattedLies)-1]
+		}
+		message := "Bobby did not, in fact, " + prettyLies + "."
+		if err := ps.conn.Write(ctx, websocket.MessageText, []byte("w"+message)); err != nil {
+			log.Printf("write to websocket failed: %v\n", err)
+		}
+	}
+
+	if err := ps.conn.Write(ctx, websocket.MessageText, []byte("d")); err != nil {
+		log.Printf("write to websocket failed: %v\n", err)
+	}
+
 	beeline.AddField(ctx, "total_input_tokens", totalInputTokens)
 	beeline.AddField(ctx, "total_output_tokens", totalOutputTokens)
 	beeline.AddField(ctx, "total_cost", totalInputTokens*quota.InputTokenCredits+totalOutputTokens*quota.OutputTokenCredits)

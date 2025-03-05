@@ -50,7 +50,8 @@
       "QUOTA_REQUEST",
       "QUOTA_RESPONSE_USED",
       "QUOTA_RESPONSE_REMAINING",
-      "LOCATION_ENABLED"
+      "LOCATION_ENABLED",
+      "WARNING"
     ],
     "resources": {
       "media": [

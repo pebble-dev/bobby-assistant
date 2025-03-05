@@ -87,6 +87,10 @@ Session.prototype.handleMessage = function(event) {
         this.enqueue({
             THREAD_ID: message.substring(1)
         });
+    } else if (message[0] == 'w') {
+        this.enqueue({
+            WARNING: message.substring(1)
+        });
     }
 }
 

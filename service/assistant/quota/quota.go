@@ -24,13 +24,15 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// one credit is worth $0.0000001.
-const InputTokenCredits = 1
-const OutputTokenCredits = 4
-const WeatherQueryCredits = 5_250
-const PoiSearchCredits = 17_000
-const RouteCalculationCredits = 20_000
-const MonthlyQuotaCredits = 20_000_000
+// one credit is worth $0.000000025.
+const InputTokenCredits = 4
+const OutputTokenCredits = 16
+const LiteInputTokenCredits = 3
+const LiteOutputTokenCredits = 12
+const WeatherQueryCredits = 21_000
+const PoiSearchCredits = 68_000
+const RouteCalculationCredits = 80_000
+const MonthlyQuotaCredits = 80_000_000
 
 type Tracker struct {
 	redis  *redis.Client

@@ -129,6 +129,7 @@ static void prv_handle_app_message_inbox_received(DictionaryIterator *iter, void
     } else if (tuple->key == MESSAGE_KEY_FUNCTION) {
       APP_LOG(APP_LOG_LEVEL_INFO, "Received function: \"%s\".", tuple->value->cstring);
       conversation_complete_response(manager->conversation);
+      prv_conversation_updated(manager, false);
       conversation_add_thought(manager->conversation, tuple->value->cstring);
       prv_conversation_updated(manager, true);
     } else if (tuple->key == MESSAGE_KEY_CHAT_DONE) {
@@ -160,6 +161,11 @@ static void prv_handle_app_message_inbox_received(DictionaryIterator *iter, void
         },
       };
       conversation_manager_add_action(manager, &action);
+    } else if (tuple->key == MESSAGE_KEY_WARNING) {
+      conversation_complete_response(manager->conversation);
+      prv_conversation_updated(manager, false);
+      conversation_add_error(manager->conversation, tuple->value->cstring);
+      prv_conversation_updated(manager, true);
     }
   }
 }
