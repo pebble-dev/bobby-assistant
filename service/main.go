@@ -20,24 +20,12 @@ import (
 	"github.com/pebble-dev/bobby-assistant/service/assistant"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/config"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/util/redact"
-	"github.com/redis/go-redis/v9"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/util/storage"
 	"log"
 	"net/http"
 )
 
-func connectRedis() (*redis.Client, error) {
-	opt, err := redis.ParseURL(config.GetConfig().RedisURL)
-	if err != nil {
-		return nil, err
-	}
-	return redis.NewClient(opt), nil
-}
-
 func main() {
-	r, err := connectRedis()
-	if err != nil {
-		panic(err)
-	}
 	beeline.Init(beeline.Config{
 		WriteKey:    config.GetConfig().HoneycombKey,
 		Dataset:     "rws",
@@ -46,7 +34,7 @@ func main() {
 	})
 	defer beeline.Close()
 	http.DefaultTransport = hnynethttp.WrapRoundTripper(http.DefaultTransport)
-	service := assistant.NewService(r)
+	service := assistant.NewService(storage.GetRedis())
 	addr := "0.0.0.0:8080"
 	log.Printf("Listening on %s.", addr)
 	log.Fatal(service.ListenAndServe(addr))
