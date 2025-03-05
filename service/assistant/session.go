@@ -160,7 +160,9 @@ func (ps *PromptSession) Run(ctx context.Context) {
 				if err != nil {
 					streamSpan.AddField("error", err)
 					log.Printf("recv from Google failed: %v\n", err)
-					_ = ps.conn.Close(websocket.StatusInternalError, "request to Google failed")
+					// This comes up when Google is over capacity, which does happen sometimes.
+					// There's nothing we can really do here, though we could blame them instead of ourselves.
+					_ = ps.conn.Close(websocket.StatusInternalError, "Bobby is unavailable right now. Please try again in a few moments.")
 					streamSpan.Send()
 					return false, err
 				}
@@ -171,7 +173,7 @@ func (ps *PromptSession) Run(ctx context.Context) {
 				choice := resp.Candidates[0]
 				ourContent := ""
 				if choice.Content == nil {
-					continue
+
 				}
 				for _, c := range choice.Content.Parts {
 					if c.Text != "" {
