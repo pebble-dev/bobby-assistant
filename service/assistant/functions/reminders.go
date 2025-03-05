@@ -38,14 +38,14 @@ func init() {
 	registerFunction(Registration{
 		Definition: genai.FunctionDeclaration{
 			Name:        "set_reminder",
-			Description: "Set a reminder for the user to perform a task at a time.  Either time or delay must be provided, but not both.",
+			Description: "Set a reminder for the user to perform a task at a time.  Either time or delay must be provided, but not both. If the user specifies a time but not a day, assume they meant the next time that time will happen.",
 			Parameters: &genai.Schema{
 				Type:     genai.TypeObject,
 				Nullable: false,
 				Properties: map[string]*genai.Schema{
 					"time": {
 						Type:        genai.TypeString,
-						Description: "The time to schedule the reminder for in ISO 8601 format, e.g. '2023-07-12T00:00:00-07:00'.",
+						Description: "The time to schedule the reminder for in ISO 8601 format, e.g. '2023-07-12T00:00:00-07:00'. Always assume the user's timezone unless otherwise specified.",
 						Nullable:    true,
 					},
 					"delay_mins": {
