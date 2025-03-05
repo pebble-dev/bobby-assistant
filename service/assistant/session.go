@@ -170,6 +170,9 @@ func (ps *PromptSession) Run(ctx context.Context) {
 				}
 				choice := resp.Candidates[0]
 				ourContent := ""
+				if choice.Content == nil {
+					continue
+				}
 				for _, c := range choice.Content.Parts {
 					if c.Text != "" {
 						ourContent += c.Text
