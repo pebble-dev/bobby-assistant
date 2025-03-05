@@ -26,7 +26,6 @@ typedef enum {
   ConversationActionTypeSetAlarm,
   ConversationActionTypeSetReminder,
   ConversationActionTypeUpdateChecklist,
-  ConversationActionTypePokeHomeAssistant,
   ConversationActionTypeGenericSentence,
 } ConversationActionType;
 
