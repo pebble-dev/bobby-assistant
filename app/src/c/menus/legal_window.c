@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "credits_window.h"
+#include "legal_window.h"
 #include <pebble.h>
 
 typedef struct {
@@ -41,7 +41,7 @@ const char * const credits_text = "Gemini\n"
 static void prv_window_load(Window* window);
 static void prv_window_unload(Window* window);
 
-void credits_menu_window_push() {
+void legal_window_push() {
  Window *window = window_create();
  CreditsWindowData *data = malloc(sizeof(CreditsWindowData));
  memset(data, 0, sizeof(CreditsWindowData));

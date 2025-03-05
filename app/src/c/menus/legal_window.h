@@ -16,7 +16,7 @@
 
 #ifndef CREDITS_H
 
-void credits_menu_window_push();
+void legal_window_push();
 
 #define CREDITS_H
 

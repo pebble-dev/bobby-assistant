@@ -54,5 +54,5 @@ add_executable(tiny_assistant_app
         src/c/menus/usage_layer.c
         src/c/menus/alarm_menu.c
         src/c/menus/alarm_menu.h
-        src/c/consent/consent.c
-        src/c/menus/credits_window.c)
+        src/c/menus/legal_window.c
+        src/c/consent/consent.c)
