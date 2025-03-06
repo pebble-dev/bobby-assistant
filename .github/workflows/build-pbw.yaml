@@ -3,7 +3,8 @@ name: Build Pebble app
 on:
   # Triggers the workflow on push or pull request events for any branch (see commented out `branches` lines for  master branch example)
   push:
-    branches: [pbw-action]
+    paths:
+      - 'app/**'
 
 jobs:
   build:
