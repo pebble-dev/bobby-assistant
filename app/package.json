@@ -85,6 +85,11 @@
           "file": "images/root_screen/speech_bubble.pdc",
           "name": "ROOT_SCREEN_SPEECH_BUBBLE",
           "type": "raw"
+        },
+        {
+          "file": "images/sleeping_pony.pdc",
+          "name": "SLEEPING_PONY",
+          "type": "raw"
         }
       ]
     }
