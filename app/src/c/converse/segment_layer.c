@@ -20,7 +20,7 @@
 
 #include <pebble.h>
 
-#define CONTENT_FONT FONT_KEY_GOTHIC_24
+#define CONTENT_FONT FONT_KEY_GOTHIC_24_BOLD
 #define NAME_HEIGHT 15
 
 typedef struct {
