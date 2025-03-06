@@ -75,7 +75,7 @@ static void prv_window_load(Window* window) {
   text_layer_set_text_alignment(data->empty_text_layer, GTextAlignmentCenter);
   text_layer_set_text(data->empty_text_layer, data->for_timers ? "No timers set. Ask Bobby to set some." : "No alarms set. Ask Bobby to set some.");
   if (prv_get_num_rows(data->menu_layer, 0, data) == 0) {
-    window_set_background_color(window, ACCENT_COLOUR);
+    window_set_background_color(window, BRANDED_BACKGROUND_COLOUR);
     bobby_status_bar_result_pane_config(data->status_bar);
     layer_add_child(root_layer, text_layer_get_layer(data->empty_text_layer));
   } else {

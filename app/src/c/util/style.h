@@ -20,7 +20,8 @@
 #include <pebble.h>
 
 #define ACCENT_COLOUR GColorShockingPink
-#define SELECTION_HIGHLIGHT_COLOUR ACCENT_COLOUR
+#define BRANDED_BACKGROUND_COLOUR COLOR_FALLBACK(ACCENT_COLOUR, GColorWhite)
+#define SELECTION_HIGHLIGHT_COLOUR COLOR_FALLBACK(ACCENT_COLOUR, GColorBlack)
 
 void bobby_status_bar_config(StatusBarLayer *status_bar);
 void bobby_status_bar_result_pane_config(StatusBarLayer *status_bar);
