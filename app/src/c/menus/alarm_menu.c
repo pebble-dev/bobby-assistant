@@ -60,6 +60,7 @@ static void prv_window_load(Window* window) {
   AlarmMenuWindowData* data = window_get_user_data(window);
   Layer* root_layer = window_get_root_layer(window);
   GRect window_bounds = layer_get_frame(root_layer);
+  window_set_background_color(window, ACCENT_COLOUR);
   data->menu_layer = menu_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT, window_bounds.size.w, window_bounds.size.h - STATUS_BAR_LAYER_HEIGHT));
   menu_layer_set_highlight_colors(data->menu_layer, SELECTION_HIGHLIGHT_COLOUR, gcolor_legible_over(SELECTION_HIGHLIGHT_COLOUR));
   menu_layer_set_callbacks(data->menu_layer, data, (MenuLayerCallbacks) {
@@ -68,14 +69,17 @@ static void prv_window_load(Window* window) {
     .select_click = prv_select_click,
   });
   data->status_bar = status_bar_layer_create();
-  bobby_status_bar_menu_screen_config(data->status_bar);
-  data->empty_text_layer = text_layer_create(GRect(0, 50, window_bounds.size.w, window_bounds.size.h));
-  text_layer_set_font(data->empty_text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24));
+  data->empty_text_layer = text_layer_create(GRect(10, 45, window_bounds.size.w - 20, window_bounds.size.h));
+  text_layer_set_text_color(data->empty_text_layer, gcolor_legible_over(ACCENT_COLOUR));
+  text_layer_set_background_color(data->empty_text_layer, GColorClear);
+  text_layer_set_font(data->empty_text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
   text_layer_set_text_alignment(data->empty_text_layer, GTextAlignmentCenter);
   text_layer_set_text(data->empty_text_layer, data->for_timers ? "No timers set. Ask Bobby to set some." : "No alarms set. Ask Bobby to set some.");
   if (prv_get_num_rows(data->menu_layer, 0, data) == 0) {
     layer_add_child(root_layer, text_layer_get_layer(data->empty_text_layer));
+    bobby_status_bar_result_pane_config(data->status_bar);
   } else {
+    bobby_status_bar_config(data->status_bar);
     layer_add_child(root_layer, menu_layer_get_layer(data->menu_layer));
     menu_layer_set_click_config_onto_window(data->menu_layer, window);
   }

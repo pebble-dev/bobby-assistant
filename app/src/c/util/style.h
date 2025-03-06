@@ -21,11 +21,8 @@
 
 #define ACCENT_COLOUR GColorShockingPink
 #define SELECTION_HIGHLIGHT_COLOUR ACCENT_COLOUR
-#define STATUS_BAR_COLOUR_BG GColorWhite
-#define STATUS_BAR_COLOUR_FG GColorBlack
-#define STATUS_BAR_SEPARATOR StatusBarLayerSeparatorModeDotted
 
 void bobby_status_bar_config(StatusBarLayer *status_bar);
-void bobby_status_bar_menu_screen_config(StatusBarLayer *status_bar);
+void bobby_status_bar_result_pane_config(StatusBarLayer *status_bar);
 
 #endif //COLOURS_H

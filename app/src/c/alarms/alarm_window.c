@@ -15,6 +15,7 @@
  */
 
 #include "alarm_window.h"
+#include "../util/style.h"
 
 #include <pebble-events/pebble-events.h>
 #include <pebble.h>
@@ -73,10 +74,10 @@ static void prv_window_load(Window *window) {
   data->tick_handle = events_tick_timer_service_subscribe_context(SECOND_UNIT, prv_tick_callback, window);
   time_t now = time(NULL);
   prv_tick_callback(localtime(&now), SECOND_UNIT, window);
-  window_set_background_color(window, COLOR_FALLBACK(GColorLightGray, GColorWhite));
+  window_set_background_color(window, COLOR_FALLBACK(ACCENT_COLOUR, GColorWhite));
   if (data->is_timer) {
     data->status_bar = status_bar_layer_create();
-    status_bar_layer_set_colors(data->status_bar, COLOR_FALLBACK(GColorLightGray, GColorWhite), GColorBlack);
+    bobby_status_bar_result_pane_config(data->status_bar);
     layer_add_child(root_layer, (Layer *)data->status_bar);
   } else {
     data->status_bar = NULL;
