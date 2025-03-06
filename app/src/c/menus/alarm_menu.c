@@ -71,7 +71,7 @@ static void prv_window_load(Window* window) {
   data->empty_text_layer = text_layer_create(GRect(0, 50, window_bounds.size.w, window_bounds.size.h));
   text_layer_set_font(data->empty_text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24));
   text_layer_set_text_alignment(data->empty_text_layer, GTextAlignmentCenter);
-  text_layer_set_text(data->empty_text_layer, data->for_timers ? "No timers set. Use Bobby to set some." : "No alarms set. Use Bobby to set some.");
+  text_layer_set_text(data->empty_text_layer, data->for_timers ? "No timers set. Ask Bobby to set some." : "No alarms set. Ask Bobby to set some.");
   if (prv_get_num_rows(data->menu_layer, 0, data) == 0) {
     layer_add_child(root_layer, text_layer_get_layer(data->empty_text_layer));
   } else {
