@@ -16,6 +16,7 @@
 
 #include "consent.h"
 #include "../util/persist_keys.h"
+#include "../util/style.h"
 #include "../root_window.h"
 
 #include <pebble.h>
@@ -92,8 +93,8 @@ static void prv_window_load(Window *window) {
     .layer = data->content_indicator_layer,
     .alignment = GAlignCenter,
     .colors = {
-      .background = GColorWhite,
-      .foreground = GColorBlack,
+      .background = COLOR_FALLBACK(ACCENT_COLOUR, GColorWhite),
+      .foreground = COLOR_FALLBACK(gcolor_legible_over(ACCENT_COLOUR), GColorBlack),
     }
   };
   content_indicator_configure_direction(indicator, ContentIndicatorDirectionDown, &content_indicator_config);

@@ -60,7 +60,6 @@ static void prv_window_load(Window* window) {
   AlarmMenuWindowData* data = window_get_user_data(window);
   Layer* root_layer = window_get_root_layer(window);
   GRect window_bounds = layer_get_frame(root_layer);
-  window_set_background_color(window, ACCENT_COLOUR);
   data->menu_layer = menu_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT, window_bounds.size.w, window_bounds.size.h - STATUS_BAR_LAYER_HEIGHT));
   menu_layer_set_highlight_colors(data->menu_layer, SELECTION_HIGHLIGHT_COLOUR, gcolor_legible_over(SELECTION_HIGHLIGHT_COLOUR));
   menu_layer_set_callbacks(data->menu_layer, data, (MenuLayerCallbacks) {
@@ -76,9 +75,11 @@ static void prv_window_load(Window* window) {
   text_layer_set_text_alignment(data->empty_text_layer, GTextAlignmentCenter);
   text_layer_set_text(data->empty_text_layer, data->for_timers ? "No timers set. Ask Bobby to set some." : "No alarms set. Ask Bobby to set some.");
   if (prv_get_num_rows(data->menu_layer, 0, data) == 0) {
-    layer_add_child(root_layer, text_layer_get_layer(data->empty_text_layer));
+    window_set_background_color(window, ACCENT_COLOUR);
     bobby_status_bar_result_pane_config(data->status_bar);
+    layer_add_child(root_layer, text_layer_get_layer(data->empty_text_layer));
   } else {
+    window_set_background_color(window, GColorWhite);
     bobby_status_bar_config(data->status_bar);
     layer_add_child(root_layer, menu_layer_get_layer(data->menu_layer));
     menu_layer_set_click_config_onto_window(data->menu_layer, window);
@@ -183,8 +184,8 @@ static void prv_select_click(struct MenuLayer* menu_layer, MenuIndex* cell_index
   ActionMenuConfig config = (ActionMenuConfig) {
     .root_level = root_level,
     .colors = {
-      .background = GColorBlack, // TODO: something nicer on colour screens, probably
-      .foreground = GColorWhite,
+      .background = COLOR_FALLBACK(ACCENT_COLOUR, GColorWhite),
+      .foreground = COLOR_FALLBACK(gcolor_legible_over(ACCENT_COLOUR), GColorBlack),
     },
     .align = ActionMenuAlignCenter,
     .did_close = prv_action_menu_close,
