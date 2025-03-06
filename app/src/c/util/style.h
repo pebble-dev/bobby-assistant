@@ -20,8 +20,8 @@
 #include <pebble.h>
 
 #define ACCENT_COLOUR GColorShockingPink
-#define STATUS_BAR_COLOUR_FG COLOR_FALLBACK(ACCENT_COLOUR, GColorWhite)
-#define STATUS_BAR_COLOUR_BG GColorBlack
+#define STATUS_BAR_COLOUR_BG COLOR_FALLBACK(ACCENT_COLOUR, GColorWhite)
+#define STATUS_BAR_COLOUR_FG GColorBlack
 #define STATUS_BAR_SEPARATOR PBL_IF_COLOR_ELSE(StatusBarLayerSeparatorModeNone, StatusBarLayerSeparatorModeDotted)
 
 void bobby_status_bar_config(StatusBarLayer *status_bar);
