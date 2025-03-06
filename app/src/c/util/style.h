@@ -19,7 +19,8 @@
 
 #include <pebble.h>
 
-#define STATUS_BAR_COLOUR_FG COLOR_FALLBACK(GColorRichBrilliantLavender, GColorWhite)
+#define ACCENT_COLOUR GColorShockingPink
+#define STATUS_BAR_COLOUR_FG COLOR_FALLBACK(ACCENT_COLOUR, GColorWhite)
 #define STATUS_BAR_COLOUR_BG GColorBlack
 #define STATUS_BAR_SEPARATOR PBL_IF_COLOR_ELSE(StatusBarLayerSeparatorModeNone, StatusBarLayerSeparatorModeDotted)
 

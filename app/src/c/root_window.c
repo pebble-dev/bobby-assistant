@@ -21,6 +21,7 @@
 #include "converse/session_window.h"
 #include "menus/root_menu.h"
 #include "util/vector_layer.h"
+#include "util/style.h"
 
 struct RootWindow {
   Window* window;
@@ -54,7 +55,7 @@ RootWindow* root_window_create() {
     .appear = prv_window_appear,
     .disappear = prv_window_disappear,
   });
-  window_set_background_color(window->window, COLOR_FALLBACK(GColorRichBrilliantLavender, GColorWhite));
+  window_set_background_color(window->window, COLOR_FALLBACK(ACCENT_COLOUR, GColorWhite));
   window->dictation_icon = gbitmap_create_with_resource(RESOURCE_ID_DICTATION_ICON);
   window->more_icon = gbitmap_create_with_resource(RESOURCE_ID_MORE_ICON);
   window->action_bar = action_bar_layer_create();
