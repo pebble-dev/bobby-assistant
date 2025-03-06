@@ -78,9 +78,10 @@ static void prv_window_load(Window* window) {
   Layer* root_layer = window_get_root_layer(window);
   GRect window_bounds = layer_get_frame(root_layer);
   data->status_bar = status_bar_layer_create();
-  bobby_status_bar_config(data->status_bar);
+  bobby_status_bar_menu_screen_config(data->status_bar);
   layer_add_child(root_layer, status_bar_layer_get_layer(data->status_bar));
   data->menu_layer = simple_menu_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT, window_bounds.size.w, window_bounds.size.h - STATUS_BAR_LAYER_HEIGHT), window, &section, 1, window);
+  menu_layer_set_highlight_colors(simple_menu_layer_get_menu_layer(data->menu_layer), SELECTION_HIGHLIGHT_COLOUR, gcolor_legible_over(SELECTION_HIGHLIGHT_COLOUR));
   layer_add_child(root_layer, simple_menu_layer_get_layer(data->menu_layer));
   APP_LOG(APP_LOG_LEVEL_DEBUG_VERBOSE, "Root menu window loaded");
 }

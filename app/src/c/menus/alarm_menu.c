@@ -61,13 +61,14 @@ static void prv_window_load(Window* window) {
   Layer* root_layer = window_get_root_layer(window);
   GRect window_bounds = layer_get_frame(root_layer);
   data->menu_layer = menu_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT, window_bounds.size.w, window_bounds.size.h - STATUS_BAR_LAYER_HEIGHT));
+  menu_layer_set_highlight_colors(data->menu_layer, SELECTION_HIGHLIGHT_COLOUR, gcolor_legible_over(SELECTION_HIGHLIGHT_COLOUR));
   menu_layer_set_callbacks(data->menu_layer, data, (MenuLayerCallbacks) {
     .get_num_rows = prv_get_num_rows,
     .draw_row = prv_draw_row,
     .select_click = prv_select_click,
   });
   data->status_bar = status_bar_layer_create();
-  bobby_status_bar_config(data->status_bar);
+  bobby_status_bar_menu_screen_config(data->status_bar);
   data->empty_text_layer = text_layer_create(GRect(0, 50, window_bounds.size.w, window_bounds.size.h));
   text_layer_set_font(data->empty_text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24));
   text_layer_set_text_alignment(data->empty_text_layer, GTextAlignmentCenter);
