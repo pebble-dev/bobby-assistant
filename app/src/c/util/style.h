@@ -1,0 +1,28 @@
+/*
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef COLOURS_H
+#define COLOURS_H
+
+#include <pebble.h>
+
+#define STATUS_BAR_COLOUR_FG COLOR_FALLBACK(GColorRichBrilliantLavender, GColorWhite)
+#define STATUS_BAR_COLOUR_BG GColorBlack
+#define STATUS_BAR_SEPARATOR PBL_IF_COLOR_ELSE(StatusBarLayerSeparatorModeNone, StatusBarLayerSeparatorModeDotted)
+
+void bobby_status_bar_config(StatusBarLayer *status_bar);
+
+#endif //COLOURS_H

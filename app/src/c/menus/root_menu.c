@@ -18,6 +18,7 @@
 #include "quota_window.h"
 #include "alarm_menu.h"
 #include "legal_window.h"
+#include "../util/style.h"
 #include <pebble.h>
 
 
@@ -77,8 +78,7 @@ static void prv_window_load(Window* window) {
   Layer* root_layer = window_get_root_layer(window);
   GRect window_bounds = layer_get_frame(root_layer);
   data->status_bar = status_bar_layer_create();
-  status_bar_layer_set_colors(data->status_bar, GColorWhite, GColorBlack);
-  status_bar_layer_set_separator_mode(data->status_bar, StatusBarLayerSeparatorModeDotted);
+  bobby_status_bar_config(data->status_bar);
   layer_add_child(root_layer, status_bar_layer_get_layer(data->status_bar));
   data->menu_layer = simple_menu_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT, window_bounds.size.w, window_bounds.size.h - STATUS_BAR_LAYER_HEIGHT), window, &section, 1, window);
   layer_add_child(root_layer, simple_menu_layer_get_layer(data->menu_layer));

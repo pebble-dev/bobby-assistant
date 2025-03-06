@@ -16,6 +16,7 @@
 
 #include "alarm_menu.h"
 #include "../alarms/manager.h"
+#include "../util/style.h"
 
 #include <pebble.h>
 #include <pebble-events/pebble-events.h>
@@ -66,8 +67,7 @@ static void prv_window_load(Window* window) {
     .select_click = prv_select_click,
   });
   data->status_bar = status_bar_layer_create();
-  status_bar_layer_set_colors(data->status_bar, GColorWhite, GColorBlack);
-  status_bar_layer_set_separator_mode(data->status_bar, StatusBarLayerSeparatorModeDotted);
+  bobby_status_bar_config(data->status_bar);
   data->empty_text_layer = text_layer_create(GRect(0, 50, window_bounds.size.w, window_bounds.size.h));
   text_layer_set_font(data->empty_text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24));
   text_layer_set_text_alignment(data->empty_text_layer, GTextAlignmentCenter);

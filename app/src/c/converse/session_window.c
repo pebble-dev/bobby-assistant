@@ -22,7 +22,7 @@
 #include "../util/thinking_layer.h"
 
 #include <pebble.h>
-#include <pebble-events/pebble-events.h>
+#include "../util/style.h"
 
 #define PADDING 5
 
@@ -107,8 +107,7 @@ static void prv_window_load(Window *window) {
   layer_add_child(root_layer, (Layer *)sw->button_layer);
 
   sw->status_layer = status_bar_layer_create();
-  status_bar_layer_set_colors(sw->status_layer, GColorWhite, GColorBlack);
-  status_bar_layer_set_separator_mode(sw->status_layer, StatusBarLayerSeparatorModeDotted);
+  bobby_status_bar_config(sw->status_layer);
   layer_add_child(root_layer, (Layer *)sw->status_layer);
 
   sw->content_height = 0;

@@ -17,6 +17,7 @@
 #include "quota_window.h"
 #include "usage_layer.h"
 #include "../util/thinking_layer.h"
+#include "../util/style.h"
 
 #include <pebble.h>
 #include <pebble-events/pebble-events.h>
@@ -52,8 +53,7 @@ static void prv_window_load(Window* window) {
   Layer* root_layer = window_get_root_layer(window);
   GRect bounds = layer_get_bounds(root_layer);
   data->status_bar = status_bar_layer_create();
-  status_bar_layer_set_colors(data->status_bar, GColorWhite, GColorBlack);
-  status_bar_layer_set_separator_mode(data->status_bar, StatusBarLayerSeparatorModeDotted);
+  bobby_status_bar_config(data->status_bar);
   data->scroll_layer = scroll_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT, bounds.size.w, bounds.size.h - STATUS_BAR_LAYER_HEIGHT));
   scroll_layer_set_content_size(data->scroll_layer, GSize(bounds.size.w, 300));
   scroll_layer_set_click_config_onto_window(data->scroll_layer, window);
