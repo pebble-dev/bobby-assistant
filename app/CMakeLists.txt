@@ -35,9 +35,6 @@ include_directories(node_modules/pebble-clay/dist/include)
 include_directories(node_modules/pebble-events/dist/include)
 include_directories(node_modules/@smallstoneapps/linked-list/dist/include)
 
-# Ourselves.
-include_directories(src/c)
-
 # Y'know, all the files.
 add_executable(tiny_assistant_app
         src/c/alarms/alarm_window.c
