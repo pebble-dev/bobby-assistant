@@ -90,6 +90,36 @@
           "file": "images/sleeping_pony.pdc",
           "name": "SLEEPING_PONY",
           "type": "raw"
+        },
+        {
+          "file": "icons/clock.pdc",
+          "name": "CLOCK_ICON",
+          "type": "raw"
+        },
+        {
+          "file": "icons/cog.pdc",
+          "name": "COG_ICON",
+          "type": "raw"
+        },
+        {
+          "file": "icons/lightbulb.pdc",
+          "name": "LIGHTBULB_ICON",
+          "type": "raw"
+        },
+        {
+          "file": "icons/reminder.pdc",
+          "name": "REMINDER_ICON",
+          "type": "raw"
+        },
+        {
+          "file": "icons/skull.pdc",
+          "name": "SKULL_ICON",
+          "type": "raw"
+        },
+        {
+          "file": "icons/timer.pdc",
+          "name": "TIMER_ICON",
+          "type": "raw"
         }
       ]
     }

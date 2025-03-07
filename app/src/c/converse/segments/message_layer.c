@@ -37,7 +37,7 @@ MessageLayer* message_layer_create(GRect rect, ConversationEntry* entry) {
     Layer* layer = layer_create_with_data(rect, sizeof(MessageLayerData));
     MessageLayerData* data = layer_get_data(layer);
     data->entry = entry;
-    data->speaker_layer = text_layer_create(GRect(0, 0, rect.size.w, NAME_HEIGHT));
+    data->speaker_layer = text_layer_create(GRect(5, 0, rect.size.w, NAME_HEIGHT));
     EntryType type = conversation_entry_get_type(entry);
     if (type == EntryTypePrompt) {
       text_layer_set_text(data->speaker_layer, "You");
@@ -48,7 +48,7 @@ MessageLayer* message_layer_create(GRect rect, ConversationEntry* entry) {
     data->last_newline_offset = 0;
     data->content_height = 24;
     data->content_height = prv_get_content_height(layer);
-    data->content_layer = text_layer_create(GRect(0, NAME_HEIGHT, rect.size.w, data->content_height));
+    data->content_layer = text_layer_create(GRect(5, NAME_HEIGHT, rect.size.w - 10, data->content_height));
     text_layer_set_text(data->content_layer, prv_get_content_text(layer));
     text_layer_set_font(data->content_layer, fonts_get_system_font(CONTENT_FONT));
     data->content_height = text_layer_get_content_size(data->content_layer).h;
@@ -73,7 +73,7 @@ void message_layer_update(MessageLayer* layer) {
   int width = layer_get_bounds(layer).size.w;
   GRect frame = layer_get_frame(layer);
   frame.size.h = data->content_height + NAME_HEIGHT + 5;
-  text_layer_set_size(data->content_layer, GSize(width, data->content_height + 5));
+  text_layer_set_size(data->content_layer, GSize(width - 10, data->content_height + 5));
   layer_set_frame(layer, frame);
 }
 
@@ -100,7 +100,7 @@ static int prv_get_content_height(MessageLayer* layer) {
   size_t offset = data->last_newline_offset;
   char* text = prv_get_content_text(layer);
   const GFont font = fonts_get_system_font(CONTENT_FONT);
-  const GRect rect = GRect(0, 0, layer_get_frame(layer).size.w, 10000);
+  const GRect rect = GRect(0, 0, layer_get_frame(layer).size.w - 10, 10000);
   // This algorithm is somewhat buggy (it can't cope with words getting broken; it assumes only one break per
   // fragment), so for content where speed is less important just actually measure the thing.
   GTextAlignment alignment = GTextAlignmentLeft;
