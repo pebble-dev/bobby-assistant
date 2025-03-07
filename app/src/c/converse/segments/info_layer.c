@@ -18,6 +18,10 @@
 #include <pebble.h>
 
 #define CONTENT_FONT FONT_KEY_GOTHIC_24
+#define STRIPE_WIDTH 24
+#define TEXT_PADDING_LEFT 2
+#define TEXT_PADDING_RIGHT 5
+#define UNAVAILABLE_WIDTH (STRIPE_WIDTH + TEXT_PADDING_LEFT + TEXT_PADDING_RIGHT)
 
 typedef struct {
   ConversationEntry* entry;
@@ -42,7 +46,7 @@ InfoLayer* info_layer_create(GRect rect, ConversationEntry* entry) {
     data->content_text = NULL;
     data->content_height = 24;
     data->content_height = prv_get_content_height(layer);
-    data->content_layer = text_layer_create(GRect(24, 1, rect.size.w - 24 - 5, data->content_height));
+    data->content_layer = text_layer_create(GRect(STRIPE_WIDTH + TEXT_PADDING_LEFT, 1, rect.size.w - UNAVAILABLE_WIDTH, data->content_height));
     text_layer_set_text(data->content_layer, prv_get_content_text(layer));
     text_layer_set_font(data->content_layer, fonts_get_system_font(CONTENT_FONT));
     text_layer_set_background_color(data->content_layer, GColorClear);
@@ -109,7 +113,7 @@ static char *prv_get_content_text(InfoLayer *layer) {
 static int prv_get_content_height(InfoLayer* layer) {
   char* text = prv_get_content_text(layer);
   const GFont font = fonts_get_system_font(CONTENT_FONT);
-  const GRect rect = GRect(0, 0, layer_get_frame(layer).size.w - 24 - 5, 10000);
+  const GRect rect = GRect(0, 0, layer_get_frame(layer).size.w - UNAVAILABLE_WIDTH, 10000);
   GTextAlignment alignment = GTextAlignmentCenter;
   return graphics_text_layout_get_content_size(text, font, rect, GTextOverflowModeTrailingEllipsis, alignment).h;
 }
@@ -119,17 +123,12 @@ static void prv_layer_render(Layer* layer, GContext* ctx) {
   GRect bounds = layer_get_bounds(layer);
   GColor stripe_color = prv_get_stripe_color(data->entry);
   graphics_context_set_fill_color(ctx, stripe_color);
-  GSize icon_size = GSize(18, 18);
-  if (data->icon) {
-    icon_size = gdraw_command_image_get_bounds_size(data->icon);
-  }
-  int16_t stripe_width = 4 + icon_size.w;
-  graphics_fill_rect(ctx, GRect(0, 0, stripe_width, bounds.size.h), 0, GCornerNone);
+  graphics_fill_rect(ctx, GRect(0, 0, STRIPE_WIDTH, bounds.size.h), 0, GCornerNone);
   graphics_context_set_stroke_color(ctx, GColorBlack);
   graphics_draw_line(ctx, GPoint(0, 0), GPoint(bounds.size.w, 0));
   graphics_draw_line(ctx, GPoint(0, bounds.size.h - 1), GPoint(bounds.size.w, bounds.size.h - 1));
   if (data->icon) {
-    gdraw_command_image_draw(ctx, data->icon, GPoint(2, 10));
+    gdraw_command_image_draw(ctx, data->icon, GPoint(3, 10));
   }
 }
 
@@ -171,17 +170,17 @@ static char* prv_generate_action_text(ConversationAction* action) {
         int minutes = (duration % 3600) / 60;
         int seconds = duration % 60;
         if (hours > 0) {
-          snprintf(buffer, 50, deleting ? "Canceled a timer with %d:%02d:%02d remaining." : "Set a timer for %d:%02d:%02d.", hours, minutes, seconds);
+          snprintf(buffer, 50, deleting ? "Timer canceled with %d:%02d:%02d remaining." : "Timer set for %d:%02d:%02d.", hours, minutes, seconds);
           return buffer;
         } else {
-          snprintf(buffer, 50, deleting ? "Canceled a timer with %d:%02d remaining." : "Set a timer for %d:%02d.", minutes, seconds);
+          snprintf(buffer, 50, deleting ? "Timer canceled with %d:%02d remaining." : "Timer set for %d:%02d.", minutes, seconds);
           return buffer;
         }
       } else {
-        const char *verb = action->action.set_alarm.deleted ? "Canceled" : "Set";
+        const char *verb = action->action.set_alarm.deleted ? "canceled" : "set";
         char time_str[30];
         prv_format_time(action->action.set_alarm.time, time_str, sizeof(time_str));
-        snprintf(buffer, 50, "%s an alarm for %s.", verb, time_str);
+        snprintf(buffer, 50, "Alarm %s for %s.", verb, time_str);
         return buffer;
       }
       break;
@@ -189,11 +188,11 @@ static char* prv_generate_action_text(ConversationAction* action) {
     case ConversationActionTypeSetReminder: {
       char time_str[30];
       prv_format_time(action->action.set_reminder.time, time_str, sizeof(time_str));
-      snprintf(buffer, 50, "Set a reminder for %s.", time_str);
+      snprintf(buffer, 50, "Reminder set for %s.", time_str);
       break;
     }
     case ConversationActionTypeUpdateChecklist:
-      strncpy(buffer, "Updated your checklist.", 50);
+      strncpy(buffer, "Checklist updated.", 50);
       break;
     case ConversationActionTypeGenericSentence:
       strncpy(buffer, action->action.generic_sentence.sentence, 50);
