@@ -17,7 +17,7 @@
 #include "info_layer.h"
 #include <pebble.h>
 
-#define CONTENT_FONT FONT_KEY_GOTHIC_24_BOLD
+#define CONTENT_FONT FONT_KEY_GOTHIC_24
 
 typedef struct {
   ConversationEntry* entry;
@@ -125,14 +125,9 @@ static void prv_layer_render(Layer* layer, GContext* ctx) {
   }
   int16_t stripe_width = 4 + icon_size.w;
   graphics_fill_rect(ctx, GRect(0, 0, stripe_width, bounds.size.h), 0, GCornerNone);
-#if defined(PBL_COLOR)
-  graphics_context_set_fill_color(ctx, GColorLightGray);
-  graphics_fill_rect(ctx, GRect(stripe_width, 0, bounds.size.w - stripe_width, bounds.size.h), 0, GCornerNone);
-#else
   graphics_context_set_stroke_color(ctx, GColorBlack);
   graphics_draw_line(ctx, GPoint(0, 0), GPoint(bounds.size.w, 0));
   graphics_draw_line(ctx, GPoint(0, bounds.size.h - 1), GPoint(bounds.size.w, bounds.size.h - 1));
-#endif
   if (data->icon) {
     gdraw_command_image_draw(ctx, data->icon, GPoint(2, 10));
   }
