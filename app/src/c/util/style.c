@@ -11,6 +11,6 @@ void bobby_status_bar_config(StatusBarLayer *status_bar) {
 }
 
 void bobby_status_bar_result_pane_config(StatusBarLayer *status_bar) {
-  status_bar_layer_set_colors(status_bar, ACCENT_COLOUR, gcolor_legible_over(ACCENT_COLOUR));
-  status_bar_layer_set_separator_mode(status_bar, StatusBarLayerSeparatorModeNone);
+  status_bar_layer_set_colors(status_bar, COLOR_FALLBACK(ACCENT_COLOUR, GColorWhite), gcolor_legible_over(ACCENT_COLOUR));
+  status_bar_layer_set_separator_mode(status_bar, PBL_IF_COLOR_ELSE(StatusBarLayerSeparatorModeNone, StatusBarLayerSeparatorModeDotted));
 }
