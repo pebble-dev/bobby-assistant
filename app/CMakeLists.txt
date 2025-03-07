@@ -44,7 +44,7 @@ add_executable(tiny_assistant_app
         src/c/alarms/manager.c
         src/c/converse/conversation.c
         src/c/converse/conversation_manager.c
-        src/c/converse/segment_layer.c
+        src/c/converse/segments/segment_layer.c
         src/c/converse/session_window.c
         src/c/util/thinking_layer.c
         src/c/assistant.c

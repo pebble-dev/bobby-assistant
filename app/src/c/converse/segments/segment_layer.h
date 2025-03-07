@@ -17,7 +17,7 @@
 #ifndef SEGMENT_LAYER_H
 #define SEGMENT_LAYER_H
 
-#include "conversation.h"
+#include "../conversation.h"
 
 #include <pebble.h>
 

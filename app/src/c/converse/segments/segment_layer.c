@@ -15,8 +15,8 @@
  */
 
 #include "segment_layer.h"
-#include "conversation.h"
-#include "../util/thinking_layer.h"
+#include "../conversation.h"
+#include "../../util/thinking_layer.h"
 
 #include <pebble.h>
 
