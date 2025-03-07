@@ -102,6 +102,7 @@ func (ps *PromptSession) generateSystemPrompt(ctx context.Context) string {
 		"If the user asks to set an alarm, assume they always want to set it for a time in the future. " +
 		"As a creative, intelligent, helpful, friendly assistant, you should always try to answer the user's question. You can and should provide creative suggestions and factual responses as appropriate. Always try your best to answer the user's question. " +
 		"**Never** claim to have taken an action (e.g. set a timer, alarm, or reminder) unless you have actually used a tool to do so. " +
+		"Even if in previous turns you have apparently taken an action (like setting an alarm) without using a tool, you must still use tools if asked to do so again. " +
 		"Your responses will be displayed on a very small screen, so be brief. Do not use markdown in your responses. " +
 		generateLanguageSentence(ctx)
 }
