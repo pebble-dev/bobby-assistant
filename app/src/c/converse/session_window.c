@@ -102,12 +102,6 @@ static void prv_window_load(Window *window) {
   sw->segment_count = 0;
   sw->segment_layers = malloc(sizeof(SegmentLayer*) * sw->segment_space);
 
-  sw->button_bitmap = gbitmap_create_with_resource(RESOURCE_ID_BUTTON_INDICATOR);
-  sw->button_layer = bitmap_layer_create(GRect(window_size.w - 5, window_size.h / 2 - 10, 5, 20));
-  bitmap_layer_set_bitmap(sw->button_layer, sw->button_bitmap);
-  bitmap_layer_set_compositing_mode(sw->button_layer, GCompOpSet);
-  layer_add_child(root_layer, (Layer *)sw->button_layer);
-
   sw->status_layer = status_bar_layer_create();
   bobby_status_bar_config(sw->status_layer);
   layer_add_child(root_layer, (Layer *)sw->status_layer);
@@ -115,7 +109,7 @@ static void prv_window_load(Window *window) {
   sw->content_height = 0;
   sw->last_prompt_end_offset = 0;
   sw->scroll_indicator_down = layer_create(GRect(0, window_size.h - STATUS_BAR_LAYER_HEIGHT, window_size.w, STATUS_BAR_LAYER_HEIGHT));
-  sw->scroll_layer = scroll_layer_create(GRect(PADDING, STATUS_BAR_LAYER_HEIGHT, window_size.w - PADDING * 2, window_size.h - STATUS_BAR_LAYER_HEIGHT));
+  sw->scroll_layer = scroll_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT, window_size.w, window_size.h - STATUS_BAR_LAYER_HEIGHT));
   scroll_layer_set_shadow_hidden(sw->scroll_layer, true);
   ContentIndicator* indicator = scroll_layer_get_content_indicator(sw->scroll_layer);
   const ContentIndicatorConfig up_config = (ContentIndicatorConfig) {
@@ -144,6 +138,13 @@ static void prv_window_load(Window *window) {
     .click_config_provider = prv_click_config_provider,
   });
   scroll_layer_set_click_config_onto_window(sw->scroll_layer, window);
+
+  // This must be added after the scroll layer, to always appear on top.
+  sw->button_bitmap = gbitmap_create_with_resource(RESOURCE_ID_BUTTON_INDICATOR);
+  sw->button_layer = bitmap_layer_create(GRect(window_size.w - 5, window_size.h / 2 - 10, 5, 20));
+  bitmap_layer_set_bitmap(sw->button_layer, sw->button_bitmap);
+  bitmap_layer_set_compositing_mode(sw->button_layer, GCompOpSet);
+  layer_add_child(root_layer, (Layer *)sw->button_layer);
 
   // This must be added last.
   layer_add_child(root_layer, sw->scroll_indicator_down);
@@ -284,7 +285,7 @@ static void prv_conversation_manager_handler(bool entry_added, void* context) {
   int layer_height = layer_get_frame(layer).size.h;
   sw->content_height += layer_height;
   EntryType entry_type = conversation_entry_get_type(entry);
-  if (entry_type == EntryTypePrompt || entry_type == EntryTypeAction) {
+  if (entry_type == EntryTypePrompt) {
     sw->last_prompt_end_offset = prv_content_height(sw);
   }
   prv_update_thinking_layer(sw);

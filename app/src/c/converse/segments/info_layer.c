@@ -18,10 +18,11 @@
 #include <pebble.h>
 
 #define CONTENT_FONT FONT_KEY_GOTHIC_24_BOLD
-#define NAME_HEIGHT 15
 
 typedef struct {
   ConversationEntry* entry;
+  GDrawCommandImage* icon;
+  uint32_t icon_resource;
   TextLayer* content_layer;
   uint16_t content_height;
   char* content_text; // For ConversationEntries without their own text, we need somewhere to stash what we generate.
@@ -31,6 +32,8 @@ static char *prv_get_content_text(InfoLayer *layer);
 static int prv_get_content_height(InfoLayer* layer);
 static void prv_layer_render(Layer* layer, GContext* ctx);
 static char* prv_generate_action_text(ConversationAction* action);
+static uint32_t prv_get_icon_resource(ConversationEntry* entry);
+static GColor prv_get_stripe_color(ConversationEntry* entry);
 
 InfoLayer* info_layer_create(GRect rect, ConversationEntry* entry) {
     Layer* layer = layer_create_with_data(rect, sizeof(InfoLayerData));
@@ -39,10 +42,11 @@ InfoLayer* info_layer_create(GRect rect, ConversationEntry* entry) {
     data->content_text = NULL;
     data->content_height = 24;
     data->content_height = prv_get_content_height(layer);
-    data->content_layer = text_layer_create(GRect(5, 1, rect.size.w - 10, data->content_height));
+    data->content_layer = text_layer_create(GRect(24, 1, rect.size.w - 24 - 5, data->content_height));
     text_layer_set_text(data->content_layer, prv_get_content_text(layer));
     text_layer_set_font(data->content_layer, fonts_get_system_font(CONTENT_FONT));
-    text_layer_set_text_alignment(data->content_layer, GTextAlignmentCenter);
+    text_layer_set_background_color(data->content_layer, GColorClear);
+    text_layer_set_text_alignment(data->content_layer, GTextAlignmentLeft);
     data->content_height = text_layer_get_content_size(data->content_layer).h;
     layer_add_child(layer, (Layer *)data->content_layer);
     info_layer_update(layer);
@@ -68,11 +72,19 @@ void info_layer_update(InfoLayer* layer) {
   // The text pointer can change out underneath us.
   text_layer_set_text(data->content_layer, prv_get_content_text(layer));
   data->content_height = prv_get_content_height(layer);
-  int width = layer_get_bounds(layer).size.w - 10;
+  int width = layer_get_bounds((Layer *)data->content_layer).size.w;
   GRect frame = layer_get_frame(layer);
   frame.size.h = data->content_height + 11;
   text_layer_set_size(data->content_layer, GSize(width, data->content_height + 5));
   layer_set_frame(layer, frame);
+  uint32_t new_resource = prv_get_icon_resource(data->entry);
+  if (new_resource != data->icon_resource) {
+    if (data->icon) {
+      gdraw_command_image_destroy(data->icon);
+    }
+    data->icon = gdraw_command_image_create_with_resource(new_resource);
+    data->icon_resource = new_resource;
+  }
 }
 
 static char *prv_get_content_text(InfoLayer *layer) {
@@ -95,25 +107,35 @@ static char *prv_get_content_text(InfoLayer *layer) {
 }
 
 static int prv_get_content_height(InfoLayer* layer) {
-  // Measuring the whole field every time we add text is way too expensive.
-  // Instead, just try to figure out where we are line breaking. We don't get enough information
-  // from the text layout engine to do this in any particularly clever way, so instead we try
-  // to figure out what's on the current line, and when that spills over to the next line.
-  // Then we figure out (guess) exactly what spilled over and repeat from there.
   char* text = prv_get_content_text(layer);
   const GFont font = fonts_get_system_font(CONTENT_FONT);
-  const GRect rect = GRect(0, 0, layer_get_frame(layer).size.w - 10, 10000);
-  // This algorithm is somewhat buggy (it can't cope with words getting broken; it assumes only one break per
-  // fragment), so for content where speed is less important just actually measure the thing.
+  const GRect rect = GRect(0, 0, layer_get_frame(layer).size.w - 24 - 5, 10000);
   GTextAlignment alignment = GTextAlignmentCenter;
-
   return graphics_text_layout_get_content_size(text, font, rect, GTextOverflowModeTrailingEllipsis, alignment).h;
 }
 
 static void prv_layer_render(Layer* layer, GContext* ctx) {
-  // Thoughts, actions, and errors get a box drawn around them
+  InfoLayerData* data = layer_get_data(layer);
+  GRect bounds = layer_get_bounds(layer);
+  GColor stripe_color = prv_get_stripe_color(data->entry);
+  graphics_context_set_fill_color(ctx, stripe_color);
+  GSize icon_size = GSize(18, 18);
+  if (data->icon) {
+    icon_size = gdraw_command_image_get_bounds_size(data->icon);
+  }
+  int16_t stripe_width = 4 + icon_size.w;
+  graphics_fill_rect(ctx, GRect(0, 0, stripe_width, bounds.size.h), 0, GCornerNone);
+#if defined(PBL_COLOR)
+  graphics_context_set_fill_color(ctx, GColorLightGray);
+  graphics_fill_rect(ctx, GRect(stripe_width, 0, bounds.size.w - stripe_width, bounds.size.h), 0, GCornerNone);
+#else
   graphics_context_set_stroke_color(ctx, GColorBlack);
-  graphics_draw_round_rect(ctx, layer_get_bounds(layer), 4);
+  graphics_draw_line(ctx, GPoint(0, 0), GPoint(bounds.size.w, 0));
+  graphics_draw_line(ctx, GPoint(0, bounds.size.h - 1), GPoint(bounds.size.w, bounds.size.h - 1));
+#endif
+  if (data->icon) {
+    gdraw_command_image_draw(ctx, data->icon, GPoint(2, 10));
+  }
 }
 
 static void prv_format_time(time_t when, char* buffer, size_t size) {
@@ -183,4 +205,46 @@ static char* prv_generate_action_text(ConversationAction* action) {
       break;
   }
   return buffer;
+}
+
+static uint32_t prv_get_icon_resource(ConversationEntry* entry) {
+  switch(conversation_entry_get_type(entry)) {
+    case EntryTypeThought:
+      return RESOURCE_ID_LIGHTBULB_ICON;
+    case EntryTypeError:
+      return RESOURCE_ID_SKULL_ICON;
+    case EntryTypeAction: {
+      ConversationAction* action = conversation_entry_get_action(entry);
+      switch (action->type) {
+        case ConversationActionTypeSetAlarm:
+          if (action->action.set_alarm.is_timer) {
+            return RESOURCE_ID_TIMER_ICON;
+          }
+        return RESOURCE_ID_CLOCK_ICON;
+        case ConversationActionTypeSetReminder:
+          return RESOURCE_ID_REMINDER_ICON;
+        default:
+          return RESOURCE_ID_COG_ICON;
+      }
+    }
+    default:
+      return RESOURCE_ID_COG_ICON;
+  }
+}
+
+static GColor prv_get_stripe_color(ConversationEntry* entry) {
+#if defined(PBL_COLOR)
+  switch (conversation_entry_get_type(entry)) {
+    case EntryTypeThought:
+      return GColorYellow;
+    case EntryTypeError:
+      return GColorRed;
+    case EntryTypeAction:
+      return GColorShockingPink;
+    default:
+      return GColorOrange;
+  }
+#else
+  return GColorDarkGray;
+#endif
 }
