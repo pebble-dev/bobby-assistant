@@ -52,6 +52,8 @@ static void prv_dictation_status_callback(DictationSession *session, DictationSe
 static void prv_conversation_manager_handler(bool entry_added, void* context);
 static void prv_click_config_provider(void *context);
 static void prv_select_clicked(ClickRecognizerRef recognizer, void *context);
+static void prv_update_thinking_layer(SessionWindow* sw);
+static int16_t prv_content_height(const SessionWindow* sw);
 
 void session_window_push() {
   Window *window = window_create();
@@ -190,6 +192,48 @@ static void prv_set_scroll_height(SessionWindow* sw) {
   }
 }
 
+static void prv_update_thinking_layer(SessionWindow* sw) {
+  ConversationEntry* entry = conversation_peek(conversation_manager_get_conversation(sw->manager));
+  bool visible = false;
+  if (entry != NULL) {
+    EntryType entry_type = conversation_entry_get_type(entry);
+    if (entry_type == EntryTypePrompt || entry_type == EntryTypeAction || entry_type == EntryTypeThought) {
+      visible = true;
+    } else if (entry_type == EntryTypeResponse) {
+      visible = !conversation_entry_get_response(entry)->complete;
+    }
+  }
+
+  if (!visible) {
+    if (sw->thinking_layer) {
+      sw->content_height -= THINKING_LAYER_HEIGHT + 5;
+      layer_remove_from_parent(sw->thinking_layer);
+      thinking_layer_destroy(sw->thinking_layer);
+      sw->thinking_layer = NULL;
+    }
+    return;
+  }
+
+  GSize holder_size = scroll_layer_get_content_size(sw->scroll_layer);
+  if (!sw->thinking_layer) {
+    sw->thinking_layer = thinking_layer_create(GRect((holder_size.w - THINKING_LAYER_WIDTH) / 2, sw->content_height + 5, THINKING_LAYER_WIDTH, THINKING_LAYER_HEIGHT));
+    scroll_layer_add_child(sw->scroll_layer, sw->thinking_layer);
+    sw->content_height += THINKING_LAYER_HEIGHT + 5;
+    return;
+  }
+
+  GRect frame = layer_get_frame(sw->thinking_layer);
+  frame.origin.y = sw->content_height - THINKING_LAYER_HEIGHT - 5;
+  layer_set_frame(sw->thinking_layer, frame);
+}
+
+static int16_t prv_content_height(const SessionWindow* sw) {
+  if (sw->thinking_layer) {
+    return sw->content_height - THINKING_LAYER_HEIGHT - 5;
+  }
+  return sw->content_height;
+}
+
 static void prv_conversation_manager_handler(bool entry_added, void* context) {
   SessionWindow* sw = context;
   GSize holder_size = scroll_layer_get_content_size(sw->scroll_layer);
@@ -200,6 +244,7 @@ static void prv_conversation_manager_handler(bool entry_added, void* context) {
       segment_layer_update(layer);
       int new_height = layer_get_frame(layer).size.h;
       sw->content_height = sw->content_height - old_height + new_height;
+      prv_update_thinking_layer(sw);
       prv_set_scroll_height(sw);
       light_enable_interaction();
     }
@@ -213,6 +258,7 @@ static void prv_conversation_manager_handler(bool entry_added, void* context) {
     if (type == EntryTypeThought) {
       // clean it up
       sw->content_height -= layer_get_frame(last_layer).size.h;
+      prv_update_thinking_layer(sw);
       prv_set_scroll_height(sw);
       layer_remove_from_parent(last_layer);
       segment_layer_destroy(last_layer);
@@ -232,24 +278,16 @@ static void prv_conversation_manager_handler(bool entry_added, void* context) {
     free(sw->segment_layers);
     sw->segment_layers = new_block;
   }
-  if (sw->thinking_layer && conversation_entry_get_type(entry) != EntryTypePrompt) {
-    sw->content_height -= THINKING_LAYER_HEIGHT + 5;
-    layer_remove_from_parent(sw->thinking_layer);
-    thinking_layer_destroy(sw->thinking_layer);
-    sw->thinking_layer = NULL;
-  }
-  SegmentLayer* layer = segment_layer_create(GRect(0, sw->content_height, holder_size.w, 10), entry);
+  SegmentLayer* layer = segment_layer_create(GRect(0, prv_content_height(sw), holder_size.w, 10), entry);
   sw->segment_layers[sw->segment_count++] = layer;
   scroll_layer_add_child(sw->scroll_layer, layer);
   int layer_height = layer_get_frame(layer).size.h;
   sw->content_height += layer_height;
   EntryType entry_type = conversation_entry_get_type(entry);
   if (entry_type == EntryTypePrompt || entry_type == EntryTypeAction) {
-    sw->last_prompt_end_offset = sw->content_height;
-    sw->thinking_layer = thinking_layer_create(GRect((holder_size.w - THINKING_LAYER_WIDTH) / 2, sw->content_height + 5, THINKING_LAYER_WIDTH, THINKING_LAYER_HEIGHT));
-    scroll_layer_add_child(sw->scroll_layer, sw->thinking_layer);
-    sw->content_height += THINKING_LAYER_HEIGHT + 5;
+    sw->last_prompt_end_offset = prv_content_height(sw);
   }
+  prv_update_thinking_layer(sw);
   prv_set_scroll_height(sw);
   light_enable_interaction();
   // For now, whenever we add a new entry, we want to scroll to the top of it.
