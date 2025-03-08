@@ -55,7 +55,7 @@ void alarm_manager_init() {
   prv_load_alarms();
 }
 
-int alarm_manager_add_alarm(time_t when, bool is_timer) {
+int alarm_manager_add_alarm(time_t when, bool is_timer, bool conversational) {
   if (s_manager.pending_alarm_count >= MAX_ALARMS) {
     APP_LOG(APP_LOG_LEVEL_WARNING, "Not scheduling alarm because MAX_ALARMS (%d) was already reached.", MAX_ALARMS);
     return E_OUT_OF_RESOURCES;
@@ -83,7 +83,7 @@ int alarm_manager_add_alarm(time_t when, bool is_timer) {
   alarm->is_timer = is_timer;
   alarm->wakeup_id = id;
 
-  if (conversation_manager_get_current()) {
+  if (conversational && conversation_manager_get_current()) {
     ConversationManager *conversation_manager = conversation_manager_get_current();
     ConversationAction action = {
       .type = ConversationActionTypeSetAlarm,
@@ -294,7 +294,7 @@ static void prv_handle_set_alarm_request(DictionaryIterator *iterator, void *con
   if (is_timer) {
     alarm_time += time(NULL);
   }
-  StatusCode result = alarm_manager_add_alarm(alarm_time, is_timer);
+  StatusCode result = alarm_manager_add_alarm(alarm_time, is_timer,true);
   prv_send_alarm_response(result);
   if (result == S_SUCCESS) {
     APP_LOG(APP_LOG_LEVEL_INFO, "Set alarm for %d (is timer: %d)", alarm_time, is_timer);

@@ -14,22 +14,11 @@
  * limitations under the License.
  */
 
-#ifndef ALARMS_MANAGER_H
-#define ALARMS_MANAGER_H
+#ifndef RESULT_WINDOW_H
+#define RESULT_WINDOW_H
 
 #include <pebble.h>
 
-typedef struct AlarmManager AlarmManager;
-typedef struct Alarm Alarm;
+void result_window_push(const char* title, const char* text, GDrawCommandImage *image, GColor background_color);
 
-void alarm_manager_init();
-int alarm_manager_add_alarm(time_t when, bool is_timer, bool conversational);
-int alarm_manager_cancel_alarm(time_t when, bool is_timer);
-int alarm_manager_get_alarm_count();
-Alarm* alarm_manager_get_alarm(int index);
-bool alarm_manager_maybe_alarm();
-
-time_t alarm_get_time(Alarm* alarm);
-bool alarm_is_timer(Alarm* alarm);
-
-#endif
+#endif //RESULT_WINDOW_H

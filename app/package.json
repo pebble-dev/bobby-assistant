@@ -125,6 +125,21 @@
           "file": "animations/tired_pony.pdcs",
           "name": "TIRED_PONY",
           "type": "raw"
+        },
+        {
+          "file": "icons/action_bar_snooze.png",
+          "name": "ACTION_BAR_SNOOZE",
+          "type": "bitmap"
+        },
+        {
+          "file": "icons/action_bar_x.png",
+          "name": "ACTION_BAR_X",
+          "type": "bitmap"
+        },
+        {
+          "file": "images/failed_pony.pdc",
+          "name": "FAILED_PONY",
+          "type": "raw"
         }
       ]
     }

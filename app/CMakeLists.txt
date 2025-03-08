@@ -57,4 +57,5 @@ add_executable(tiny_assistant_app
         src/c/consent/consent.c
         src/c/util/vector_layer.c
         src/c/util/style.c
-        src/c/util/vector_sequence_layer.c)
+        src/c/util/vector_sequence_layer.c
+        src/c/util/result_window.c)
