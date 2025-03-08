@@ -93,8 +93,8 @@ static void prv_window_load(Window *window) {
     .layer = data->content_indicator_layer,
     .alignment = GAlignCenter,
     .colors = {
-      .background = COLOR_FALLBACK(ACCENT_COLOUR, GColorWhite),
-      .foreground = COLOR_FALLBACK(gcolor_legible_over(ACCENT_COLOUR), GColorBlack),
+      .background = GColorWhite,
+      .foreground = GColorBlack,
     }
   };
   content_indicator_configure_direction(indicator, ContentIndicatorDirectionDown, &content_indicator_config);
@@ -211,8 +211,8 @@ static void prv_present_consent_menu(Window* window) {
   ActionMenuConfig config = (ActionMenuConfig) {
     .root_level = root_level,
     .colors = {
-      .background = GColorWhite,
-      .foreground = GColorBlack,
+      .background = ACCENT_COLOUR,
+      .foreground = gcolor_legible_over(ACCENT_COLOUR),
     },
     .align = ActionMenuAlignCenter,
     .context = window,
