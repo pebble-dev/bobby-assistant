@@ -127,6 +127,11 @@
           "type": "raw"
         },
         {
+          "file": "animations/running_pony.pdcs",
+          "name": "RUNNING_PONY",
+          "type": "raw"
+        },
+        {
           "file": "icons/action_bar_snooze.png",
           "name": "ACTION_BAR_SNOOZE",
           "type": "bitmap"
