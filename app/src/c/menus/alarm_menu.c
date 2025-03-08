@@ -42,6 +42,7 @@ static void prv_select_click(struct MenuLayer* menu_layer, MenuIndex* cell_index
 static void prv_tick_handler(struct tm* tick_time, TimeUnits units_changed, void* context);
 static void prv_cancel_alarm(ActionMenu* layer, const ActionMenuItem* item, void* context);
 static void prv_action_menu_close(ActionMenu* action_menu, const ActionMenuItem* item, void* context);
+static void prv_show_empty(Window *window);
 
 void alarm_menu_window_push(bool for_timers) {
   AlarmMenuWindowData *data = malloc(sizeof(AlarmMenuWindowData));
@@ -65,7 +66,7 @@ static void prv_window_load(Window* window) {
   GRect window_bounds = layer_get_frame(root_layer);
   data->menu_layer = menu_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT, window_bounds.size.w, window_bounds.size.h - STATUS_BAR_LAYER_HEIGHT));
   menu_layer_set_highlight_colors(data->menu_layer, SELECTION_HIGHLIGHT_COLOUR, gcolor_legible_over(SELECTION_HIGHLIGHT_COLOUR));
-  menu_layer_set_callbacks(data->menu_layer, data, (MenuLayerCallbacks) {
+  menu_layer_set_callbacks(data->menu_layer, window, (MenuLayerCallbacks) {
     .get_num_rows = prv_get_num_rows,
     .draw_row = prv_draw_row,
     .select_click = prv_select_click,
@@ -79,14 +80,8 @@ static void prv_window_load(Window* window) {
   text_layer_set_font(data->empty_text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
   text_layer_set_text_alignment(data->empty_text_layer, GTextAlignmentCenter);
   text_layer_set_text(data->empty_text_layer, data->for_timers ? "No timers set. Ask Bobby to set some." : "No alarms set. Ask Bobby to set some.");
-  if (prv_get_num_rows(data->menu_layer, 0, data) == 0) {
-    data->sleeping_horse_image = gdraw_command_image_create_with_resource(RESOURCE_ID_SLEEPING_PONY);
-    data->sleeping_horse_layer = vector_layer_create(GRect(window_bounds.size.w / 2 - 25, window_bounds.size.h - 55, 50, 50));
-    vector_layer_set_vector(data->sleeping_horse_layer, data->sleeping_horse_image);
-    window_set_background_color(window, BRANDED_BACKGROUND_COLOUR);
-    bobby_status_bar_result_pane_config(data->status_bar);
-    layer_add_child(root_layer, text_layer_get_layer(data->empty_text_layer));
-    layer_add_child(root_layer, vector_layer_get_layer(data->sleeping_horse_layer));
+  if (prv_get_num_rows(data->menu_layer, 0, window) == 0) {
+    prv_show_empty(window);
   } else {
     window_set_background_color(window, GColorWhite);
     bobby_status_bar_config(data->status_bar);
@@ -94,6 +89,25 @@ static void prv_window_load(Window* window) {
     menu_layer_set_click_config_onto_window(data->menu_layer, window);
   }
   layer_add_child(root_layer, (Layer *)data->status_bar);
+}
+
+static void prv_show_empty(Window *window) {
+  AlarmMenuWindowData* data = window_get_user_data(window);
+  Layer* root_layer = window_get_root_layer(window);
+  GRect window_bounds = layer_get_frame(root_layer);
+
+  // Remove the menu, if it's present.
+  layer_remove_from_parent(menu_layer_get_layer(data->menu_layer));
+  window_set_click_config_provider(window, NULL);
+
+  data->sleeping_horse_image = gdraw_command_image_create_with_resource(RESOURCE_ID_SLEEPING_PONY);
+  data->sleeping_horse_layer = vector_layer_create(GRect(window_bounds.size.w / 2 - 25, window_bounds.size.h - 55, 50, 50));
+  vector_layer_set_vector(data->sleeping_horse_layer, data->sleeping_horse_image);
+  window_set_background_color(window, BRANDED_BACKGROUND_COLOUR);
+  bobby_status_bar_result_pane_config(data->status_bar);
+  layer_add_child(root_layer, text_layer_get_layer(data->empty_text_layer));
+  layer_add_child(root_layer, vector_layer_get_layer(data->sleeping_horse_layer));
+
 }
 
 static void prv_window_unload(Window* window) {
@@ -115,10 +129,14 @@ static void prv_window_appear(Window* window) {
   if (!data->for_timers) {
     return;
   }
-  data->tick_handle = events_tick_timer_service_subscribe_context(SECOND_UNIT, prv_tick_handler, data);
+  data->tick_handle = events_tick_timer_service_subscribe_context(SECOND_UNIT, prv_tick_handler, window);
   // A potential reason for us disappearing and reappearing is an alarm going off, in which case our old data will no
   // longer make any sense.
-  menu_layer_reload_data(data->menu_layer);
+  if (alarm_manager_get_alarm_count() == 0) {
+    prv_show_empty(window);
+  } else {
+    menu_layer_reload_data(data->menu_layer);
+  }
 }
 
 static void prv_window_disappear(Window* window) {
@@ -130,7 +148,7 @@ static void prv_window_disappear(Window* window) {
 }
 
 static uint16_t prv_get_num_rows(struct MenuLayer* menu_layer, uint16_t section_index, void* context) {
-  AlarmMenuWindowData *data = context;
+  AlarmMenuWindowData *data = window_get_user_data(context);
   int alarm_count = alarm_manager_get_alarm_count();
   int relevant_count = 0;
   for (int i = 0; i < alarm_count; ++i) {
@@ -143,7 +161,7 @@ static uint16_t prv_get_num_rows(struct MenuLayer* menu_layer, uint16_t section_
 
 
 static void prv_draw_row(GContext* ctx, const Layer* cell_layer, MenuIndex* cell_index, void* context) {
-  AlarmMenuWindowData *data = context;
+  AlarmMenuWindowData *data = window_get_user_data(context);
   int alarm_count = alarm_manager_get_alarm_count();
   int relevant_count = 0;
   for (int i = 0; i < alarm_count; ++i) {
@@ -194,7 +212,6 @@ static void prv_draw_row(GContext* ctx, const Layer* cell_layer, MenuIndex* cell
 }
 
 static void prv_select_click(struct MenuLayer* menu_layer, MenuIndex* cell_index, void* context) {
-  AlarmMenuWindowData *data = context;
   ActionMenuLevel *root_level = action_menu_level_create(1);
   action_menu_level_add_action(root_level, "Delete", prv_cancel_alarm, NULL);
   ActionMenuConfig config = (ActionMenuConfig) {
@@ -205,13 +222,13 @@ static void prv_select_click(struct MenuLayer* menu_layer, MenuIndex* cell_index
     },
     .align = ActionMenuAlignCenter,
     .did_close = prv_action_menu_close,
-    .context = data,
+    .context = context,
   };
   action_menu_open(&config);
 }
 
 static void prv_tick_handler(struct tm* tick_time, TimeUnits units_changed, void* context) {
-  AlarmMenuWindowData *data = context;
+  AlarmMenuWindowData *data = window_get_user_data(context);
   if (!data->for_timers) {
     return;
   }
@@ -219,7 +236,7 @@ static void prv_tick_handler(struct tm* tick_time, TimeUnits units_changed, void
 }
 
 static void prv_cancel_alarm(ActionMenu* layer, const ActionMenuItem* item, void* context) {
-  AlarmMenuWindowData *data = context;
+  AlarmMenuWindowData *data = window_get_user_data(context);
   int alarm_count = alarm_manager_get_alarm_count();
   int relevant_count = 0;
   for (int i = 0; i < alarm_count; ++i) {
@@ -227,7 +244,11 @@ static void prv_cancel_alarm(ActionMenu* layer, const ActionMenuItem* item, void
       if (relevant_count == menu_layer_get_selected_index(data->menu_layer).row) {
         Alarm* alarm = alarm_manager_get_alarm(i);
         alarm_manager_cancel_alarm(alarm_get_time(alarm), alarm_is_timer(alarm));
-        menu_layer_reload_data(data->menu_layer);
+        if (alarm_manager_get_alarm_count() == 0) {
+          prv_show_empty(context);
+        } else {
+          menu_layer_reload_data(data->menu_layer);
+        }
         action_menu_close(layer, true);
         return;
       }
