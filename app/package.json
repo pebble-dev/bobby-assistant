@@ -120,6 +120,11 @@
           "file": "icons/timer.pdc",
           "name": "TIMER_ICON",
           "type": "raw"
+        },
+        {
+          "file": "animations/tired_pony.pdcs",
+          "name": "TIRED_PONY",
+          "type": "raw"
         }
       ]
     }

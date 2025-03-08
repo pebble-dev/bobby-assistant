@@ -16,6 +16,7 @@
 
 #include "alarm_window.h"
 #include "../util/style.h"
+#include "../util/vector_sequence_layer.h"
 
 #include <pebble-events/pebble-events.h>
 #include <pebble.h>
@@ -28,6 +29,8 @@ typedef struct {
   StatusBarLayer *status_bar;
   AppTimer* timer;
   EventHandle tick_handle;
+  VectorSequenceLayer *animation_layer;
+  GDrawCommandSequence *draw_commands;
   char time_content[20];
 } AlarmWindowData;
 
@@ -66,7 +69,7 @@ static void prv_window_load(Window *window) {
   text_layer_set_text_alignment(data->title_layer, GTextAlignmentCenter);
   text_layer_set_background_color(data->title_layer, GColorClear);
   layer_add_child(root_layer, (Layer *)data->title_layer);
-  data->time_layer = text_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT + 35 + 20, rect.size.w, 45));
+  data->time_layer = text_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT + 35 + 15, rect.size.w, 45));
   text_layer_set_font(data->time_layer, fonts_get_system_font(FONT_KEY_LECO_36_BOLD_NUMBERS));
   text_layer_set_text_alignment(data->time_layer, GTextAlignmentCenter);
   text_layer_set_background_color(data->time_layer, GColorClear);
@@ -82,6 +85,10 @@ static void prv_window_load(Window *window) {
   } else {
     data->status_bar = NULL;
   }
+  data->animation_layer = vector_sequence_layer_create(GRect(rect.size.w / 2 - 25, rect.size.h - 55, 50, 50));
+  data->draw_commands = gdraw_command_sequence_create_with_resource(RESOURCE_ID_TIRED_PONY);
+  vector_sequence_layer_set_sequence(data->animation_layer, data->draw_commands);
+  layer_add_child(root_layer, (Layer *)data->animation_layer);
 }
 
 static void prv_window_unload(Window *window) {
@@ -91,17 +98,23 @@ static void prv_window_unload(Window *window) {
   if (data->status_bar) {
     status_bar_layer_destroy(data->status_bar);
   }
+  gdraw_command_sequence_destroy(data->draw_commands);
+  vector_sequence_layer_destroy(data->animation_layer);
   events_tick_timer_service_unsubscribe(data->tick_handle);
   free(data);
 }
 
 static void prv_window_appear(Window *window) {
+  AlarmWindowData* data = window_get_user_data(window);
   light_enable_interaction();
   prv_do_vibe(window);
+  vector_sequence_layer_play(data->animation_layer);
 }
 
 static void prv_window_disappear(Window *window) {
+  AlarmWindowData* data = window_get_user_data(window);
   prv_stop_vibe(window);
+  vector_sequence_layer_stop(data->animation_layer);
 }
 
 static void prv_do_vibe(Window *window) {
