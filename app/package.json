@@ -140,6 +140,26 @@
           "file": "images/failed_pony.pdc",
           "name": "FAILED_PONY",
           "type": "raw"
+        },
+        {
+          "file": "text/legal.txt",
+          "name": "LEGAL_TEXT",
+          "type": "raw"
+        },
+        {
+          "file": "text/gemini_consent.txt",
+          "name": "GEMINI_CONSENT_TEXT",
+          "type": "raw"
+        },
+        {
+          "file": "text/llm_warning.txt",
+          "name": "LLM_WARNING_TEXT",
+          "type": "raw"
+        },
+        {
+          "file": "text/location_consent.txt",
+          "name": "LOCATION_CONSENT_TEXT",
+          "type": "raw"
         }
       ]
     }

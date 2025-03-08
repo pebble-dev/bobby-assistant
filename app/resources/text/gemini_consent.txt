@@ -1,0 +1,1 @@
+Bobby uses Google's Gemini API to process requests. To do this, all of your requests will be sent verbatim to Google. Google does not use these requests for training or for any other purpose. If you do not agree, you cannot use Bobby.

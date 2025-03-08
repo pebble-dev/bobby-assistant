@@ -31,7 +31,7 @@ typedef struct {
   TextLayer *title_layer;
   TextLayer *text_layer;
   Layer *content_indicator_layer;
-  const char* current_text;
+  char* current_text;
   const char* title_text;
   GBitmap* select_indicator_bitmap;
   BitmapLayer* select_indicator_layer;
@@ -132,22 +132,33 @@ static void prv_window_unload(Window *window) {
 
 static void prv_set_stage(Window* window, int stage) {
   ConsentWindowData *data = window_get_user_data(window);
+  if (data->current_text) {
+    free(data->current_text);
+    data->current_text = NULL;
+  }
+  ResHandle res_handle = NULL;
   switch (stage) {
   case STAGE_LLM_WARNING:
-    data->current_text = "Bobby uses an AI language model to respond to your requests. Like all other AI language models, Bobby may lie, do the wrong thing, or make offensive or inappropriate comments.";
+    res_handle = resource_get_handle(RESOURCE_ID_LLM_WARNING_TEXT);
     data->title_text = "Important";
     break;
   case STAGE_GEMINI_CONSENT:
-    data->current_text = "Bobby uses Google's Gemini API to process requests. To do this, all of your requests will be sent verbatim to Google. Google does not use these requests for training or for any other purpose. If you do not agree, you cannot use Bobby.";
+    res_handle = resource_get_handle(RESOURCE_ID_GEMINI_CONSENT_TEXT);
     data->title_text = "Privacy";
     break;
   case STAGE_LOCATION_CONSENT:
-    data->current_text = "In order to provide contextually relevant information, Bobby would like to use your precise location. The name of the city you are in will be sent to Google's Gemini along with your requests. This decision can be changed later in app's config page.\n\nCan Bobby access your location?";
+    res_handle = resource_get_handle(RESOURCE_ID_LOCATION_CONSENT_TEXT);
     data->title_text = "Location";
     break;
   default:
     APP_LOG(APP_LOG_LEVEL_ERROR, "Unknown consent stage: %d", stage);
     return;
+  }
+  if (res_handle != NULL) {
+    size_t res_size = resource_size(res_handle);
+    data->current_text = malloc(res_size + 1);
+    resource_load(res_handle, (uint8_t*)data->current_text, res_size);
+    data->current_text[res_size] = '\0';
   }
   data->stage = stage;
   text_layer_set_text(data->title_layer, data->title_text);

@@ -19,25 +19,11 @@
 #include "../util/style.h"
 
 typedef struct {
+ char *legal_text;
  TextLayer *text_layer;
  ScrollLayer *scroll_layer;
  StatusBarLayer *status_bar;
 } CreditsWindowData;
-
-const char * const credits_text = "Gemini\n"
-                                  "AI processing is provided by Google's Gemini under the terms at https://ai.google.dev/gemini-api/terms (Bobby is a 'paid service').\n\n"
-                                  "Weather\n"
-                                  "Weather data provided by The Weather Channel.\n\n"
-                                  "POIs\n"
-                                  "© 2025 Mapbox and its suppliers. All rights reserved. Use of this data is subject to the Mapbox Terms of Service. (https://www.mapbox.com/about/maps/)\n\n"
-                                  "Wikipedia\n"
-                                  "Some grounding information is fetched from Wikipedia during request processing. Wikipedia content is available under the Creative Commons Attribution-ShareAlike License.\n\n"
-                                  "Disclaimers\n"
-                                  "Bobby includes experimental technology and may sometimes provide inaccurate or offensive content that doesn't represent Rebble's views.\n"
-                                  "Use discretion before relying on, publishing, or otherwise using content provided by Bobby.\n"
-                                  "Don't rely on Bobby for medical, legal, financial, or other professional advice. "
-                                  "Any content regarding those topics is provided for informational purposes only and is not a substitute for "
-                                  "advice from a qualified professional. Content does not constitute medical treatment or diagnosis.";
 
 static void prv_window_load(Window* window);
 static void prv_window_unload(Window* window);
@@ -56,6 +42,11 @@ void legal_window_push() {
 
 static void prv_window_load(Window* window) {
  CreditsWindowData *data = window_get_user_data(window);
+ ResHandle res_handle = resource_get_handle(RESOURCE_ID_LEGAL_TEXT);
+ size_t res_size = resource_size(res_handle);
+ data->legal_text = malloc(res_size + 1);
+ resource_load(res_handle, (uint8_t*)data->legal_text, res_size);
+ data->legal_text[res_size] = '\0';
  Layer *root_layer = window_get_root_layer(window);
  GRect window_bounds = layer_get_bounds(root_layer);
  data->status_bar = status_bar_layer_create();
@@ -68,12 +59,13 @@ static void prv_window_load(Window* window) {
  layer_add_child(root_layer, scroll_layer_get_layer(data->scroll_layer));
  data->text_layer = text_layer_create(GRect(5, 0, window_bounds.size.w - 10, 1770));
  text_layer_set_font(data->text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24));
- text_layer_set_text(data->text_layer, credits_text);
+ text_layer_set_text(data->text_layer, data->legal_text);
  scroll_layer_add_child(data->scroll_layer, text_layer_get_layer(data->text_layer));
 }
 
 static void prv_window_unload(Window* window) {
  CreditsWindowData *data = window_get_user_data(window);
+ free(data->legal_text);
  text_layer_destroy(data->text_layer);
  scroll_layer_destroy(data->scroll_layer);
  status_bar_layer_destroy(data->status_bar);

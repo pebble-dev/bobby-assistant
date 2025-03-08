@@ -1,0 +1,3 @@
+In order to provide contextually relevant information, Bobby would like to use your precise location. The name of the city you are in will be sent to Google's Gemini along with your requests. This decision can be changed later in app's config page.
+
+Can Bobby access your location?

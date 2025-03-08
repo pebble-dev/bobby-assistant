@@ -1,0 +1,19 @@
+Gemini
+AI processing is provided by Google's Gemini under the terms at https://ai.google.dev/gemini-api/terms (Bobby is a 'paid service').
+
+Weather
+Weather data provided by The Weather Channel.
+
+POIs
+© 2025 Mapbox and its suppliers. All rights reserved. Use of this data is subject to the Mapbox Terms of Service. (https://www.mapbox.com/about/maps/)
+
+Wikipedia
+Some grounding information is fetched from Wikipedia during request processing. Wikipedia content is available under the Creative Commons Attribution-ShareAlike License.
+
+Currency Data
+Exchange rate data is provided by Exchange Rate API (https://www.exchangerate-api.com/).
+
+Disclaimers
+Bobby includes experimental technology and may sometimes provide inaccurate or offensive content that doesn't represent Rebble's views.
+Use discretion before relying on, publishing, or otherwise using content provided by Bobby.
+Don't rely on Bobby for medical, legal, financial, or other professional advice. Any content regarding those topics is provided for informational purposes only and is not a substitute for advice from a qualified professional. Content does not constitute medical treatment or diagnosis.
