@@ -11,6 +11,8 @@ var sensitiveQueryParams = []string{
 	"prompt",       // the user's prompt
 	"threadId",     // the thread the prompt belongs to, if any
 	"lon", "lat",   // user's location as sent to us
+	"geocode",   // the user's location as sent to the weather API
+	"apiKey",    // the API key for the weather service
 	"proximity", // the target location for a POI lookup
 	"tzOffset",  // user's timezone offset as sent to us
 	"token",     // user's auth (timeline) token, identifies them uniquely.
