@@ -252,7 +252,8 @@ func processHourlyForecast(ctx context.Context, lat, lon float64, units string) 
 
 		response = append(response, entry)
 	}
-	return response
+	// the thing that is returned must not be an array.
+	return map[string]any{"response": response}
 }
 
 func processCurrentWeather(ctx context.Context, lat, lon float64, units string) interface{} {
