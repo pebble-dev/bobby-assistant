@@ -89,11 +89,11 @@ func queryWikipediaInternal(ctx context.Context, query string, completeArticle, 
 	span.AddField("title", query)
 	log.Printf("Looking up Wikipedia article: %q (complete: %t)\n", query, completeArticle)
 	qs := url.QueryEscape(query)
-	url := "https://en.wikipedia.org/w/api.php?action=query&prop=revisions&rvprop=content&format=xml&titles=" + qs + "&rvslots=main"
+	u := "https://en.wikipedia.org/w/api.php?action=query&prop=revisions&rvprop=content&format=xml&titles=" + qs + "&rvslots=main"
 	if !completeArticle {
-		url += "&rvsection=0"
+		u += "&rvsection=0"
 	}
-	request, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	request, err := http.NewRequestWithContext(ctx, "GET", u, nil)
 	if err != nil {
 		return "", err
 	}
@@ -115,7 +115,7 @@ func queryWikipediaInternal(ctx context.Context, query string, completeArticle, 
 		return "", err
 	}
 	if !strings.Contains(string(content), "pageid=") {
-		if allowSearch {
+		if !allowSearch {
 			return "", errors.New("no page exists with that name")
 		}
 		// try searching for the page.
@@ -140,7 +140,7 @@ func searchWikipedia(ctx context.Context, query string) ([]string, error) {
 	defer span.Send()
 	span.AddField("query", query)
 	log.Printf("Searching Wikipedia for %q\n", query)
-	request, err := http.NewRequestWithContext(ctx, "GET", "https://en.wikipedia.org/w/api.php?action=opensearch&limit=5&namespace=0&format=json&redirects=resolve&search="+query, nil)
+	request, err := http.NewRequestWithContext(ctx, "GET", "https://en.wikipedia.org/w/api.php?action=opensearch&limit=5&namespace=0&format=json&redirects=resolve&search="+url.QueryEscape(query), nil)
 	if err != nil {
 		log.Printf("Creating request failed: %v\n", err)
 		return nil, err
