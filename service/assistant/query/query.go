@@ -32,6 +32,7 @@ type queryContext struct {
 	location          *Location
 	tzOffset          int
 	supportedActions  []string
+	supportedWidgets  []string
 	preferredLanguage string
 	preferredUnits    string
 }
@@ -54,12 +55,14 @@ func ContextWith(ctx context.Context, q url.Values) context.Context {
 	}
 	offset, _ := strconv.Atoi(q.Get("tzOffset"))
 	supportedActions := strings.Split(q.Get("actions"), ",")
+	supportedWidgets := strings.Split(q.Get("widgets"), ",")
 	preferredLanguage := q.Get("lang")
 	preferredUnits := q.Get("units")
 	qc := queryContext{
 		location:          location,
 		tzOffset:          offset,
 		supportedActions:  supportedActions,
+		supportedWidgets:  supportedWidgets,
 		preferredLanguage: preferredLanguage,
 		preferredUnits:    preferredUnits,
 	}
@@ -73,6 +76,10 @@ func TzOffsetFromContext(ctx context.Context) int {
 
 func SupportedActionsFromContext(ctx context.Context) []string {
 	return ctx.Value(queryContextKey).(queryContext).supportedActions
+}
+
+func SupportedWidgetsFromContext(ctx context.Context) []string {
+	return ctx.Value(queryContextKey).(queryContext).supportedWidgets
 }
 
 func PreferredLanguageFromContext(ctx context.Context) string {
@@ -89,4 +96,12 @@ func LocationFromContext(ctx context.Context) *Location {
 
 func SupportsAction(ctx context.Context, action string) bool {
 	return slices.Contains(SupportedActionsFromContext(ctx), action)
+}
+
+func SupportsAnyWidgets(ctx context.Context) bool {
+	return len(SupportedWidgetsFromContext(ctx)) > 0
+}
+
+func SupportsWidget(ctx context.Context, widget string) bool {
+	return slices.Contains(SupportedWidgetsFromContext(ctx), widget)
 }

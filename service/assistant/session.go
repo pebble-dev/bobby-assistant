@@ -18,12 +18,15 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/honeycombio/beeline-go"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/verifier"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/widgets"
 	"log"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
 
@@ -153,6 +156,8 @@ func (ps *PromptSession) Run(ctx context.Context) {
 			var functionCall *genai.FunctionCall
 			content := ""
 			var usageData *genai.GenerateContentResponseUsageMetadata
+			bufferedContent := ""
+			leftTrimming := false
 		read_loop:
 			for resp, err := range s {
 				if errors.Is(err, iterator.Done) {
@@ -173,9 +178,6 @@ func (ps *PromptSession) Run(ctx context.Context) {
 				}
 				choice := resp.Candidates[0]
 				ourContent := ""
-				if choice.Content == nil {
-
-				}
 				for _, c := range choice.Content.Parts {
 					if c.Text != "" {
 						ourContent += c.Text
@@ -185,18 +187,71 @@ func (ps *PromptSession) Run(ctx context.Context) {
 						functionCall = &fc
 					}
 				}
+				if bufferedContent != "" {
+					bufferedContent += ourContent
+					if strings.Count(bufferedContent, "<!") != strings.Count(bufferedContent, "!>") {
+						continue
+					} else {
+						ourContent = bufferedContent
+						bufferedContent = ""
+					}
+				} else {
+					if strings.Count(ourContent, "<!") != strings.Count(ourContent, "!>") {
+						bufferedContent += ourContent
+						continue
+					}
+				}
 				if strings.TrimSpace(ourContent) != "" {
-					words := strings.Split(ourContent, " ")
-					for i, w := range words {
-						if i != len(words)-1 {
-							w += " "
+					streamContent := ourContent
+					fmt.Println(ourContent)
+					re := regexp.MustCompile(`(?s)\s*<!.+?!>\s*`)
+					widget := re.FindAllString(ourContent, -1)
+					splitting := true
+					if len(widget) > 0 {
+						for _, w := range widget {
+							processed, err := widgets.ProcessWidget(ctx, w)
+							replacement := ""
+							if err != nil {
+								log.Printf("process widget failed: %v\n", err)
+								replacement = "(widget processing failed)"
+							}
+							jsoned, err := json.Marshal(processed)
+							if err != nil {
+								log.Printf("marshal widget failed: %v\n", err)
+								replacement = "(widget processing failed)"
+							}
+							splitting = false
+							replacement = "<<!!WIDGET:" + string(jsoned) + "!!>>"
+							streamContent = strings.Replace(streamContent, w, replacement, 1)
+							if strings.HasSuffix(streamContent, "!!>>") {
+								leftTrimming = true
+							}
 						}
-						if err := ps.conn.Write(streamCtx, websocket.MessageText, []byte("c"+w)); err != nil {
-							streamSpan.AddField("error", err)
-							log.Printf("write to websocket failed: %v\n", err)
-							break read_loop
+					}
+					// If the last thing we generated was a widget, it's possible the model will try to put some
+					// newlines or spaces in front of the next text. We don't want that, so strip it out.
+					if leftTrimming {
+						streamContent = strings.TrimLeft(streamContent, " \r\n\t")
+					}
+					if strings.TrimSpace(streamContent) != "" {
+						var words []string
+						if splitting {
+							words = strings.Split(streamContent, " ")
+							leftTrimming = false
+						} else {
+							words = []string{streamContent}
 						}
-						time.Sleep(time.Millisecond * 40)
+						for i, w := range words {
+							if i != len(words)-1 {
+								w += " "
+							}
+							if err := ps.conn.Write(streamCtx, websocket.MessageText, []byte("c"+w)); err != nil {
+								streamSpan.AddField("error", err)
+								log.Printf("write to websocket failed: %v\n", err)
+								break read_loop
+							}
+							time.Sleep(time.Millisecond * 40)
+						}
 					}
 				}
 				content += ourContent

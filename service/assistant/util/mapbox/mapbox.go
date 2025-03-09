@@ -3,8 +3,10 @@ package mapbox
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/honeycombio/beeline-go"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/config"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/query"
 	"net/http"
 	"net/url"
 )
@@ -75,6 +77,46 @@ func GeocodingRequest(ctx context.Context, search string, params url.Values) (*F
 		return nil, err
 	}
 	return &collection, nil
+}
+
+func ReverseGeocode(ctx context.Context, lon, lat float64) (*Feature, error) {
+	params := url.Values{}
+	params.Set("types", "place,region,country")
+	params.Set("limit", "1")
+	collection, err := GeocodingRequest(ctx, fmt.Sprintf("%f,%f", lon, lat), params)
+	if err != nil {
+		return nil, fmt.Errorf("could not reverse geocode location: %w", err)
+	}
+	if len(collection.Features) == 0 {
+		return nil, fmt.Errorf("the user isn't anywhere")
+	}
+	return &collection.Features[0], nil
+}
+
+type Location struct {
+	Lat float64
+	Lon float64
+}
+
+func GeocodeWithContext(ctx context.Context, search string) (Location, error) {
+	location := query.LocationFromContext(ctx)
+	vals := url.Values{}
+	vals.Set("types", "place,district,region,country,locality,neighborhood")
+	if location != nil {
+		vals.Set("proximity", fmt.Sprintf("%f,%f", location.Lon, location.Lat))
+	}
+	collection, err := GeocodingRequest(ctx, search, vals)
+	if err != nil {
+		return Location{}, fmt.Errorf("could not find location: %w", err)
+	}
+	if len(collection.Features) == 0 {
+		return Location{}, fmt.Errorf("could not find location with name %q", search)
+	}
+	ret := Location{
+		Lat: collection.Features[0].Center[1],
+		Lon: collection.Features[0].Center[0],
+	}
+	return ret, nil
 }
 
 func SearchBoxRequest(ctx context.Context, params url.Values) (*FeatureCollection, error) {

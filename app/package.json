@@ -51,7 +51,20 @@
       "QUOTA_RESPONSE_USED",
       "QUOTA_RESPONSE_REMAINING",
       "LOCATION_ENABLED",
-      "WARNING"
+      "WARNING",
+      "WEATHER_WIDGET",
+      "WEATHER_WIDGET_DAY_HIGH",
+      "WEATHER_WIDGET_DAY_LOW",
+      "WEATHER_WIDGET_DAY_ICON",
+      "WEATHER_WIDGET_LOCATION",
+      "WEATHER_WIDGET_DAY_SUMMARY",
+      "WEATHER_WIDGET_TEMP_UNIT",
+      "WEATHER_WIDGET_COLOUR",
+      "WEATHER_WIDGET_DAY_OF_WEEK",
+      "WEATHER_WIDGET_CURRENT_TEMP",
+      "WEATHER_WIDGET_FEELS_LIKE",
+      "WEATHER_WIDGET_WIND_SPEED",
+      "WEATHER_WIDGET_WIND_SPEED_UNIT"
     ],
     "resources": {
       "media": [
@@ -164,6 +177,46 @@
         {
           "file": "text/location_consent.txt",
           "name": "LOCATION_CONSENT_TEXT",
+          "type": "raw"
+        },
+        {
+          "file": "weather/generic.pdc",
+          "name": "WEATHER_GENERIC",
+          "type": "raw"
+        },
+        {
+          "file": "weather/heavy_rain.pdc",
+          "name": "WEATHER_HEAVY_RAIN",
+          "type": "raw"
+        },
+        {
+          "file": "weather/heavy_snow.pdc",
+          "name": "WEATHER_HEAVY_SNOW",
+          "type": "raw"
+        },
+        {
+          "file": "weather/light_rain.pdc",
+          "name": "WEATHER_LIGHT_RAIN",
+          "type": "raw"
+        },
+        {
+          "file": "weather/light_snow.pdc",
+          "name": "WEATHER_LIGHT_SNOW",
+          "type": "raw"
+        },
+        {
+          "file": "weather/partly_cloudy.pdc",
+          "name": "WEATHER_PARTLY_CLOUDY",
+          "type": "raw"
+        },
+        {
+          "file": "weather/cloudy.pdc",
+          "name": "WEATHER_CLOUDY",
+          "type": "raw"
+        },
+        {
+          "file": "weather/sunny.pdc",
+          "name": "WEATHER_SUNNY",
           "type": "raw"
         }
       ]

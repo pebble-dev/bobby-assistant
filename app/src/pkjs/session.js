@@ -17,6 +17,7 @@
 var location = require('./location');
 var config = require('./config');
 var actions = require('./actions');
+var widgets = require('./widgets');
 
 var API_URL = require('./urls').QUERY_URL;
 
@@ -48,6 +49,7 @@ Session.prototype.run = function() {
     // negate this because JavaScript does it backwards for some reason.
     url += '&tzOffset=' + (-(new Date()).getTimezoneOffset());
     url += '&actions=' + actions.getSupportedActions().join(',');
+    url += '&widgets=weather';
     var settings = getSettings();
     url += '&units=' + settings['UNIT_PREFERENCE'] || '';
     url += '&lang=' + settings['LANGUAGE_CODE'] || '';
@@ -61,10 +63,21 @@ Session.prototype.handleMessage = function(event) {
     var message = event.data;
     console.log(message);
     if (message[0] == 'c') {
-        this.hasOpenDialog = true;
-        this.enqueue({
-            CHAT: message.substring(1)
-        });
+        var widgetRegex = /<<!!WIDGET:(.+?)!!>>/g;
+        var content = message.substring(1);
+        var match;
+        while (match = widgetRegex.exec(content)) {
+            var widget = match[1];
+            console.log("Widget found: " + widget);
+            content = content.replace(match[0], '');
+            this.processWidget(widget);
+        }
+        if (content.length > 0) {
+            this.hasOpenDialog = true;
+            this.enqueue({
+                CHAT: content
+            });
+        }
     } else if (message[0] == 'f') {
         if (this.hasOpenDialog) {
             console.log('Received a thought while a dialog is open. Closing the dialog.');
@@ -92,6 +105,10 @@ Session.prototype.handleMessage = function(event) {
             WARNING: message.substring(1)
         });
     }
+}
+
+Session.prototype.processWidget = function(widgetData) {
+    widgets.handleWidget(this, widgetData);
 }
 
 Session.prototype.enqueue = function(message) {

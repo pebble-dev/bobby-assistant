@@ -16,18 +16,14 @@ package functions
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"log"
-	"net/http"
-	"net/url"
-
 	"github.com/honeycombio/beeline-go"
-	"github.com/pebble-dev/bobby-assistant/service/assistant/config"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/query"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/util/mapbox"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/util/weather"
 	"google.golang.org/genai"
+	"log"
 )
 
 type WeatherInput struct {
@@ -83,29 +79,19 @@ func getWeather(ctx context.Context, quotaTracker *quota.Tracker, args interface
 	ctx, span := beeline.StartSpan(ctx, "get_weather")
 	defer span.Send()
 	arg := args.(*WeatherInput)
-	unit, ok := map[string]string{"imperial": "e", "metric": "m", "uk hybrid": "h"}[arg.Unit]
-	if !ok {
-		span.AddField("error", "bad units: "+arg.Unit)
-		return Error{"unit must be one of imperial, metric, or uk hybrid"}
-	}
 	var lat, lon float64
 	location := query.LocationFromContext(ctx)
+	if arg.Location == "here" {
+		arg.Location = ""
+	}
 	if arg.Location != "" {
-		vals := url.Values{}
-		vals.Set("types", "place,district,region,country,locality,neighborhood")
-		if location != nil {
-			vals.Set("proximity", fmt.Sprintf("%f,%f", location.Lon, location.Lat))
-		}
-		collection, err := mapbox.GeocodingRequest(ctx, arg.Location, vals)
+		coords, err := mapbox.GeocodeWithContext(ctx, arg.Location)
 		if err != nil {
-			span.AddField("error", "error finding location: "+err.Error())
-			return Error{"Could not find location: " + err.Error()}
+			span.AddField("error", err)
+			return Error{"Error finding location: " + err.Error()}
 		}
-		if len(collection.Features) == 0 {
-			span.AddField("error", "no such location: "+err.Error())
-			return Error{"Could not find location with name " + arg.Location}
-		}
-		lat, lon = collection.Features[0].Center[1], collection.Features[0].Center[0]
+		lat = coords.Lat
+		lon = coords.Lon
 	} else {
 		if location == nil {
 			span.AddField("error", "no location provided")
@@ -117,83 +103,22 @@ func getWeather(ctx context.Context, quotaTracker *quota.Tracker, args interface
 	_ = quotaTracker.ChargeCredits(ctx, quota.WeatherQueryCredits)
 	switch arg.Kind {
 	case "current":
-		return processCurrentWeather(ctx, lat, lon, unit)
+		return processCurrentWeather(ctx, lat, lon, arg.Unit)
 	case "forecast daily":
-		return processDailyForecast(ctx, lat, lon, unit)
+		return processDailyForecast(ctx, lat, lon, arg.Unit)
 	case "forecast hourly":
-		return processHourlyForecast(ctx, lat, lon, unit)
+		return processHourlyForecast(ctx, lat, lon, arg.Unit)
 	}
 	return Error{"invalid kind"}
 }
 
-type weirdIbmForecast struct {
-	CalendarDayTemperatureMax []int     `json:"calendarDayTemperatureMax"`
-	CalendarDayTemperatureMin []int     `json:"calendarDayTemperatureMin"`
-	DayOfWeek                 []string  `json:"dayOfWeek"`
-	MoonPhaseCode             []string  `json:"moonPhaseCode"`
-	MoonPhase                 []string  `json:"moonPhase"`
-	MoonPhaseDay              []int     `json:"moonPhaseDay"`
-	Narrative                 []string  `json:"narrative"`
-	SunriseTimeLocal          []string  `json:"sunriseTimeLocal"`
-	SunsetTimeLocal           []string  `json:"sunsetTimeLocal"`
-	MoonriseTimeLocal         []string  `json:"moonriseTimeLocal"`
-	MoonsetTimeLocal          []string  `json:"moonsetTimeLocal"`
-	Qpf                       []float32 `json:"qpf"`
-	QpfSnow                   []float32 `json:"qpfSnow"`
-}
-
-type weirdIbmCurrent struct {
-	CloudCoverPhrase      string  `json:"cloudCoverPhrase"`
-	CloudCover            int     `json:"cloudCover"`
-	DayOfWeek             string  `json:"dayOfWeek"`
-	DayOrNight            string  `json:"dayOrNight"`
-	Precip1Hour           float32 `json:"precip1Hour"`
-	Precip6Hour           float32 `json:"precip6Hour"`
-	Precip12Hour          float32 `json:"precip12Hour"`
-	RelativeHumidity      int     `json:"relativeHumidity"`
-	SunriseTimeLocal      string  `json:"sunriseTimeLocal"`
-	SunsetTimeLocal       string  `json:"sunsetTimeLocal"`
-	Temperature           int     `json:"temperature"`
-	TemperatureFeelsLike  int     `json:"temperatureFeelsLike"`
-	TemperatureMax24Hour  int     `json:"temperatureMax24Hour"`
-	TemperatureMin24Hour  int     `json:"temperatureMin24Hour"`
-	TemperatureWindChill  int     `json:"temperatureWindChill"`
-	UVIndex               int     `json:"uvIndex"`
-	Visibility            float32 `json:"visibility"`
-	WindDirectionCardinal string  `json:"windDirectionCardinal"`
-	WindSpeed             int     `json:"windSpeed"`
-	WindGust              int     `json:"windGust"`
-	Description           string  `json:"wxPhraseLong"`
-	//MustCite              string  `json:"source"`
-}
-
-type weirdIbmHourly struct {
-	WxPhraseLong   []string `json:"wxPhraseLong"`
-	Temperature    []int    `json:"temperature"`
-	PrecipChance   []int    `json:"precipChance"`
-	PrecipType     []string `json:"precipType"`
-	ValidTimeLocal []string `json:"validTimeLocal"`
-	UVIndex        []int    `json:"uvIndex"`
-}
-
 func processDailyForecast(ctx context.Context, lat, lon float64, units string) interface{} {
-	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("https://api.weather.com/v3/wx/forecast/daily/7day?geocode=%f,%f&units=%s&language=en_US&format=json&apiKey=795ea3c9f93e42379ea3c9f93e623723", lat, lon, units), nil)
+	forecast, err := weather.GetDailyForecast(ctx, lat, lon, units)
 	if err != nil {
 		beeline.AddField(ctx, "error", err)
-		return Error{"Could not create request: " + err.Error()}
+		return Error{"Could not get forecast: " + err.Error()}
 	}
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		beeline.AddField(ctx, "error", err)
-		return Error{"Could not make request: " + err.Error()}
-	}
-	defer resp.Body.Close()
-	var forecast weirdIbmForecast
-	if err := json.NewDecoder(resp.Body).Decode(&forecast); err != nil {
-		beeline.AddField(ctx, "error", err)
-		return Error{"Could not decode response: " + err.Error()}
-	}
-	log.Println(forecast)
+	log.Println(*forecast)
 	response := map[string]interface{}{}
 	for i, day := range forecast.DayOfWeek {
 		if i == 0 {
@@ -217,21 +142,10 @@ func processDailyForecast(ctx context.Context, lat, lon float64, units string) i
 }
 
 func processHourlyForecast(ctx context.Context, lat, lon float64, units string) interface{} {
-	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("https://api.weather.com/v3/wx/forecast/hourly/2day?geocode=%f,%f&units=%s&language=en_US&format=json&apiKey=%s", lat, lon, units, config.GetConfig().IBMKey), nil)
+	hourly, err := weather.GetHourlyForecast(ctx, lat, lon, units)
 	if err != nil {
 		beeline.AddField(ctx, "error", err)
-		return Error{"Could not create request: " + err.Error()}
-	}
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		beeline.AddField(ctx, "error", err)
-		return Error{"Could not make request: " + err.Error()}
-	}
-	defer resp.Body.Close()
-	var hourly weirdIbmHourly
-	if err := json.NewDecoder(resp.Body).Decode(&hourly); err != nil {
-		beeline.AddField(ctx, "error", err)
-		return Error{"Could not decode response: " + err.Error()}
+		return Error{"Could not get forecast: " + err.Error()}
 	}
 	var response []map[string]interface{}
 	for i, t := range hourly.ValidTimeLocal {
@@ -257,22 +171,10 @@ func processHourlyForecast(ctx context.Context, lat, lon float64, units string) 
 }
 
 func processCurrentWeather(ctx context.Context, lat, lon float64, units string) interface{} {
-	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("https://api.weather.com/v3/wx/observations/current?geocode=%f,%f&units=%s&language=en_US&format=json&apiKey=%s", lat, lon, units, config.GetConfig().IBMKey), nil)
+	observations, err := weather.GetCurrentConditions(ctx, lat, lon, units)
 	if err != nil {
 		beeline.AddField(ctx, "error", err)
-		return Error{"Could not create request: " + err.Error()}
+		return Error{"Could not get current conditions: " + err.Error()}
 	}
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		beeline.AddField(ctx, "error", err)
-		return Error{"Could not make request: " + err.Error()}
-	}
-	defer resp.Body.Close()
-	var observations weirdIbmCurrent
-	if err := json.NewDecoder(resp.Body).Decode(&observations); err != nil {
-		beeline.AddField(ctx, "error", err)
-		return Error{"Could not decode response: " + err.Error()}
-	}
-	//observations.MustCite = "The Weather Channel"
-	return observations
+	return *observations
 }

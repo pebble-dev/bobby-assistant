@@ -58,4 +58,7 @@ add_executable(tiny_assistant_app
         src/c/util/vector_layer.c
         src/c/util/style.c
         src/c/util/vector_sequence_layer.c
-        src/c/util/result_window.c)
+        src/c/util/result_window.c
+        src/c/converse/segments/widgets/weather_single_day.c
+        src/c/converse/segments/widgets/weather_current.c
+        src/c/converse/segments/widgets/weather_util.c)

@@ -29,6 +29,11 @@ typedef enum {
   ConversationActionTypeGenericSentence,
 } ConversationActionType;
 
+typedef enum {
+  ConversationWidgetTypeWeatherSingleDay,
+  ConversationWidgetTypeWeatherCurrent,
+} ConversationWidgetType;
+
 typedef struct {
   time_t time;
   bool is_timer;
@@ -75,11 +80,42 @@ typedef struct {
   char *message;
 } ConversationError;
 
+typedef struct {
+  int high;
+  int low;
+  int condition;
+  char *location;
+  char *summary;
+  char *temp_unit;
+  char *day;
+  GColor background_color;
+} ConversationWidgetWeatherSingleDay;
+
+typedef struct {
+  int temperature;
+  int feels_like;
+  int condition;
+  int wind_speed;
+  char *location;
+  char *summary;
+  char *wind_speed_unit;
+  GColor background_color;
+} ConversationWidgetWeatherCurrent;
+
+typedef struct {
+  ConversationWidgetType type;
+  union {
+    ConversationWidgetWeatherSingleDay weather_single_day;
+    ConversationWidgetWeatherCurrent weather_current;
+  } widget;
+} ConversationWidget;
+
 typedef enum {
   EntryTypePrompt,
   EntryTypeResponse,
   EntryTypeThought,
   EntryTypeAction,
+  EntryTypeWidget,
   EntryTypeError,
 } EntryType;
 
@@ -92,6 +128,7 @@ bool conversation_add_response_fragment(Conversation *conversation, const char* 
 void conversation_complete_response(Conversation *conversation);
 void conversation_add_thought(Conversation* conversation, char* thought);
 void conversation_add_action(Conversation* conversation, ConversationAction* action);
+void conversation_add_widget(Conversation* conversation, ConversationWidget* widget);
 void conversation_add_error(Conversation* conversation, const char* error_text);
 void conversation_set_thread_id(Conversation* conversation, const char* thread_id);
 const char* conversation_get_thread_id(Conversation* conversation);
@@ -106,5 +143,6 @@ ConversationResponse* conversation_entry_get_response(ConversationEntry* respons
 ConversationThought* conversation_entry_get_thought(ConversationEntry* thought);
 ConversationError* conversation_entry_get_error(ConversationEntry* response);
 ConversationAction* conversation_entry_get_action(ConversationEntry* action);
+ConversationWidget* conversation_entry_get_widget(ConversationEntry* widget);
 
 #endif

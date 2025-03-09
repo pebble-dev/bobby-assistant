@@ -83,25 +83,20 @@ func searchPoi(ctx context.Context, quotaTracker *quota.Tracker, args interface{
 	qs := url.Values{}
 	location := query.LocationFromContext(ctx)
 	if poiQuery.Location != "" {
-		vals := url.Values{}
-		vals.Set("types", "place,district,region,country,locality,neighborhood")
-		if location != nil {
-			vals.Set("proximity", fmt.Sprintf("%f,%f", location.Lon, location.Lat))
-		}
-		collection, err := mapbox.GeocodingRequest(ctx, poiQuery.Location, vals)
+		coords, err := mapbox.GeocodeWithContext(ctx, poiQuery.Location)
 		if err != nil {
-			return Error{Error: fmt.Sprintf("Failed to geocode %q", poiQuery.Location)}
-		}
-		if len(collection.Features) == 0 {
-			return Error{Error: fmt.Sprintf("No location found for %q", poiQuery.Location)}
+			span.AddField("error", err)
+			return Error{Error: "Error finding location: " + err.Error()}
 		}
 		location = &query.Location{
-			Lon: collection.Features[0].Center[0],
-			Lat: collection.Features[0].Center[1],
+			Lon: coords.Lon,
+			Lat: coords.Lat,
 		}
 	}
 	qs.Set("q", poiQuery.Query)
-	qs.Set("proximity", fmt.Sprintf("%f,%f", location.Lon, location.Lat))
+	if location != nil {
+		qs.Set("proximity", fmt.Sprintf("%f,%f", location.Lon, location.Lat))
+	}
 
 	log.Printf("Searching for POIs matching %q", poiQuery.Query)
 	_ = quotaTracker.ChargeCredits(ctx, quota.PoiSearchCredits)

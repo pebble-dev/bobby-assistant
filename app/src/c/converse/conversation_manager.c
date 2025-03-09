@@ -33,6 +33,7 @@ static void prv_handle_app_message_outbox_sent(DictionaryIterator *iterator, voi
 static void prv_handle_app_message_outbox_failed(DictionaryIterator *iterator, AppMessageResult reason, void *context);
 static void prv_handle_app_message_inbox_received(DictionaryIterator *iterator, void *context);
 static void prv_handle_app_message_inbox_dropped(AppMessageResult result, void *context);
+static void prv_process_weather_widget(int widget_type, DictionaryIterator *iter, ConversationManager *manager);
 
 static ConversationManager* s_conversation_manager;
 
@@ -165,6 +166,81 @@ static void prv_handle_app_message_inbox_received(DictionaryIterator *iter, void
       conversation_complete_response(manager->conversation);
       prv_conversation_updated(manager, false);
       conversation_add_error(manager->conversation, tuple->value->cstring);
+      prv_conversation_updated(manager, true);
+    } else if (tuple->key == MESSAGE_KEY_WEATHER_WIDGET) {
+      prv_process_weather_widget(tuple->value->int32, iter, manager);
+    }
+  }
+}
+
+static void prv_process_weather_widget(int widget_type, DictionaryIterator *iter, ConversationManager *manager) {
+  switch (widget_type) {
+    case 1: {
+      int high = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_HIGH)->value->int32;
+      int low = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_LOW)->value->int32;
+      int icon = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_ICON)->value->int32;
+      const char* summary = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_SUMMARY)->value->cstring;
+      const char* location = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_LOCATION)->value->cstring;
+      const char* temp_unit = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_TEMP_UNIT)->value->cstring;
+      const char* day = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_OF_WEEK)->value->cstring;
+      GColor color = GColorFromHEX(dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_COLOUR)->value->int32);
+      char* summary_stored = malloc(strlen(summary) + 1);
+      strcpy(summary_stored, summary);
+      char* location_stored = malloc(strlen(location) + 1);
+      strcpy(location_stored, location);
+      char* temp_unit_stored = malloc(strlen(temp_unit) + 1);
+      strcpy(temp_unit_stored, temp_unit);
+      char* day_stored = malloc(strlen(day) + 1);
+      strcpy(day_stored, day);
+      ConversationWidget widget = {
+        .type = ConversationWidgetTypeWeatherSingleDay,
+        .widget = {
+          .weather_single_day = {
+            .high = high,
+            .low = low,
+            .condition = icon,
+            .location = location_stored,
+            .summary = summary_stored,
+            .temp_unit = temp_unit_stored,
+            .day = day_stored,
+            .background_color = color,
+          }
+        }
+      };
+      conversation_add_widget(manager->conversation, &widget);
+      prv_conversation_updated(manager, true);
+    }
+    case 2: {
+      int temp = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_CURRENT_TEMP)->value->int32;
+      int feels_like = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_FEELS_LIKE)->value->int32;
+      int icon = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_ICON)->value->int32;
+      int wind_speed = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_WIND_SPEED)->value->int32;
+      const char* location = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_LOCATION)->value->cstring;
+      const char* summary = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_SUMMARY)->value->cstring;
+      const char* wind_speed_unit = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_WIND_SPEED_UNIT)->value->cstring;
+      GColor color = GColorFromHEX(dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_COLOUR)->value->int32);
+      char* location_stored = malloc(strlen(location) + 1);
+      strcpy(location_stored, location);
+      char* summary_stored = malloc(strlen(summary) + 1);
+      strcpy(summary_stored, summary);
+      char* wind_speed_unit_stored = malloc(strlen(wind_speed_unit) + 1);
+      strcpy(wind_speed_unit_stored, wind_speed_unit);
+      ConversationWidget widget = {
+        .type = ConversationWidgetTypeWeatherCurrent,
+        .widget = {
+          .weather_current = {
+            .temperature = temp,
+            .feels_like = feels_like,
+            .condition = icon,
+            .wind_speed = wind_speed,
+            .location = location_stored,
+            .summary = summary_stored,
+            .wind_speed_unit = wind_speed_unit_stored,
+            .background_color = color,
+          }
+        }
+      };
+      conversation_add_widget(manager->conversation, &widget);
       prv_conversation_updated(manager, true);
     }
   }

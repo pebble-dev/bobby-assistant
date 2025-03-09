@@ -16,12 +16,9 @@ package assistant
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"github.com/honeycombio/beeline-go"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/util/mapbox"
 	"log"
-	"net/url"
 	"strconv"
 	"time"
 
@@ -66,14 +63,25 @@ func (ps *PromptSession) getPlaceFromLocation(ctx context.Context) (string, erro
 	// We don't want anything more specific than their town name, so we filter at that level ("place" in Mapbox terms).
 	// We will return just a region or country if there isn't a nearby place.
 	location := query.LocationFromContext(ctx)
-	collection, err := mapbox.GeocodingRequest(ctx, fmt.Sprintf("%f,%f", location.Lon, location.Lat), url.Values{"types": {"place,region,country"}})
+	feature, err := mapbox.ReverseGeocode(ctx, location.Lon, location.Lat)
 	if err != nil {
 		return "", err
 	}
-	if len(collection.Features) == 0 {
-		return "", errors.New("the user isn't anywhere")
+	return feature.PlaceName, nil
+}
+
+func generateWidgetSentence(ctx context.Context) string {
+	if !query.SupportsAnyWidgets(ctx) {
+		return ""
 	}
-	return collection.Features[0].PlaceName, nil
+	sentence := "You can embed some widgets in your responses by using a special syntax. The following widgets are available:\n"
+	if query.SupportsWidget(ctx, "weather") {
+		sentence += "<!WEATHER-CURRENT location=[here|place name]! units=[metric|imperial|uk hybrid]!>: embeds a weather widget showing the weather right now in the given location\n" +
+			"<!WEATHER-SINGLE-DAY location=[here|place name] units=[metric|imperial|uk hybrid] day=[the name of a weekday, like Tuesday]!>: embeds a weather widget summarising the weather in the given location for a single day within the coming week.\n" +
+			"<!WEATHER-MULTI-DAY location=[here|place name] units=[metric|imperial|uk hybrid]!>: embeds a weather widget summarising the weather in the given location for the next three days\n" +
+			"Before including a weather widget, you *must* still look up the weather, and include a textual response after the widget. Always call get_weather first, then put the widget before any other text. If showing the weather for the user's current location, always use 'here' instead of a place name. If asked for only one day of weather, don't respond with multiple days.\n\n"
+	}
+	return sentence
 }
 
 func (ps *PromptSession) generateSystemPrompt(ctx context.Context) string {
@@ -103,6 +111,7 @@ func (ps *PromptSession) generateSystemPrompt(ctx context.Context) string {
 		"As a creative, intelligent, helpful, friendly assistant, you should always try to answer the user's question. You can and should provide creative suggestions and factual responses as appropriate. Always try your best to answer the user's question. " +
 		"**Never** claim to have taken an action (e.g. set a timer, alarm, or reminder) unless you have actually used a tool to do so. " +
 		"Even if in previous turns you have apparently taken an action (like setting an alarm) without using a tool, you must still use tools if asked to do so again. " +
-		"Your responses will be displayed on a very small screen, so be brief. Do not use markdown in your responses. " +
+		"Your responses will be displayed on a very small screen, so be brief. Do not use markdown in your responses.\n" +
+		generateWidgetSentence(ctx) +
 		generateLanguageSentence(ctx)
 }

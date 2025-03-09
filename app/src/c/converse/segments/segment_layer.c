@@ -18,6 +18,8 @@
 #include "../conversation.h"
 #include "info_layer.h"
 #include "message_layer.h"
+#include "widgets/weather_single_day.h"
+#include "widgets/weather_current.h"
 
 #include <pebble.h>
 
@@ -27,6 +29,8 @@
 typedef enum {
   SegmentTypeMessage,
   SegmentTypeInfo,
+  SegmentTypeWeatherSingleDayWidget,
+  SegmentTypeWeatherCurrentWidget,
 } SegmentType;
 
 typedef struct {
@@ -39,6 +43,8 @@ typedef struct {
     Layer* layer;
     InfoLayer* info_layer;
     MessageLayer* message_layer;
+    WeatherSingleDayWidget* weather_single_day_widget;
+    WeatherCurrentWidget* weather_current_widget;
   };
 } SegmentLayerData;
 
@@ -59,6 +65,14 @@ SegmentLayer* segment_layer_create(GRect rect, ConversationEntry* entry) {
       data->info_layer = info_layer_create(child_frame, entry);
       layer_add_child(layer, data->info_layer);
       break;
+    case SegmentTypeWeatherSingleDayWidget:
+      data->weather_single_day_widget = weather_single_day_widget_create(child_frame, entry);
+      layer_add_child(layer, data->weather_single_day_widget);
+      break;
+    case SegmentTypeWeatherCurrentWidget:
+      data->weather_current_widget = weather_current_widget_create(child_frame, entry);
+      layer_add_child(layer, data->weather_current_widget);
+      break;
   }
   GSize child_size = layer_get_frame(data->layer).size;
   layer_set_frame(layer, GRect(rect.origin.x, rect.origin.y, child_size.w, child_size.h));
@@ -73,6 +87,12 @@ void segment_layer_destroy(SegmentLayer* layer) {
       break;
     case SegmentTypeInfo:
       info_layer_destroy(data->info_layer);
+      break;
+    case SegmentTypeWeatherSingleDayWidget:
+      weather_single_day_widget_destroy(data->weather_single_day_widget);
+      break;
+    case SegmentTypeWeatherCurrentWidget:
+      weather_current_widget_destroy(data->weather_current_widget);
       break;
   }
   layer_destroy(layer);
@@ -92,6 +112,12 @@ void segment_layer_update(SegmentLayer* layer) {
     case SegmentTypeInfo:
       info_layer_update(data->info_layer);
       break;
+    case SegmentTypeWeatherSingleDayWidget:
+      weather_single_day_widget_update(data->weather_single_day_widget);
+      break;
+    case SegmentTypeWeatherCurrentWidget:
+      weather_current_widget_update(data->weather_current_widget);
+      break;
   }
   GSize child_size = layer_get_frame(data->layer).size;
   GPoint origin = layer_get_frame(layer).origin;
@@ -107,6 +133,14 @@ static SegmentType prv_get_segment_type(ConversationEntry* entry) {
     case EntryTypeError:
     case EntryTypeAction:
       return SegmentTypeInfo;
+    case EntryTypeWidget:
+      switch (conversation_entry_get_widget(entry)->type) {
+        case ConversationWidgetTypeWeatherSingleDay:
+          return SegmentTypeWeatherSingleDayWidget;
+        case ConversationWidgetTypeWeatherCurrent:
+          return SegmentTypeWeatherCurrentWidget;
+      }
+      break;
   }
   APP_LOG(APP_LOG_LEVEL_ERROR, "Unknown entry type %d.", conversation_entry_get_type(entry));
   return SegmentTypeMessage;
