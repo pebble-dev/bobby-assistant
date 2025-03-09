@@ -31,7 +31,8 @@ import (
 )
 
 type WikipediaRequest struct {
-	Query string `json:"article_name"`
+	Query           string `json:"article_name"`
+	CompleteArticle bool   `json:"complete_article"`
 }
 
 type WikipediaResponse struct {
@@ -42,7 +43,7 @@ func init() {
 	registerFunction(Registration{
 		Definition: genai.FunctionDeclaration{
 			Name:        "wikipedia",
-			Description: "Look up the content of a single named English Wikipedia page.",
+			Description: "Look up the content of a single named English Wikipedia page. Never say the Wikipedia page didn't have the information needed without first trying to fetch the complete article.",
 			Parameters: &genai.Schema{
 				Type:     genai.TypeObject,
 				Nullable: false,
@@ -50,6 +51,11 @@ func init() {
 					"article_name": {
 						Type:        genai.TypeString,
 						Description: "The name of the English Wikipedia page to look up",
+						Nullable:    false,
+					},
+					"complete_article": {
+						Type:        genai.TypeBoolean,
+						Description: "Whether to return the complete article or just the summary. Prefer to fetch only the summary. If the summary didn't have the information you expected, you can try again with the complete article.",
 						Nullable:    false,
 					},
 				},
@@ -68,7 +74,7 @@ func queryWikipediaThought(args interface{}) string {
 
 func queryWikipedia(ctx context.Context, quotaTracker *quota.Tracker, args interface{}) interface{} {
 	req := args.(*WikipediaRequest)
-	results, err := queryWikipediaInternal(ctx, req.Query, true)
+	results, err := queryWikipediaInternal(ctx, req.Query, req.CompleteArticle, true)
 	if err != nil {
 		return Error{Error: err.Error()}
 	}
@@ -77,13 +83,17 @@ func queryWikipedia(ctx context.Context, quotaTracker *quota.Tracker, args inter
 	}
 }
 
-func queryWikipediaInternal(ctx context.Context, query string, allowSearch bool) (string, error) {
+func queryWikipediaInternal(ctx context.Context, query string, completeArticle, allowSearch bool) (string, error) {
 	ctx, span := beeline.StartSpan(ctx, "query_wikipedia")
 	defer span.Send()
 	span.AddField("title", query)
-	log.Printf("Looking up Wikipedia article: %q\n", query)
+	log.Printf("Looking up Wikipedia article: %q (complete: %t)\n", query, completeArticle)
 	qs := url.QueryEscape(query)
-	request, err := http.NewRequestWithContext(ctx, "GET", "https://en.wikipedia.org/w/api.php?action=query&prop=revisions&rvprop=content&format=xml&titles="+qs+"&rvsection=0&rvslots=main", nil)
+	url := "https://en.wikipedia.org/w/api.php?action=query&prop=revisions&rvprop=content&format=xml&titles=" + qs + "&rvslots=main"
+	if !completeArticle {
+		url += "&rvsection=0"
+	}
+	request, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return "", err
 	}
@@ -116,9 +126,13 @@ func queryWikipediaInternal(ctx context.Context, query string, allowSearch bool)
 		if len(searchResult) == 0 {
 			return "", errors.New("Wikipedia page not found. Try to answer using your general knowledge.")
 		}
-		return queryWikipediaInternal(ctx, searchResult[0], false)
+		return queryWikipediaInternal(ctx, searchResult[0], completeArticle, false)
 	}
-	return string(content), nil
+	addendum := ""
+	if !completeArticle {
+		addendum = "\n\nThis was only the summary. If necessary, more information can be returned by repeating the query_wikipedia call with complete_article = true. You can always do this automatically, without prompting the user."
+	}
+	return string(content) + addendum, nil
 }
 
 func searchWikipedia(ctx context.Context, query string) ([]string, error) {

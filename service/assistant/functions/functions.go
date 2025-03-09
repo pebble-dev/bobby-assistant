@@ -91,9 +91,9 @@ func CallFunction(ctx context.Context, qt *quota.Tracker, fn, args string) (stri
 	if err != nil {
 		return "", fmt.Errorf("unable to marshal response: %v", err)
 	}
-	if len(r) > MaxResponseSize {
-		r = r[:MaxResponseSize]
-	}
+	//if len(r) > MaxResponseSize {
+	//	r = r[:MaxResponseSize]
+	//}
 	return string(r), nil
 }
 
@@ -169,9 +169,9 @@ func CallAction(ctx context.Context, qt *quota.Tracker, fn, args string, ws *web
 	if err != nil {
 		return "", fmt.Errorf("unable to marshal response: %v", err)
 	}
-	if len(r) > MaxResponseSize {
-		r = r[:MaxResponseSize]
-	}
+	//if len(r) > MaxResponseSize {
+	//	r = r[:MaxResponseSize]
+	//}
 	return string(r), nil
 }
 
