@@ -30,27 +30,39 @@ import (
 	"google.golang.org/genai"
 )
 
-type WikipediaRequest struct {
+type WikiRequest struct {
+	Wiki            string `json:"wiki"`
 	Query           string `json:"article_name"`
 	CompleteArticle bool   `json:"complete_article"`
 }
 
-type WikipediaResponse struct {
+type WikiResponse struct {
 	Results string `json:"results"`
+}
+
+var urlMap = map[string]string{
+	"wikipedia":  "https://en.wikipedia.org/",
+	"bulbapedia": "https://bulbapedia.bulbagarden.net/",
 }
 
 func init() {
 	registerFunction(Registration{
 		Definition: genai.FunctionDeclaration{
 			Name:        "wikipedia",
-			Description: "Look up the content of a single named English Wikipedia page. Never say the Wikipedia page didn't have the information needed without first trying to fetch the complete article.",
+			Description: "Look up the content of a single named wiki article, from Wikipedia or topic-specific wikis like Bulbapedia. Never say the wiki page didn't have the information needed without first trying to fetch the complete article.",
 			Parameters: &genai.Schema{
 				Type:     genai.TypeObject,
 				Nullable: false,
 				Properties: map[string]*genai.Schema{
+					"wiki": {
+						Type:        genai.TypeString,
+						Description: "The Wiki to search.",
+						Nullable:    false,
+						Enum:        []string{"wikipedia", "bulbapedia"},
+					},
 					"article_name": {
 						Type:        genai.TypeString,
-						Description: "The name of the English Wikipedia page to look up",
+						Description: "The name of the article to look up",
 						Nullable:    false,
 					},
 					"complete_article": {
@@ -59,37 +71,40 @@ func init() {
 						Nullable:    false,
 					},
 				},
-				Required: []string{"article_name"},
+				Required: []string{"wiki", "article_name"},
 			},
 		},
-		Fn:        queryWikipedia,
-		Thought:   queryWikipediaThought,
-		InputType: WikipediaRequest{},
+		Fn:        queryWiki,
+		Thought:   queryWikiThought,
+		InputType: WikiRequest{},
 	})
 }
 
-func queryWikipediaThought(args interface{}) string {
+func queryWikiThought(args interface{}) string {
 	return "Looking it up..."
 }
 
-func queryWikipedia(ctx context.Context, quotaTracker *quota.Tracker, args interface{}) interface{} {
-	req := args.(*WikipediaRequest)
-	results, err := queryWikipediaInternal(ctx, req.Query, req.CompleteArticle, true)
+func queryWiki(ctx context.Context, quotaTracker *quota.Tracker, args interface{}) interface{} {
+	req := args.(*WikiRequest)
+	if _, ok := urlMap[req.Wiki]; !ok {
+		return Error{Error: "Unknown wiki: " + req.Wiki}
+	}
+	results, err := queryWikiInternal(ctx, req.Wiki, req.Query, req.CompleteArticle, true)
 	if err != nil {
 		return Error{Error: err.Error()}
 	}
-	return &WikipediaResponse{
+	return &WikiResponse{
 		Results: results,
 	}
 }
 
-func queryWikipediaInternal(ctx context.Context, query string, completeArticle, allowSearch bool) (string, error) {
-	ctx, span := beeline.StartSpan(ctx, "query_wikipedia")
+func queryWikiInternal(ctx context.Context, wiki, query string, completeArticle, allowSearch bool) (string, error) {
+	ctx, span := beeline.StartSpan(ctx, "query_wiki")
 	defer span.Send()
 	span.AddField("title", query)
-	log.Printf("Looking up Wikipedia article: %q (complete: %t)\n", query, completeArticle)
+	log.Printf("Looking up %s article: %q (complete: %t)\n", wiki, query, completeArticle)
 	qs := url.QueryEscape(query)
-	u := "https://en.wikipedia.org/w/api.php?action=query&prop=revisions&rvprop=content&format=xml&titles=" + qs + "&rvslots=main"
+	u := urlMap[wiki] + "w/api.php?action=query&prop=revisions&rvprop=content&format=xml&titles=" + qs + "&rvslots=main"
 	if !completeArticle {
 		u += "&rvsection=0"
 	}
@@ -108,7 +123,7 @@ func queryWikipediaInternal(ctx context.Context, query string, completeArticle, 
 		if err != nil {
 			return "", err
 		}
-		return "", fmt.Errorf("wikipedia query failed: %s", content)
+		return "", fmt.Errorf("%s query failed: %s", wiki, content)
 	}
 	content, err := io.ReadAll(response.Body)
 	if err != nil {
@@ -119,14 +134,14 @@ func queryWikipediaInternal(ctx context.Context, query string, completeArticle, 
 			return "", errors.New("no page exists with that name")
 		}
 		// try searching for the page.
-		searchResult, err := searchWikipedia(ctx, query)
+		searchResult, err := searchWiki(ctx, wiki, query)
 		if err != nil {
-			return "", errors.New("wikipedia page not found")
+			return "", fmt.Errorf("%s page %q not found", wiki, query)
 		}
 		if len(searchResult) == 0 {
-			return "", errors.New("Wikipedia page not found. Try to answer using your general knowledge.")
+			return "", fmt.Errorf("%s page %q not found. Try to answer using your general knowledge.", wiki, query)
 		}
-		return queryWikipediaInternal(ctx, searchResult[0], completeArticle, false)
+		return queryWikiInternal(ctx, wiki, searchResult[0], completeArticle, false)
 	}
 	addendum := ""
 	if !completeArticle {
@@ -135,12 +150,12 @@ func queryWikipediaInternal(ctx context.Context, query string, completeArticle, 
 	return string(content) + addendum, nil
 }
 
-func searchWikipedia(ctx context.Context, query string) ([]string, error) {
+func searchWiki(ctx context.Context, wiki, query string) ([]string, error) {
 	ctx, span := beeline.StartSpan(ctx, "search_wikipedia")
 	defer span.Send()
 	span.AddField("query", query)
-	log.Printf("Searching Wikipedia for %q\n", query)
-	request, err := http.NewRequestWithContext(ctx, "GET", "https://en.wikipedia.org/w/api.php?action=opensearch&limit=5&namespace=0&format=json&redirects=resolve&search="+url.QueryEscape(query), nil)
+	log.Printf("Searching %s for %q\n", wiki, query)
+	request, err := http.NewRequestWithContext(ctx, "GET", urlMap[wiki]+"w/api.php?action=opensearch&limit=5&namespace=0&format=json&redirects=resolve&search="+url.QueryEscape(query), nil)
 	if err != nil {
 		log.Printf("Creating request failed: %v\n", err)
 		return nil, err
@@ -156,10 +171,10 @@ func searchWikipedia(ctx context.Context, query string) ([]string, error) {
 		content, err := io.ReadAll(response.Body)
 		log.Println(string(content))
 		if err != nil {
-			log.Printf("Wikipedia search failed: %v\n", err)
+			log.Printf("%s search failed: %v\n", wiki, err)
 			return nil, err
 		}
-		log.Printf("Wikipedia search failed: %v\n", string(content))
+		log.Printf("%s search failed: %v\n", wiki, string(content))
 		return nil, err
 	}
 	var result []any
