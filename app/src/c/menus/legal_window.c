@@ -49,15 +49,16 @@ static void prv_window_load(Window* window) {
  data->legal_text[res_size] = '\0';
  Layer *root_layer = window_get_root_layer(window);
  GRect window_bounds = layer_get_bounds(root_layer);
+ GSize text_size = graphics_text_layout_get_content_size(data->legal_text, fonts_get_system_font(FONT_KEY_GOTHIC_24), GRect(5, 0, window_bounds.size.w - 10, 10000), GTextOverflowModeWordWrap, GTextAlignmentLeft);
  data->status_bar = status_bar_layer_create();
  bobby_status_bar_config(data->status_bar);
  layer_add_child(root_layer, status_bar_layer_get_layer(data->status_bar));
  data->scroll_layer = scroll_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT, window_bounds.size.w, window_bounds.size.h - STATUS_BAR_LAYER_HEIGHT));
  scroll_layer_set_shadow_hidden(data->scroll_layer, true);
  scroll_layer_set_click_config_onto_window(data->scroll_layer, window);
- scroll_layer_set_content_size(data->scroll_layer, GSize(window_bounds.size.w, 1770));
+ scroll_layer_set_content_size(data->scroll_layer, GSize(window_bounds.size.w, text_size.h + 10));
  layer_add_child(root_layer, scroll_layer_get_layer(data->scroll_layer));
- data->text_layer = text_layer_create(GRect(5, 0, window_bounds.size.w - 10, 1770));
+ data->text_layer = text_layer_create(GRect(5, 0, window_bounds.size.w - 10, text_size.h + 5));
  text_layer_set_font(data->text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24));
  text_layer_set_text(data->text_layer, data->legal_text);
  scroll_layer_add_child(data->scroll_layer, text_layer_get_layer(data->text_layer));
