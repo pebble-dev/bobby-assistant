@@ -75,6 +75,7 @@ void segment_layer_destroy(SegmentLayer* layer) {
       info_layer_destroy(data->info_layer);
       break;
   }
+  layer_destroy(layer);
 }
 
 ConversationEntry* segment_layer_get_entry(SegmentLayer* layer) {

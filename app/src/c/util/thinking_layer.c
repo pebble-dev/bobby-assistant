@@ -60,6 +60,7 @@ void thinking_layer_destroy(ThinkingLayer *layer) {
   ThinkingLayerData* data = layer_get_data(layer);
   animation_destroy(data->animation);
   data->animation = NULL;
+  layer_destroy(layer);
 }
 
 static void prv_animation_update(Animation* animation, const AnimationProgress progress) {

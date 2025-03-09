@@ -43,6 +43,7 @@ InfoLayer* info_layer_create(GRect rect, ConversationEntry* entry) {
     Layer* layer = layer_create_with_data(rect, sizeof(InfoLayerData));
     InfoLayerData* data = layer_get_data(layer);
     data->entry = entry;
+    data->icon = NULL;
     data->content_text = NULL;
     data->content_height = 24;
     data->content_height = prv_get_content_height(layer);
@@ -64,6 +65,10 @@ void info_layer_destroy(InfoLayer* layer) {
   if (data->content_text) {
     free(data->content_text);
   }
+  if (data->icon) {
+    gdraw_command_image_destroy(data->icon);
+  }
+  layer_destroy(layer);
 }
 
 ConversationEntry* info_layer_get_entry(InfoLayer* layer) {

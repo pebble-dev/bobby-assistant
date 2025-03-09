@@ -63,6 +63,7 @@ void message_layer_destroy(MessageLayer* layer) {
     text_layer_destroy(data->speaker_layer);
   }
   text_layer_destroy(data->content_layer);
+  layer_destroy(layer);
 }
 
 void message_layer_update(MessageLayer* layer) {

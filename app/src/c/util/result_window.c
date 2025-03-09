@@ -104,6 +104,7 @@ static void prv_window_unload(Window* window) {
   free(data->title_text);
   free(data->text_text);
   free(data);
+  window_destroy(window);
 }
 
 static void prv_window_appear(Window* window) {

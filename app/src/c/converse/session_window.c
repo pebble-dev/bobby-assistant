@@ -74,6 +74,7 @@ static void prv_destroy(SessionWindow *sw) {
   scroll_layer_destroy(sw->scroll_layer);
   bitmap_layer_destroy(sw->button_layer);
   gbitmap_destroy(sw->button_bitmap);
+  layer_destroy(sw->scroll_indicator_down);
   if (sw->thinking_layer) {
     thinking_layer_destroy(sw->thinking_layer);
     sw->thinking_layer = NULL;
@@ -82,6 +83,8 @@ static void prv_destroy(SessionWindow *sw) {
     segment_layer_destroy(sw->segment_layers[i]);
   }
   free(sw->segment_layers);
+  window_destroy(sw->window);
+  free(sw);
 }
 
 static void prv_window_load(Window *window) {

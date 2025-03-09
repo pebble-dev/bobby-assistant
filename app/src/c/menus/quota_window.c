@@ -83,7 +83,10 @@ static void prv_window_unload(Window* window) {
   vector_sequence_layer_destroy(data->loading_layer);
   gdraw_command_sequence_destroy(data->loading_sequence);
   events_app_message_unsubscribe(data->app_message_handle);
+  scroll_layer_destroy(data->scroll_layer);
+  status_bar_layer_destroy(data->status_bar);
   free(data);
+  window_destroy(window);
 }
 
 static void prv_fetch_quota(Window* window) {
@@ -108,9 +111,11 @@ static void prv_app_message_received(DictionaryIterator* iter, void* context) {
   }
   int remaining = tuple->value->int32;
   APP_LOG(APP_LOG_LEVEL_INFO, "Quota: %d used, %d remaining", used, remaining);
-  snprintf(data->explanation, sizeof(data->explanation), "You've used %d%% of your Bobby quota for this month. Once you've used 100%%, Bobby will stop working until next month. Quota resets on the first day of each month.", ((used * 100) / (used + remaining)));
+  int display_percent = (int)(((uint64_t)used * 100) / (used + remaining));
+  uint64_t percentage = ((uint64_t)used * PERCENTAGE_MAX) / (used + remaining);
+  snprintf(data->explanation, sizeof(data->explanation), "You've used %d%% of your Bobby quota for this month. Once you've used 100%%, Bobby will stop working until next month. Quota resets on the first day of each month.", display_percent);
   text_layer_set_text(data->explanation_layer, data->explanation);
-  usage_layer_set_percentage(data->usage_layer, (int16_t)((used * PERCENTAGE_MAX) / (used + remaining)));
+  usage_layer_set_percentage(data->usage_layer, (int16_t)percentage);
   vector_sequence_layer_stop(data->loading_layer);
   layer_remove_from_parent(data->loading_layer);
   layer_add_child(root_layer, (Layer *)data->scroll_layer);

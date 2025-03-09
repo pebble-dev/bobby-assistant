@@ -70,4 +70,5 @@ static void prv_window_unload(Window* window) {
  scroll_layer_destroy(data->scroll_layer);
  status_bar_layer_destroy(data->status_bar);
  free(data);
+ window_destroy(window);
 }

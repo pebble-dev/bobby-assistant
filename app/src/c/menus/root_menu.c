@@ -91,6 +91,7 @@ static void prv_window_unload(Window* window) {
   simple_menu_layer_destroy(data->menu_layer);
   status_bar_layer_destroy(data->status_bar);
   free(data);
+  window_destroy(window);
 }
 
 static void prv_push_quota_screen(int index, void* context) {

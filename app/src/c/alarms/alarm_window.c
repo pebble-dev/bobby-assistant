@@ -123,6 +123,7 @@ static void prv_window_unload(Window *window) {
   vector_sequence_layer_destroy(data->animation_layer);
   events_tick_timer_service_unsubscribe(data->tick_handle);
   free(data);
+  window_destroy(window);
 }
 
 static void prv_window_appear(Window *window) {

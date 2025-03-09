@@ -121,6 +121,7 @@ static void prv_window_unload(Window* window) {
   if (data->sleeping_horse_image != NULL) {
     gdraw_command_image_destroy(data->sleeping_horse_image);
   }
+  window_destroy(window);
   free(data);
 }
 
