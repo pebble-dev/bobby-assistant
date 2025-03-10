@@ -45,13 +45,14 @@ static void prv_layer_update(Layer *layer, GContext *ctx) {
   ConversationWidgetWeatherSingleDay *widget = &conversation_entry_get_widget(data->entry)->widget.weather_single_day;
   GRect bounds = layer_get_bounds(layer);
 #if defined(PBL_COLOR)
-  graphics_context_set_fill_color(ctx, widget->background_color);
+  GColor background_color = weather_widget_get_colour_for_condition(widget->condition);
+  graphics_context_set_fill_color(ctx, background_color);
   graphics_fill_rect(ctx, bounds, 0, GCornerNone);
 #endif
   graphics_context_set_stroke_color(ctx, GColorBlack);
   graphics_draw_line(ctx, GPoint(0, 0), GPoint(bounds.size.w, 0));
   graphics_draw_line(ctx, GPoint(0, bounds.size.h - 1), GPoint(bounds.size.w, bounds.size.h - 1));
-  graphics_context_set_text_color(ctx, PBL_IF_COLOR_ELSE(gcolor_legible_over(widget->background_color), GColorBlack));
+  graphics_context_set_text_color(ctx, PBL_IF_COLOR_ELSE(gcolor_legible_over(background_color), GColorBlack));
   graphics_draw_text(ctx, widget->location, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), GRect(5, 0, bounds.size.w, 20), GTextOverflowModeFill, GTextAlignmentLeft, NULL);
   graphics_draw_text(ctx, widget->day, fonts_get_system_font(FONT_KEY_GOTHIC_18), GRect(5, 15, bounds.size.w, 20), GTextOverflowModeFill, GTextAlignmentLeft, NULL);
   graphics_draw_text(ctx, data->temp_summary, fonts_get_system_font(FONT_KEY_LECO_20_BOLD_NUMBERS), GRect(5, 40, bounds.size.w, 50), GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);

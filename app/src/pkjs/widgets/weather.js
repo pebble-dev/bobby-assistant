@@ -29,18 +29,6 @@ var WEATHER_CONDITION_WEATHER_ICON = 6; // ???
 var WEATHER_CONDITION_PARTLY_CLOUDY = 7;
 var WEATHER_CONDITION_SUN = 8;
 
-// in ye olde javascript, there's no way to make a map using variables as keys.
-var COLOUR_MAP = {
-    1: 0x5500FF,
-    2: 0x5500FF,
-    3: 0xFFFFFF,
-    4: 0xFFFFFF,
-    5: 0xAAAAAA,
-    6: 0x5500FF,
-    7: 0xAAAAAA,
-    8: 0xFFFF00
-}
-
 var CONDITION_MAP = {
     "LIGHT_RAIN": WEATHER_CONDITION_LIGHT_RAIN,
     "HEAVY_RAIN": WEATHER_CONDITION_HEAVY_RAIN,
@@ -54,7 +42,6 @@ var CONDITION_MAP = {
 
 exports.singleDay = function(session, params) {
     var condition = CONDITION_MAP[params['condition']];
-    var colour = COLOUR_MAP[condition];
 
     console.log("Sending widget data...");
     session.enqueue({
@@ -65,14 +52,12 @@ exports.singleDay = function(session, params) {
         "WEATHER_WIDGET_DAY_SUMMARY": params['summary'],
         "WEATHER_WIDGET_TEMP_UNIT": params['unit'],
         "WEATHER_WIDGET_DAY_ICON": condition,
-        "WEATHER_WIDGET_COLOUR": colour,
         "WEATHER_WIDGET_DAY_OF_WEEK": params['day']
     });
 }
 
 exports.current = function(session, params) {
     var condition = CONDITION_MAP[params['condition']];
-    var colour = COLOUR_MAP[condition];
 
     console.log("Sending widget data...");
     session.enqueue({
@@ -84,8 +69,7 @@ exports.current = function(session, params) {
         "WEATHER_WIDGET_TEMP_UNIT": params['unit'],
         "WEATHER_WIDGET_WIND_SPEED": params['wind_speed'],
         "WEATHER_WIDGET_WIND_SPEED_UNIT": params['wind_speed_unit'],
-        "WEATHER_WIDGET_DAY_ICON": condition,
-        "WEATHER_WIDGET_COLOUR": colour
+        "WEATHER_WIDGET_DAY_ICON": condition
     });
 }
 

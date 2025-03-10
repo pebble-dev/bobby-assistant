@@ -183,7 +183,6 @@ static void prv_process_weather_widget(int widget_type, DictionaryIterator *iter
       const char* location = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_LOCATION)->value->cstring;
       const char* temp_unit = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_TEMP_UNIT)->value->cstring;
       const char* day = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_OF_WEEK)->value->cstring;
-      GColor color = GColorFromHEX(dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_COLOUR)->value->int32);
       char* summary_stored = malloc(strlen(summary) + 1);
       strcpy(summary_stored, summary);
       char* location_stored = malloc(strlen(location) + 1);
@@ -203,7 +202,6 @@ static void prv_process_weather_widget(int widget_type, DictionaryIterator *iter
             .summary = summary_stored,
             .temp_unit = temp_unit_stored,
             .day = day_stored,
-            .background_color = color,
           }
         }
       };
@@ -219,7 +217,6 @@ static void prv_process_weather_widget(int widget_type, DictionaryIterator *iter
       const char* location = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_LOCATION)->value->cstring;
       const char* summary = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_SUMMARY)->value->cstring;
       const char* wind_speed_unit = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_WIND_SPEED_UNIT)->value->cstring;
-      GColor color = GColorFromHEX(dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_COLOUR)->value->int32);
       char* location_stored = malloc(strlen(location) + 1);
       strcpy(location_stored, location);
       char* summary_stored = malloc(strlen(summary) + 1);
@@ -237,7 +234,6 @@ static void prv_process_weather_widget(int widget_type, DictionaryIterator *iter
             .location = location_stored,
             .summary = summary_stored,
             .wind_speed_unit = wind_speed_unit_stored,
-            .background_color = color,
           }
         }
       };

@@ -89,7 +89,6 @@ typedef struct {
   char *summary;
   char *temp_unit;
   char *day;
-  GColor background_color;
 } ConversationWidgetWeatherSingleDay;
 
 typedef struct {
@@ -100,7 +99,6 @@ typedef struct {
   char *location;
   char *summary;
   char *wind_speed_unit;
-  GColor background_color;
 } ConversationWidgetWeatherCurrent;
 
 typedef struct {
