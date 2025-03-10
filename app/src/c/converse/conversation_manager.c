@@ -209,6 +209,7 @@ static void prv_process_weather_widget(int widget_type, DictionaryIterator *iter
       };
       conversation_add_widget(manager->conversation, &widget);
       prv_conversation_updated(manager, true);
+      break;
     }
     case 2: {
       int temp = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_CURRENT_TEMP)->value->int32;
@@ -242,6 +243,7 @@ static void prv_process_weather_widget(int widget_type, DictionaryIterator *iter
       };
       conversation_add_widget(manager->conversation, &widget);
       prv_conversation_updated(manager, true);
+      break;
     }
     case 3: {
       const char* location = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_LOCATION)->value->cstring;
@@ -266,6 +268,7 @@ static void prv_process_weather_widget(int widget_type, DictionaryIterator *iter
       }
       conversation_add_widget(manager->conversation, &widget);
       prv_conversation_updated(manager, true);
+      break;
     }
   }
 }
