@@ -28,7 +28,7 @@ import (
 type SingleDayWidgetContent struct {
 	Location  string `json:"location"`
 	Day       string `json:"day"`
-	Condition string `json:"condition"`
+	Condition int    `json:"condition"`
 	Unit      string `json:"unit"`
 	Summary   string `json:"summary"`
 	High      int    `json:"high"`
@@ -37,7 +37,7 @@ type SingleDayWidgetContent struct {
 
 type CurrentConditionsWidgetContent struct {
 	Location      string `json:"location"`
-	Condition     string `json:"condition"`
+	Condition     int    `json:"condition"`
 	Temperature   int    `json:"temperature"`
 	FeelsLike     int    `json:"feels_like"`
 	Unit          string `json:"unit"`
@@ -53,60 +53,9 @@ type MultiDayWidgetContent struct {
 
 type MultiDayWidgetContentDay struct {
 	Day       string `json:"day"`
-	Condition string `json:"condition"`
+	Condition int    `json:"condition"`
 	High      int    `json:"high"`
 	Low       int    `json:"low"`
-}
-
-var conditionMap = map[int]string{
-	0:  "HEAVY_RAIN",
-	1:  "HEAVY_RAIN",
-	2:  "HEAVY_RAIN",
-	3:  "HEAVY_RAIN",
-	4:  "HEAVY_RAIN",
-	5:  "LIGHT_SNOW",
-	6:  "LIGHT_SNOW",
-	7:  "LIGHT_SNOW",
-	8:  "LIGHT_SNOW",
-	9:  "LIGHT_RAIN",
-	10: "LIGHT_SNOW",
-	11: "LIGHT_RAIN",
-	12: "HEAVY_RAIN",
-	13: "LIGHT_SNOW",
-	14: "LIGHT_SNOW",
-	15: "HEAVY_SNOW",
-	16: "HEAVY_SNOW",
-	17: "HEAVY_SNOW",
-	18: "LIGHT_SNOW",
-	19: "CLOUDY_DAY",
-	20: "CLOUDY_DAY",
-	21: "CLOUDY_DAY",
-	22: "CLOUDY_DAY",
-	23: "WEATHER_ICON",
-	24: "WEATHER_ICON",
-	25: "WEATHER_ICON",
-	26: "CLOUDY_DAY",
-	27: "CLOUDY_DAY",
-	28: "CLOUDY_DAY",
-	29: "PARTLY_CLOUDY",
-	30: "PARTLY_CLOUDY",
-	31: "SUN",
-	32: "SUN",
-	33: "SUN",
-	34: "SUN",
-	35: "LIGHT_SNOW",
-	36: "SUN",
-	37: "HEAVY_RAIN",
-	38: "HEAVY_RAIN",
-	39: "HEAVY_RAIN",
-	40: "HEAVY_RAIN",
-	41: "HEAVY_SNOW",
-	42: "HEAVY_SNOW",
-	43: "HEAVY_SNOW",
-	44: "WEATHER_ICON",
-	45: "LIGHT_RAIN",
-	46: "LIGHT_SNOW",
-	47: "HEAVY_RAIN",
 }
 
 var tempUnitMap = map[string]string{
@@ -198,7 +147,7 @@ func singleDayWeatherWidget(ctx context.Context, placeName, units, date string) 
 		dayPartIndex++
 	}
 
-	widget.Condition = conditionMap[*dayPart.IconCode[dayPartIndex]]
+	widget.Condition = *dayPart.IconCode[dayPartIndex]
 	widget.Summary = *dayPart.WxPhraseLong[dayPartIndex]
 
 	return widget, nil
@@ -217,7 +166,7 @@ func currentConditionsWeatherWidget(ctx context.Context, placeName, units string
 	}
 	return &CurrentConditionsWidgetContent{
 		Location:      locationDisplayName,
-		Condition:     conditionMap[conditions.IconCode],
+		Condition:     conditions.IconCode,
 		Temperature:   conditions.Temperature,
 		FeelsLike:     conditions.TemperatureFeelsLike,
 		Unit:          tempUnitMap[units],
@@ -251,9 +200,9 @@ func multiDayWeatherWidget(ctx context.Context, placeName, units string) (*Multi
 		}
 		dayPartIndex := i * 2
 		if w.DayParts[0].IconCode[dayPartIndex] != nil {
-			day.Condition = conditionMap[*w.DayParts[0].IconCode[dayPartIndex]]
+			day.Condition = *w.DayParts[0].IconCode[dayPartIndex]
 		} else {
-			day.Condition = conditionMap[*w.DayParts[0].IconCode[dayPartIndex+1]]
+			day.Condition = *w.DayParts[0].IconCode[dayPartIndex+1]
 		}
 		widget.Days = append(widget.Days, day)
 	}

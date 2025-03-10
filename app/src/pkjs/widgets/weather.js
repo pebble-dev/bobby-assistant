@@ -29,6 +29,59 @@ var WEATHER_CONDITION_WEATHER_ICON = 6; // ???
 var WEATHER_CONDITION_PARTLY_CLOUDY = 7;
 var WEATHER_CONDITION_SUN = 8;
 
+
+
+var INTEGERS_TO_CONDITIONS = {
+    0:  "HEAVY_RAIN",
+    1:  "HEAVY_RAIN",
+    2:  "HEAVY_RAIN",
+    3:  "HEAVY_RAIN",
+    4:  "HEAVY_RAIN",
+    5:  "LIGHT_SNOW",
+    6:  "LIGHT_SNOW",
+    7:  "LIGHT_SNOW",
+    8:  "LIGHT_SNOW",
+    9:  "LIGHT_RAIN",
+    10: "LIGHT_SNOW",
+    11: "LIGHT_RAIN",
+    12: "HEAVY_RAIN",
+    13: "LIGHT_SNOW",
+    14: "LIGHT_SNOW",
+    15: "HEAVY_SNOW",
+    16: "HEAVY_SNOW",
+    17: "HEAVY_SNOW",
+    18: "LIGHT_SNOW",
+    19: "CLOUDY_DAY",
+    20: "CLOUDY_DAY",
+    21: "CLOUDY_DAY",
+    22: "CLOUDY_DAY",
+    23: "WEATHER_ICON",
+    24: "WEATHER_ICON",
+    25: "WEATHER_ICON",
+    26: "CLOUDY_DAY",
+    27: "CLOUDY_DAY",
+    28: "CLOUDY_DAY",
+    29: "PARTLY_CLOUDY",
+    30: "PARTLY_CLOUDY",
+    31: "SUN",
+    32: "SUN",
+    33: "SUN",
+    34: "SUN",
+    35: "LIGHT_SNOW",
+    36: "SUN",
+    37: "HEAVY_RAIN",
+    38: "HEAVY_RAIN",
+    39: "HEAVY_RAIN",
+    40: "HEAVY_RAIN",
+    41: "HEAVY_SNOW",
+    42: "HEAVY_SNOW",
+    43: "HEAVY_SNOW",
+    44: "WEATHER_ICON",
+    45: "LIGHT_RAIN",
+    46: "LIGHT_SNOW",
+    47: "HEAVY_RAIN"
+}
+
 var CONDITION_MAP = {
     "LIGHT_RAIN": WEATHER_CONDITION_LIGHT_RAIN,
     "HEAVY_RAIN": WEATHER_CONDITION_HEAVY_RAIN,
@@ -41,7 +94,8 @@ var CONDITION_MAP = {
 }
 
 exports.singleDay = function(session, params) {
-    var condition = CONDITION_MAP[params['condition']];
+    var condInt = INTEGERS_TO_CONDITIONS[params['condition']];
+    var condition = CONDITION_MAP[condInt];
 
     console.log("Sending widget data...");
     session.enqueue({
@@ -57,7 +111,8 @@ exports.singleDay = function(session, params) {
 }
 
 exports.current = function(session, params) {
-    var condition = CONDITION_MAP[params['condition']];
+    var condInt = INTEGERS_TO_CONDITIONS[params['condition']];
+    var condition = CONDITION_MAP[condInt];
 
     console.log("Sending widget data...");
     session.enqueue({
@@ -80,10 +135,12 @@ exports.multiDay = function(session, params) {
     }
     for (var i = 0; i < 3; ++i) {
         var day = params['days'][i];
+        var condInt = INTEGERS_TO_CONDITIONS[day['condition']];
+        var condition = CONDITION_MAP[condInt];
         message[messageKeys.WEATHER_WIDGET_MULTI_DAY + i] = day['day'].substring(0, 3).toUpperCase();
         message[messageKeys.WEATHER_WIDGET_MULTI_HIGH + i] = day['high'];
         message[messageKeys.WEATHER_WIDGET_MULTI_LOW + i] = day['low'];
-        message[messageKeys.WEATHER_WIDGET_MULTI_ICON + i] = CONDITION_MAP[day['condition']];
+        message[messageKeys.WEATHER_WIDGET_MULTI_ICON + i] = condition;
     }
     session.enqueue(message);
 }
