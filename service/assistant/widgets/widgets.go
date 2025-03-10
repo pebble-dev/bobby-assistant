@@ -24,7 +24,6 @@ func ProcessWidget(ctx context.Context, widget string) (any, error) {
 				log.Printf("Error processing weather widget: %v", err)
 				return nil, fmt.Errorf("error processing weather widget: %w", err)
 			}
-			log.Printf("widget: +%v\n", widget)
 			return Widget{Content: widget, Type: "weather-current"}, nil
 		case "SINGLE-DAY":
 			widget, err := singleDayWeatherWidget(ctx, weatherWidget[2], weatherWidget[3], weatherWidget[4])
@@ -32,7 +31,6 @@ func ProcessWidget(ctx context.Context, widget string) (any, error) {
 				log.Printf("Error processing weather widget: %v", err)
 				return nil, fmt.Errorf("error processing weather widget: %w", err)
 			}
-			log.Printf("widget: +%v\n", widget)
 			return Widget{Content: widget, Type: "weather-single-day"}, nil
 		case "MULTI-DAY":
 			widget, err := multiDayWeatherWidget(ctx, weatherWidget[2], weatherWidget[3])
@@ -40,7 +38,6 @@ func ProcessWidget(ctx context.Context, widget string) (any, error) {
 				log.Printf("Error processing weather widget: %v", err)
 				return nil, fmt.Errorf("error processing weather widget: %w", err)
 			}
-			log.Printf("widget: +%v\n", widget)
 			return Widget{Content: widget, Type: "weather-multi-day"}, nil
 		default:
 			log.Printf("Unknown weather widget %q", weatherWidget[1])

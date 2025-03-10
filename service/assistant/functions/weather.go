@@ -23,7 +23,6 @@ import (
 	"github.com/pebble-dev/bobby-assistant/service/assistant/util/mapbox"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/util/weather"
 	"google.golang.org/genai"
-	"log"
 )
 
 type WeatherInput struct {
@@ -118,7 +117,6 @@ func processDailyForecast(ctx context.Context, lat, lon float64, units string) i
 		beeline.AddField(ctx, "error", err)
 		return Error{"Could not get forecast: " + err.Error()}
 	}
-	log.Println(*forecast)
 	response := map[string]interface{}{}
 	for i, day := range forecast.DayOfWeek {
 		if i == 0 {
