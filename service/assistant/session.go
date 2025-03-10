@@ -18,7 +18,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/honeycombio/beeline-go"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/verifier"
@@ -203,7 +202,6 @@ func (ps *PromptSession) Run(ctx context.Context) {
 				}
 				if strings.TrimSpace(ourContent) != "" {
 					streamContent := ourContent
-					fmt.Println(ourContent)
 					re := regexp.MustCompile(`(?s)\s*<!.+?!>\s*`)
 					widget := re.FindAllString(ourContent, -1)
 					splitting := true
