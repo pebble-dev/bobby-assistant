@@ -74,7 +74,7 @@ static void prv_layer_render(Layer* layer, GContext* ctx) {
   ThinkingLayerData* data = layer_get_data(layer);
   GRect bounds = layer_get_bounds(layer);
   int max_radius = bounds.size.h / 2;
-  graphics_context_set_fill_color(ctx, GColorBlack); // TODO: probably grey on colour devices.
+  graphics_context_set_fill_color(ctx, GColorBlack);
   graphics_fill_circle(ctx, GPoint(bounds.origin.x + max_radius, max_radius), prv_progress_to_radius(data->progress, 0, max_radius));
   graphics_fill_circle(ctx, GPoint(bounds.origin.x + bounds.size.w / 2, max_radius), prv_progress_to_radius(data->progress, 1, max_radius));
   graphics_fill_circle(ctx, GPoint(bounds.origin.x + bounds.size.w - max_radius - 1, max_radius), prv_progress_to_radius(data->progress, 2, max_radius));
