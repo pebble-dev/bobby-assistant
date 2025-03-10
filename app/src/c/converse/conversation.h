@@ -32,6 +32,7 @@ typedef enum {
 typedef enum {
   ConversationWidgetTypeWeatherSingleDay,
   ConversationWidgetTypeWeatherCurrent,
+  ConversationWidgetTypeWeatherMultiDay,
 } ConversationWidgetType;
 
 typedef struct {
@@ -103,10 +104,23 @@ typedef struct {
 } ConversationWidgetWeatherCurrent;
 
 typedef struct {
+  char day[4];
+  int high;
+  int low;
+  int condition;
+} ConversationWidgetWeatherMultiDaySegment;
+
+typedef struct {
+  char *location;
+  ConversationWidgetWeatherMultiDaySegment days[3];
+} ConversationWidgetWeatherMultiDay;
+
+typedef struct {
   ConversationWidgetType type;
   union {
     ConversationWidgetWeatherSingleDay weather_single_day;
     ConversationWidgetWeatherCurrent weather_current;
+    ConversationWidgetWeatherMultiDay weather_multi_day;
   } widget;
 } ConversationWidget;
 

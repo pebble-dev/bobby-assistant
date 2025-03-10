@@ -1,5 +1,5 @@
 /*
-  * Copyright 2025 Google LLC
+ * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ WeatherSingleDayWidget* weather_single_day_widget_create(GRect rect, Conversatio
   ConversationWidgetWeatherSingleDay *w = &conversation_entry_get_widget(entry)->widget.weather_single_day;
 
   data->entry = entry;
-  data->icon = gdraw_command_image_create_with_resource(weather_widget_get_resource_for_condition(w->condition));
+  data->icon = gdraw_command_image_create_with_resource(weather_widget_get_medium_resource_for_condition(w->condition));
   layer_set_update_proc(layer, prv_layer_update);
 
   snprintf(data->temp_summary, sizeof(data->temp_summary)-1, "H: %d°\nL: %d°", w->high, w->low);

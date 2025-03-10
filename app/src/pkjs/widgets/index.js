@@ -17,7 +17,8 @@
 var weather = require('./weather');
 var widgetMap = {
     'weather-single-day': weather.singleDay,
-    'weather-current': weather.current
+    'weather-current': weather.current,
+    'weather-multi-day': weather.multiDay
 }
 
 exports.handleWidget = function(session, widgetString) {

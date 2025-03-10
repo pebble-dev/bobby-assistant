@@ -243,6 +243,30 @@ static void prv_process_weather_widget(int widget_type, DictionaryIterator *iter
       conversation_add_widget(manager->conversation, &widget);
       prv_conversation_updated(manager, true);
     }
+    case 3: {
+      const char* location = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_LOCATION)->value->cstring;
+      char *location_stored = malloc(strlen(location) + 1);
+      strcpy(location_stored, location);
+      ConversationWidget widget = {
+        .type = ConversationWidgetTypeWeatherMultiDay,
+        .widget = {
+          .weather_multi_day = {
+            .location = location_stored,
+          }
+        }
+      };
+      for (int i = 0; i < 3; ++i) {
+        ConversationWidgetWeatherMultiDaySegment *s = &widget.widget.weather_multi_day.days[i];
+        s->high = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_MULTI_HIGH + i)->value->int32;
+        s->low = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_MULTI_LOW + i)->value->int32;
+        s->condition = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_MULTI_ICON + i)->value->int32;
+        const char* day = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_MULTI_DAY + i)->value->cstring;
+        strncpy(s->day, day, sizeof(s->day));
+        s->day[sizeof(s->day) - 1] = '\0';
+      }
+      conversation_add_widget(manager->conversation, &widget);
+      prv_conversation_updated(manager, true);
+    }
   }
 }
 

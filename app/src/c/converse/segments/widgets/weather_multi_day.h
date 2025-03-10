@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-#ifndef WEATHER_UTIL_H
-#define WEATHER_UTIL_H
+#ifndef WEATHER_MULTI_DAY_H
+#define WEATHER_MULTI_DAY_H
 
 #include <pebble.h>
+#include "../../conversation.h"
 
-int weather_widget_get_medium_resource_for_condition(int condition);
-int weather_widget_get_small_resource_for_condition(int condition);
-GColor weather_widget_get_colour_for_condition(int condition);
+typedef Layer WeatherMultiDayWidget;
 
-#endif //WEATHER_UTIL_H
+WeatherMultiDayWidget* weather_multi_day_widget_create(GRect rect, ConversationEntry* entry);
+ConversationEntry* weather_multi_day_widget_get_entry(WeatherMultiDayWidget* layer);
+void weather_multi_day_widget_destroy(WeatherMultiDayWidget* layer);
+void weather_multi_day_widget_update(WeatherMultiDayWidget* layer);
+
+#endif //WEATHER_MULTI_DAY_H

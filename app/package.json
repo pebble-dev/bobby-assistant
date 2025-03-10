@@ -64,7 +64,11 @@
       "WEATHER_WIDGET_CURRENT_TEMP",
       "WEATHER_WIDGET_FEELS_LIKE",
       "WEATHER_WIDGET_WIND_SPEED",
-      "WEATHER_WIDGET_WIND_SPEED_UNIT"
+      "WEATHER_WIDGET_WIND_SPEED_UNIT",
+      "WEATHER_WIDGET_MULTI_DAY[3]",
+      "WEATHER_WIDGET_MULTI_ICON[3]",
+      "WEATHER_WIDGET_MULTI_HIGH[3]",
+      "WEATHER_WIDGET_MULTI_LOW[3]"
     ],
     "resources": {
       "media": [
@@ -180,43 +184,83 @@
           "type": "raw"
         },
         {
-          "file": "weather/generic.pdc",
-          "name": "WEATHER_GENERIC",
+          "file": "weather/medium/generic.pdc",
+          "name": "WEATHER_MEDIUM_GENERIC",
           "type": "raw"
         },
         {
-          "file": "weather/heavy_rain.pdc",
-          "name": "WEATHER_HEAVY_RAIN",
+          "file": "weather/medium/heavy_rain.pdc",
+          "name": "WEATHER_MEDIUM_HEAVY_RAIN",
           "type": "raw"
         },
         {
-          "file": "weather/heavy_snow.pdc",
-          "name": "WEATHER_HEAVY_SNOW",
+          "file": "weather/medium/heavy_snow.pdc",
+          "name": "WEATHER_MEDIUM_HEAVY_SNOW",
           "type": "raw"
         },
         {
-          "file": "weather/light_rain.pdc",
-          "name": "WEATHER_LIGHT_RAIN",
+          "file": "weather/medium/light_rain.pdc",
+          "name": "WEATHER_MEDIUM_LIGHT_RAIN",
           "type": "raw"
         },
         {
-          "file": "weather/light_snow.pdc",
-          "name": "WEATHER_LIGHT_SNOW",
+          "file": "weather/medium/light_snow.pdc",
+          "name": "WEATHER_MEDIUM_LIGHT_SNOW",
           "type": "raw"
         },
         {
-          "file": "weather/partly_cloudy.pdc",
-          "name": "WEATHER_PARTLY_CLOUDY",
+          "file": "weather/medium/partly_cloudy.pdc",
+          "name": "WEATHER_MEDIUM_PARTLY_CLOUDY",
           "type": "raw"
         },
         {
-          "file": "weather/cloudy.pdc",
-          "name": "WEATHER_CLOUDY",
+          "file": "weather/medium/cloudy.pdc",
+          "name": "WEATHER_MEDIUM_CLOUDY",
           "type": "raw"
         },
         {
-          "file": "weather/sunny.pdc",
-          "name": "WEATHER_SUNNY",
+          "file": "weather/medium/sunny.pdc",
+          "name": "WEATHER_MEDIUM_SUNNY",
+          "type": "raw"
+        },
+        {
+          "file": "weather/small/generic.pdc",
+          "name": "WEATHER_SMALL_GENERIC",
+          "type": "raw"
+        },
+        {
+          "file": "weather/small/heavy_rain.pdc",
+          "name": "WEATHER_SMALL_HEAVY_RAIN",
+          "type": "raw"
+        },
+        {
+          "file": "weather/small/heavy_snow.pdc",
+          "name": "WEATHER_SMALL_HEAVY_SNOW",
+          "type": "raw"
+        },
+        {
+          "file": "weather/small/light_rain.pdc",
+          "name": "WEATHER_SMALL_LIGHT_RAIN",
+          "type": "raw"
+        },
+        {
+          "file": "weather/small/light_snow.pdc",
+          "name": "WEATHER_SMALL_LIGHT_SNOW",
+          "type": "raw"
+        },
+        {
+          "file": "weather/small/partly_cloudy.pdc",
+          "name": "WEATHER_SMALL_PARTLY_CLOUDY",
+          "type": "raw"
+        },
+        {
+          "file": "weather/small/cloudy.pdc",
+          "name": "WEATHER_SMALL_CLOUDY",
+          "type": "raw"
+        },
+        {
+          "file": "weather/small/sunny.pdc",
+          "name": "WEATHER_SMALL_SUNNY",
           "type": "raw"
         }
       ]

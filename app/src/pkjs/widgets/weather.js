@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
+var messageKeys = require('message_keys');
+
 var WEATHER_WIDGET_SINGLE_DAY = 1;
 var WEATHER_WIDGET_CURRENT = 2;
+var WEATHER_WIDGET_MULTI_DAY = 3;
 
 var WEATHER_CONDITION_LIGHT_RAIN = 1;
 var WEATHER_CONDITION_HEAVY_RAIN = 2;
@@ -84,4 +87,19 @@ exports.current = function(session, params) {
         "WEATHER_WIDGET_DAY_ICON": condition,
         "WEATHER_WIDGET_COLOUR": colour
     });
+}
+
+exports.multiDay = function(session, params) {
+    var message = {
+        "WEATHER_WIDGET": WEATHER_WIDGET_MULTI_DAY,
+        "WEATHER_WIDGET_LOCATION": params['location'].toUpperCase()
+    }
+    for (var i = 0; i < 3; ++i) {
+        var day = params['days'][i];
+        message[messageKeys.WEATHER_WIDGET_MULTI_DAY + i] = day['day'].substring(0, 3).toUpperCase();
+        message[messageKeys.WEATHER_WIDGET_MULTI_HIGH + i] = day['high'];
+        message[messageKeys.WEATHER_WIDGET_MULTI_LOW + i] = day['low'];
+        message[messageKeys.WEATHER_WIDGET_MULTI_ICON + i] = CONDITION_MAP[day['condition']];
+    }
+    session.enqueue(message);
 }

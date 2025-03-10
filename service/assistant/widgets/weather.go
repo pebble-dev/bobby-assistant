@@ -46,6 +46,18 @@ type CurrentConditionsWidgetContent struct {
 	WindSpeedUnit string `json:"wind_speed_unit"`
 }
 
+type MultiDayWidgetContent struct {
+	Location string                     `json:"location"`
+	Days     []MultiDayWidgetContentDay `json:"days"`
+}
+
+type MultiDayWidgetContentDay struct {
+	Day       string `json:"day"`
+	Condition string `json:"condition"`
+	High      int    `json:"high"`
+	Low       int    `json:"low"`
+}
+
 var conditionMap = map[int]string{
 	0:  "HEAVY_RAIN",
 	1:  "HEAVY_RAIN",
@@ -213,4 +225,38 @@ func currentConditionsWeatherWidget(ctx context.Context, placeName, units string
 		WindSpeed:     conditions.WindSpeed,
 		WindSpeedUnit: windSpeedUnitMap[units],
 	}, nil
+}
+
+func multiDayWeatherWidget(ctx context.Context, placeName, units string) (*MultiDayWidgetContent, error) {
+	locationDisplayName, location, err := resolveLocation(ctx, placeName)
+	if err != nil {
+		return nil, fmt.Errorf("resolving location failed: %w", err)
+	}
+	lat, lon := location.Lat, location.Lon
+
+	w, err := weather.GetDailyForecast(ctx, lat, lon, units)
+	if err != nil {
+		return nil, fmt.Errorf("getting daily forecast failed: %w", err)
+	}
+
+	widget := &MultiDayWidgetContent{
+		Location: locationDisplayName,
+	}
+
+	for i := 0; i < len(w.DayOfWeek); i++ {
+		day := MultiDayWidgetContentDay{
+			Day:  w.DayOfWeek[i],
+			High: w.CalendarDayTemperatureMax[i],
+			Low:  w.CalendarDayTemperatureMin[i],
+		}
+		dayPartIndex := i * 2
+		if w.DayParts[0].IconCode[dayPartIndex] != nil {
+			day.Condition = conditionMap[*w.DayParts[0].IconCode[dayPartIndex]]
+		} else {
+			day.Condition = conditionMap[*w.DayParts[0].IconCode[dayPartIndex+1]]
+		}
+		widget.Days = append(widget.Days, day)
+	}
+
+	return widget, nil
 }

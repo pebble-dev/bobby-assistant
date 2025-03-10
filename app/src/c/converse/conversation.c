@@ -87,6 +87,9 @@ void conversation_destroy(Conversation* conversation) {
             free(entry->content.widget->widget.weather_current.summary);
             free(entry->content.widget->widget.weather_current.wind_speed_unit);
             break;
+          case ConversationWidgetTypeWeatherMultiDay:
+            free(entry->content.widget->widget.weather_multi_day.location);
+            break;
         }
         free(entry->content.widget);
         break;

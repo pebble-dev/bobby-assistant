@@ -34,7 +34,7 @@ WeatherCurrentWidget* weather_current_widget_create(GRect rect, ConversationEntr
   ConversationWidgetWeatherCurrent *w = &conversation_entry_get_widget(entry)->widget.weather_current;
 
   data->entry = entry;
-  data->icon = gdraw_command_image_create_with_resource(weather_widget_get_resource_for_condition(w->condition));
+  data->icon = gdraw_command_image_create_with_resource(weather_widget_get_medium_resource_for_condition(w->condition));
   layer_set_update_proc(layer, prv_layer_update);
 
   snprintf(data->temp_string, sizeof(data->temp_string), "%d°", w->temperature);

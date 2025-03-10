@@ -20,6 +20,7 @@
 #include "message_layer.h"
 #include "widgets/weather_single_day.h"
 #include "widgets/weather_current.h"
+#include "widgets/weather_multi_day.h"
 
 #include <pebble.h>
 
@@ -31,6 +32,7 @@ typedef enum {
   SegmentTypeInfo,
   SegmentTypeWeatherSingleDayWidget,
   SegmentTypeWeatherCurrentWidget,
+  SegmentTypeWeatherMultiDayWidget,
 } SegmentType;
 
 typedef struct {
@@ -45,6 +47,7 @@ typedef struct {
     MessageLayer* message_layer;
     WeatherSingleDayWidget* weather_single_day_widget;
     WeatherCurrentWidget* weather_current_widget;
+    WeatherMultiDayWidget* weather_multi_day_widget;
   };
 } SegmentLayerData;
 
@@ -73,6 +76,10 @@ SegmentLayer* segment_layer_create(GRect rect, ConversationEntry* entry) {
       data->weather_current_widget = weather_current_widget_create(child_frame, entry);
       layer_add_child(layer, data->weather_current_widget);
       break;
+    case SegmentTypeWeatherMultiDayWidget:
+      data->weather_multi_day_widget = weather_multi_day_widget_create(child_frame, entry);
+      layer_add_child(layer, data->weather_multi_day_widget);
+      break;
   }
   GSize child_size = layer_get_frame(data->layer).size;
   layer_set_frame(layer, GRect(rect.origin.x, rect.origin.y, child_size.w, child_size.h));
@@ -93,6 +100,9 @@ void segment_layer_destroy(SegmentLayer* layer) {
       break;
     case SegmentTypeWeatherCurrentWidget:
       weather_current_widget_destroy(data->weather_current_widget);
+      break;
+    case SegmentTypeWeatherMultiDayWidget:
+      weather_multi_day_widget_destroy(data->weather_multi_day_widget);
       break;
   }
   layer_destroy(layer);
@@ -118,6 +128,9 @@ void segment_layer_update(SegmentLayer* layer) {
     case SegmentTypeWeatherCurrentWidget:
       weather_current_widget_update(data->weather_current_widget);
       break;
+    case SegmentTypeWeatherMultiDayWidget:
+      weather_multi_day_widget_update(data->weather_multi_day_widget);
+      break;
   }
   GSize child_size = layer_get_frame(data->layer).size;
   GPoint origin = layer_get_frame(layer).origin;
@@ -139,6 +152,8 @@ static SegmentType prv_get_segment_type(ConversationEntry* entry) {
           return SegmentTypeWeatherSingleDayWidget;
         case ConversationWidgetTypeWeatherCurrent:
           return SegmentTypeWeatherCurrentWidget;
+        case ConversationWidgetTypeWeatherMultiDay:
+          return SegmentTypeWeatherMultiDayWidget;
       }
       break;
   }
