@@ -55,8 +55,8 @@ static void prv_layer_update(Layer *layer, GContext *ctx) {
   graphics_context_set_text_color(ctx, PBL_IF_COLOR_ELSE(gcolor_legible_over(background_color), GColorBlack));
   graphics_draw_text(ctx, widget->location, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), GRect(5, 0, bounds.size.w, 20), GTextOverflowModeFill, GTextAlignmentLeft, NULL);
   graphics_draw_text(ctx, widget->day, fonts_get_system_font(FONT_KEY_GOTHIC_18), GRect(5, 15, bounds.size.w, 20), GTextOverflowModeFill, GTextAlignmentLeft, NULL);
-  graphics_draw_text(ctx, data->temp_summary, fonts_get_system_font(FONT_KEY_LECO_20_BOLD_NUMBERS), GRect(5, 40, bounds.size.w, 50), GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);
-  graphics_draw_text(ctx, widget->summary, fonts_get_system_font(FONT_KEY_GOTHIC_18), GRect(0, 67, bounds.size.w - 5, 20), GTextOverflowModeFill, GTextAlignmentRight, NULL);
+  graphics_draw_text(ctx, data->temp_summary, fonts_get_system_font(FONT_KEY_LECO_20_BOLD_NUMBERS), GRect(5, 33, bounds.size.w, 50), GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);
+  graphics_draw_text(ctx, widget->summary, fonts_get_system_font(FONT_KEY_GOTHIC_18), GRect(5, 67, bounds.size.w - 10, 20), GTextOverflowModeFill, GTextAlignmentRight, NULL);
 
   if (data->icon) {
     gdraw_command_image_draw(ctx, data->icon, GPoint(bounds.size.w - 60, 20));

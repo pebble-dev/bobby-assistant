@@ -40,7 +40,6 @@ func GetDailyForecast(ctx context.Context, lat, lon float64, units string) (*For
 		return nil, err
 	}
 	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("https://api.weather.com/v3/wx/forecast/daily/7day?geocode=%f,%f&units=%s&language=en_US&format=json&apiKey=%s", lat, lon, units, config.GetConfig().IBMKey), nil)
-	fmt.Println(fmt.Sprintf("https://api.weather.com/v3/wx/forecast/daily/7day?geocode=%f,%f&units=%s&language=en_US&format=json&apiKey=%s", lat, lon, units, config.GetConfig().IBMKey))
 	if err != nil {
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}

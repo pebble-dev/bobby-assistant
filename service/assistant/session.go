@@ -214,14 +214,16 @@ func (ps *PromptSession) Run(ctx context.Context) {
 							if err != nil {
 								log.Printf("process widget failed: %v\n", err)
 								replacement = "(widget processing failed)"
+							} else {
+								jsoned, err := json.Marshal(processed)
+								if err != nil {
+									log.Printf("marshal widget failed: %v\n", err)
+									replacement = "(widget processing failed)"
+								} else {
+									splitting = false
+									replacement = "<<!!WIDGET:" + string(jsoned) + "!!>>"
+								}
 							}
-							jsoned, err := json.Marshal(processed)
-							if err != nil {
-								log.Printf("marshal widget failed: %v\n", err)
-								replacement = "(widget processing failed)"
-							}
-							splitting = false
-							replacement = "<<!!WIDGET:" + string(jsoned) + "!!>>"
 							streamContent = strings.Replace(streamContent, w, replacement, 1)
 							if strings.HasSuffix(streamContent, "!!>>") {
 								leftTrimming = true

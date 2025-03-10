@@ -7,7 +7,7 @@ import (
 	"regexp"
 )
 
-var weatherWidgetRegex = regexp.MustCompile(`<!WEATHER-(CURRENT|SINGLE-DAY|MULTI-DAY) location=[\["]?(.+?)[]"!]? units=[\["]?(imperial|metric|uk hybrid)[]"]?(?: day=[\["]?(.+?)[]"]?)?!>`)
+var weatherWidgetRegex = regexp.MustCompile(`<!WEATHER-(CURRENT|SINGLE-DAY|MULTI-DAY) location=[\["]?(.+?)[]"!]? units=[\["]?(imperial|metric|uk hybrid)[]"!]?(?: day=[\["]?(.+?)[]"]?)?!>`)
 
 type Widget struct {
 	Content any    `json:"content"`
