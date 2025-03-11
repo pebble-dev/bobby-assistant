@@ -41,6 +41,7 @@ static void prv_window_disappear(Window* window);
 static void prv_click_config_provider(void *context);
 static void prv_prompt_clicked(ClickRecognizerRef recognizer, void *context);
 static void prv_more_clicked(ClickRecognizerRef recognizer, void* context);
+static void prv_up_clicked(ClickRecognizerRef recognizer, void *context);
 static void prv_time_changed(struct tm *tick_time, TimeUnits time_changed, void *context);
 
 RootWindow* root_window_create() {
@@ -134,14 +135,20 @@ static void prv_time_changed(struct tm *tick_time, TimeUnits time_changed, void 
   } else if (tick_time->tm_hour >= 18 && tick_time->tm_hour < 22) {
     talking_horse_layer_set_text(rw->talking_horse_layer, "Good evening!");
   } else {
-    talking_horse_layer_set_text(rw->talking_horse_layer, "Hello there!");
+    talking_horse_layer_set_text(rw->talking_horse_layer, "Hey there, night owl!");
   }
   text_layer_set_text(rw->time_layer, rw->time_string);
 }
 
 static void prv_click_config_provider(void *context) {
+  window_single_click_subscribe(BUTTON_ID_UP, prv_up_clicked);
   window_single_click_subscribe(BUTTON_ID_SELECT, prv_prompt_clicked);
   window_single_click_subscribe(BUTTON_ID_DOWN, prv_more_clicked);
+}
+
+static void prv_up_clicked(ClickRecognizerRef recognizer, void *context) {
+  RootWindow* rw = context;
+  talking_horse_layer_set_text(rw->talking_horse_layer, "I'm doing thank how help?");
 }
 
 static void prv_prompt_clicked(ClickRecognizerRef recognizer, void *context) {
