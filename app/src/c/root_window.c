@@ -18,9 +18,9 @@
 #include <pebble-events/pebble-events.h>
 
 #include "root_window.h"
+#include "talking_horse_layer.h"
 #include "converse/session_window.h"
 #include "menus/root_menu.h"
-#include "util/vector_layer.h"
 #include "util/style.h"
 
 struct RootWindow {
@@ -29,12 +29,8 @@ struct RootWindow {
   SessionWindow* session_window;
   GBitmap* dictation_icon;
   GBitmap* more_icon;
-  GDrawCommandImage *pony_image;
-  GDrawCommandImage *speech_bubble_image;
-  VectorLayer *pony_layer;
-  VectorLayer *speech_bubble_layer;
   TextLayer* time_layer;
-  TextLayer* blurb_layer;
+  TalkingHorseLayer* talking_horse_layer;
   EventHandle event_handle;
   char time_string[6];
 };
@@ -70,22 +66,8 @@ RootWindow* root_window_create() {
   text_layer_set_text(window->time_layer, "12:34");
   text_layer_set_background_color(window->time_layer, GColorClear);
   layer_add_child(window_get_root_layer(window->window), (Layer *)window->time_layer);
-  window->speech_bubble_image = gdraw_command_image_create_with_resource(RESOURCE_ID_ROOT_SCREEN_SPEECH_BUBBLE);
-  window->speech_bubble_layer = vector_layer_create(GRect(4, 56, 106, 91));
-  vector_layer_set_vector(window->speech_bubble_layer, window->speech_bubble_image);
-  layer_add_child(window_get_root_layer(window->window), vector_layer_get_layer(window->speech_bubble_layer));
-
-  window->pony_image = gdraw_command_image_create_with_resource(RESOURCE_ID_ROOT_SCREEN_PONY);
-  window->pony_layer = vector_layer_create(GRect(0, 109, 57, 59));
-  vector_layer_set_vector(window->pony_layer, window->pony_image);
-  layer_add_child(window_get_root_layer(window->window), vector_layer_get_layer(window->pony_layer));
-
-  window->blurb_layer = text_layer_create(GRect(15, 55, 95, 80));
-  text_layer_set_background_color(window->blurb_layer, GColorClear);
-  text_layer_set_text_alignment(window->blurb_layer, GTextAlignmentLeft);
-  text_layer_set_font(window->blurb_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
-  text_layer_set_text(window->blurb_layer, "Hello! How can I help you?");
-  layer_add_child(window_get_root_layer(window->window), (Layer *)window->blurb_layer);
+  window->talking_horse_layer = talking_horse_layer_create(GRect(0, 56, 144 - ACTION_BAR_WIDTH, 112));
+  layer_add_child(window_get_root_layer(window->window), (Layer *)window->talking_horse_layer);
 
   return window;
 }
@@ -100,11 +82,7 @@ void root_window_destroy(RootWindow* window) {
   gbitmap_destroy(window->dictation_icon);
   gbitmap_destroy(window->more_icon);
   text_layer_destroy(window->time_layer);
-  text_layer_destroy(window->blurb_layer);
-  vector_layer_destroy(window->pony_layer);
-  vector_layer_destroy(window->speech_bubble_layer);
-  gdraw_command_image_destroy(window->pony_image);
-  gdraw_command_image_destroy(window->speech_bubble_image);
+  talking_horse_layer_destroy(window->talking_horse_layer);
   free(window);
 }
 
@@ -150,13 +128,13 @@ static void prv_time_changed(struct tm *tick_time, TimeUnits time_changed, void 
     strftime(rw->time_string, 6, "%I:%M", tick_time);
   }
   if (tick_time->tm_hour >= 6 && tick_time->tm_hour < 12) {
-    text_layer_set_text(rw->blurb_layer, "Good morning!");
+    talking_horse_layer_set_text(rw->talking_horse_layer, "Good morning!");
   } else if (tick_time->tm_hour >= 12 && tick_time->tm_hour < 18) {
-    text_layer_set_text(rw->blurb_layer, "Good afternoon!");
+    talking_horse_layer_set_text(rw->talking_horse_layer, "Good afternoon!");
   } else if (tick_time->tm_hour >= 18 && tick_time->tm_hour < 22) {
-    text_layer_set_text(rw->blurb_layer, "Good evening!");
+    talking_horse_layer_set_text(rw->talking_horse_layer, "Good evening!");
   } else {
-    text_layer_set_text(rw->blurb_layer, "Hello there!");
+    talking_horse_layer_set_text(rw->talking_horse_layer, "Hello there!");
   }
   text_layer_set_text(rw->time_layer, rw->time_string);
 }
