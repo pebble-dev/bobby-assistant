@@ -20,7 +20,7 @@
 typedef struct {
   const char* text;
   GDrawCommandImage* pony;
-  int16_t text_height;
+  GSize text_size;
 } TalkingHorseLayerData;
 
 const int SPEECH_BUBBLE_BASELINE = 59;
@@ -31,7 +31,7 @@ TalkingHorseLayer *talking_horse_layer_create(GRect frame) {
   Layer *layer = layer_create_with_data(frame, sizeof(TalkingHorseLayerData));
   TalkingHorseLayerData *data = layer_get_data(layer);
   data->text = NULL;
-  data->text_height = 0;
+  data->text_size = GSizeZero;
   data->pony = gdraw_command_image_create_with_resource(RESOURCE_ID_ROOT_SCREEN_PONY);
   layer_set_update_proc(layer, prv_update_layer);
   return layer;
@@ -47,8 +47,7 @@ void talking_horse_layer_set_text(TalkingHorseLayer *layer, const char *text) {
   TalkingHorseLayerData *data = layer_get_data(layer);
   data->text = text;
   GRect bounds = layer_get_bounds(layer);
-  GSize text_size = graphics_text_layout_get_content_size(text, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), GRect(0, 0, bounds.size.w - 18, bounds.size.h - 70), GTextOverflowModeWordWrap, GTextAlignmentLeft);
-  data->text_height = text_size.h;
+  data->text_size = graphics_text_layout_get_content_size_with_attributes(text, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), GRect(0, 1, bounds.size.w - 18, bounds.size.h - 15), GTextOverflowModeWordWrap, GTextAlignmentLeft, NULL);
   layer_mark_dirty(layer);
 }
 
@@ -56,13 +55,22 @@ static void prv_update_layer(Layer *layer, GContext *ctx) {
   TalkingHorseLayerData *data = layer_get_data(layer);
   GRect bounds = layer_get_bounds(layer);
   GSize size = bounds.size;
-  int text_height = data->text_height + 5;
-  int speech_bubble_top = size.h - SPEECH_BUBBLE_BASELINE - text_height + 1;
-  int bubble_width = size.w - 16;
+
+  const int text_height = data->text_size.h + 5;
+  const int speech_bubble_top = 1;
+  const int available_space = bounds.size.w - 18 - data->text_size.w - 10;
+  const int bubble_width = size.w - 16 - available_space;
   const int corner_offset = 6;
+
+  GPoint tail_origin = GPoint(55 - available_space, size.h - 30 - speech_bubble_top);
+  // When the text is three lines long, the tail runs into the bubble, so we need to move it.
+  if (tail_origin.y < text_height + corner_offset) {
+    tail_origin = GPoint(55 - available_space, size.h - 20 - speech_bubble_top);
+  }
+
   GPath bubble_path = {
     .num_points = 11,
-    .offset = GPoint(8, speech_bubble_top),
+    .offset = GPoint(8 + available_space, speech_bubble_top),
     .rotation = 0,
     .points = (GPoint[]) {
       // top left
@@ -76,7 +84,7 @@ static void prv_update_layer(Layer *layer, GContext *ctx) {
       {bubble_width - corner_offset, text_height + corner_offset},
       // tail
       {bubble_width - 20, text_height + corner_offset},
-      {57, size.h - 25 - speech_bubble_top},
+      tail_origin,
       {bubble_width - 30, text_height + corner_offset},
       // bottom left
       {corner_offset, text_height + corner_offset},
@@ -90,7 +98,7 @@ static void prv_update_layer(Layer *layer, GContext *ctx) {
   gpath_draw_outline(ctx, &bubble_path);
 
   graphics_context_set_text_color(ctx, GColorBlack);
-  GRect text_bounds = GRect(8 + corner_offset, speech_bubble_top + corner_offset - 5, bubble_width - corner_offset, text_height);
+  GRect text_bounds = GRect(8 + corner_offset + available_space, speech_bubble_top + corner_offset - 5, data->text_size.w, data->text_size.h);
   graphics_draw_text(ctx, data->text, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), text_bounds, GTextOverflowModeWordWrap, GTextAlignmentLeft, NULL);
   gdraw_command_image_draw(ctx, data->pony, GPoint(0, size.h - 59));
 }
