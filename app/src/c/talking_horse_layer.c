@@ -133,8 +133,10 @@ static GRangeHorizontal prv_perimeter_callback(const GPerimeter *perimeter, cons
   GPoint wrap_point = layer_convert_point_to_screen(layer, GPoint(pony_size, bounds.size.h - pony_size));
   // We know the pony is at the bottom of our layer, so we don't bother worrying about text being rendered past it.
   if (vertical_range.origin_y + vertical_range.size_h < wrap_point.y) {
+    // nothing to do here - implement the inset while we're here, though.
     return (GRangeHorizontal) { .origin_x = inset, .size_w = ctx_size->w - inset * 2 };
   } else {
-    return (GRangeHorizontal) { .origin_x = pony_size + inset, .size_w = ctx_size->w - pony_size - inset * 2 };
+    // The pony is in the way, so we need to indent the text on the left.
+    return (GRangeHorizontal) { .origin_x = wrap_point.x + inset, .size_w = ctx_size->w - wrap_point.x - inset * 2 };
   }
 }
