@@ -15,24 +15,34 @@
  */
 
 #include "talking_horse_layer.h"
+#include "util/perimeter.h"
 #include <pebble.h>
 
 typedef struct {
+  GPerimeter perimeter;
+  Layer *layer;
   const char* text;
   GDrawCommandImage* pony;
   GSize text_size;
+  GTextAttributes *text_attributes;
 } TalkingHorseLayerData;
 
 const int SPEECH_BUBBLE_BASELINE = 59;
 
 static void prv_update_layer(Layer *layer, GContext *ctx);
+static GTextAttributes *prv_create_text_attributes(TalkingHorseLayer *layer);
+static GRangeHorizontal prv_perimeter_callback(const GPerimeter *perimeter, const GSize *ctx_size, GRangeVertical vertical_range, uint16_t inset);
+
 
 TalkingHorseLayer *talking_horse_layer_create(GRect frame) {
   Layer *layer = layer_create_with_data(frame, sizeof(TalkingHorseLayerData));
   TalkingHorseLayerData *data = layer_get_data(layer);
+  data->perimeter = (GPerimeter) { .callback = prv_perimeter_callback };
+  data->layer = layer;
   data->text = NULL;
   data->text_size = GSizeZero;
   data->pony = gdraw_command_image_create_with_resource(RESOURCE_ID_ROOT_SCREEN_PONY);
+  data->text_attributes = prv_create_text_attributes(layer);
   layer_set_update_proc(layer, prv_update_layer);
   return layer;
 }
@@ -47,7 +57,7 @@ void talking_horse_layer_set_text(TalkingHorseLayer *layer, const char *text) {
   TalkingHorseLayerData *data = layer_get_data(layer);
   data->text = text;
   GRect bounds = layer_get_bounds(layer);
-  data->text_size = graphics_text_layout_get_content_size_with_attributes(text, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), GRect(0, 1, bounds.size.w - 18, bounds.size.h - 15), GTextOverflowModeWordWrap, GTextAlignmentLeft, NULL);
+  data->text_size = graphics_text_layout_get_content_size_with_attributes(text, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), GRect(0, 1, bounds.size.w - 18, bounds.size.h - 15), GTextOverflowModeWordWrap, GTextAlignmentLeft, data->text_attributes);
   layer_mark_dirty(layer);
 }
 
@@ -99,6 +109,32 @@ static void prv_update_layer(Layer *layer, GContext *ctx) {
 
   graphics_context_set_text_color(ctx, GColorBlack);
   GRect text_bounds = GRect(8 + corner_offset + available_space, speech_bubble_top + corner_offset - 5, data->text_size.w, data->text_size.h);
-  graphics_draw_text(ctx, data->text, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), text_bounds, GTextOverflowModeWordWrap, GTextAlignmentLeft, NULL);
+  graphics_draw_text(ctx, data->text, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), text_bounds, GTextOverflowModeWordWrap, GTextAlignmentLeft, data->text_attributes);
   gdraw_command_image_draw(ctx, data->pony, GPoint(0, size.h - 59));
+}
+
+static GTextAttributes* prv_create_text_attributes(TalkingHorseLayer *layer) {
+  TalkingHorseLayerData *data = layer_get_data(layer);
+  GTextAttributes *attributes = graphics_text_attributes_create();
+  attributes->flow_data.perimeter.impl = &data->perimeter;
+  attributes->flow_data.perimeter.inset = 0;
+  return attributes;
+}
+
+
+static GRangeHorizontal prv_perimeter_callback(const GPerimeter *perimeter, const GSize *ctx_size, GRangeVertical vertical_range, uint16_t inset) {
+  // We don't get a reference to the original layer, but we do get this perimeter pointer. By putting the perimeter at
+  // the top of the struct, we can make this cast and get away with it.
+  TalkingHorseLayerData *data = (TalkingHorseLayerData*)perimeter;
+  Layer *layer = data->layer;
+  // the top right of the pony is 59 pixels from the bottom of the layer, and we need it in screen space
+  const int16_t pony_size = 59;
+  GRect bounds = layer_get_bounds(layer);
+  GPoint wrap_point = layer_convert_point_to_screen(layer, GPoint(pony_size, bounds.size.h - pony_size));
+  // We know the pony is at the bottom of our layer, so we don't bother worrying about text being rendered past it.
+  if (vertical_range.origin_y + vertical_range.size_h < wrap_point.y) {
+    return (GRangeHorizontal) { .origin_x = inset, .size_w = ctx_size->w - inset * 2 };
+  } else {
+    return (GRangeHorizontal) { .origin_x = pony_size + inset, .size_w = ctx_size->w - pony_size - inset * 2 };
+  }
 }
