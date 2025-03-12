@@ -163,7 +163,7 @@ static void prv_click_config_provider(void *context) {
 
 static void prv_up_clicked(ClickRecognizerRef recognizer, void *context) {
   RootWindow* rw = context;
-  talking_horse_layer_set_text(rw->talking_horse_layer, "I'm doing thank how help?");
+  talking_horse_layer_set_text(rw->talking_horse_layer, "I'm doing thanks! How help?");
 }
 
 static void prv_prompt_clicked(ClickRecognizerRef recognizer, void *context) {
