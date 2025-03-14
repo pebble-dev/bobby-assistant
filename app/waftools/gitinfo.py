@@ -24,7 +24,7 @@ def get_git_revision(ctx):
         timestamp = ctx.cmd_and_log(['git', 'log', '-1', '--format=%ct', 'HEAD'], quiet=waflib.Context.BOTH).strip()
     except Exception:
         waflib.Logs.warn('get_git_version: unable to determine git revision')
-        tag, description, commit, timestamp = ("?", "?", "?", "1")
+        tag, description, commit, commit_short, timestamp = "?", "?", "?", "?", "1"
 
     return {'TAG': tag,
             'DESCRIPTION': description,
