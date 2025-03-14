@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - 'app/**'
+      - '.github/workflows/build-pbw.yaml'
 
 jobs:
   build:
@@ -54,9 +55,16 @@ jobs:
         run: cd app/ && yes | ../sdk/bin/pebble build
       - name: rename-app
         run: cp app/build/app.pbw Bobby-g${{ env.COMMIT_SHORT_SHA }}.pbw
+      - name: generate elf bundle
+        run: mkdir elfs && cp app/build/basalt/pebble-app.elf elfs/pebble-app-basalt.elf && cp app/build/diorite/pebble-app.elf elfs/pebble-app-diorite.elf && zip -r elfs.zip elfs
       - name: Upload PBW
         uses: actions/upload-artifact@v4
         with:
           name: Bobby PBW
           path: Bobby-g${{ env.COMMIT_SHORT_SHA }}.pbw
           if-no-files-found: error
+      - name: Upload ELFs
+        uses: actions/upload-artifact@v4
+        with:
+          name: Debug ELFs
+          path: elfs.zip
