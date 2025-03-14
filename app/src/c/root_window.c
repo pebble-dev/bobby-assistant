@@ -22,6 +22,7 @@
 #include "converse/session_window.h"
 #include "menus/root_menu.h"
 #include "util/style.h"
+#include "version/version.h"
 
 struct RootWindow {
   Window* window;
@@ -30,9 +31,11 @@ struct RootWindow {
   GBitmap* dictation_icon;
   GBitmap* more_icon;
   TextLayer* time_layer;
+  TextLayer* version_layer;
   TalkingHorseLayer* talking_horse_layer;
   EventHandle event_handle;
   char time_string[6];
+  char version_string[9];
 };
 
 static void prv_window_load(Window* window);
@@ -52,6 +55,7 @@ RootWindow* root_window_create() {
     .appear = prv_window_appear,
     .disappear = prv_window_disappear,
   });
+  GRect bounds = layer_get_bounds(window_get_root_layer(window->window));
   window_set_background_color(window->window, COLOR_FALLBACK(ACCENT_COLOUR, GColorWhite));
   window->dictation_icon = gbitmap_create_with_resource(RESOURCE_ID_DICTATION_ICON);
   window->more_icon = gbitmap_create_with_resource(RESOURCE_ID_MORE_ICON);
@@ -70,6 +74,16 @@ RootWindow* root_window_create() {
   window->talking_horse_layer = talking_horse_layer_create(GRect(0, 56, 144 - ACTION_BAR_WIDTH, 112));
   layer_add_child(window_get_root_layer(window->window), (Layer *)window->talking_horse_layer);
 
+  VersionInfo version_info = version_get_current();
+  snprintf(window->version_string, sizeof(window->version_string), "v%d.%d", version_info.major, version_info.minor);
+  window->version_string[sizeof(window->version_string) - 1] = '\0';
+  window->version_layer = text_layer_create(GRect(0, bounds.size.h - 18, bounds.size.w - ACTION_BAR_WIDTH - 4, 18));
+  text_layer_set_font(window->version_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
+  text_layer_set_text_alignment(window->version_layer, GTextAlignmentRight);
+  text_layer_set_background_color(window->version_layer, GColorClear);
+  text_layer_set_text(window->version_layer, window->version_string);
+  layer_add_child(window_get_root_layer(window->window), (Layer *)window->version_layer);
+
   return window;
 }
 
@@ -83,6 +97,7 @@ void root_window_destroy(RootWindow* window) {
   gbitmap_destroy(window->dictation_icon);
   gbitmap_destroy(window->more_icon);
   text_layer_destroy(window->time_layer);
+  text_layer_destroy(window->version_layer);
   talking_horse_layer_destroy(window->talking_horse_layer);
   free(window);
 }

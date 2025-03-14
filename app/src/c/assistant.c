@@ -19,6 +19,7 @@
 #include "converse/session_window.h"
 #include "converse/conversation_manager.h"
 #include "alarms/manager.h"
+#include "version/version.h"
 
 #include <pebble.h>
 #include <pebble-events/pebble-events.h>
@@ -26,6 +27,7 @@
 static RootWindow* s_root_window = NULL;
 
 static void prv_init(void) {
+  version_store_current();
   conversation_manager_init();
   events_app_message_open();
   alarm_manager_init();
@@ -38,6 +40,8 @@ static void prv_deinit(void) {
 }
 
 int main(void) {
+  VersionInfo version_info = version_get_current();
+  APP_LOG(APP_LOG_LEVEL_INFO, "Bobby %d.%d (%s)", version_info.major, version_info.minor, version_git_tag());
   prv_init();
   
   if (alarm_manager_maybe_alarm()) {

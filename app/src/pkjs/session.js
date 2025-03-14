@@ -20,6 +20,8 @@ var actions = require('./actions');
 var widgets = require('./widgets');
 
 var API_URL = require('./urls').QUERY_URL;
+var package_json = require('package.json');
+var git_version = require('git_version');
 
 function Session(prompt, threadId) {
     this.prompt = prompt;
@@ -53,6 +55,9 @@ Session.prototype.run = function() {
     var settings = getSettings();
     url += '&units=' + settings['UNIT_PREFERENCE'] || '';
     url += '&lang=' + settings['LANGUAGE_CODE'] || '';
+    url += '&version=' + package_json['version'];
+    url += '&git=' + git_version.tag;
+
     console.log(url);
     this.ws = new WebSocket(url);
     this.ws.addEventListener('message', this.handleMessage.bind(this));

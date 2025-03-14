@@ -32,4 +32,7 @@
 // Store whether we have successfully requested location consent.
 #define PERSIST_KEY_LOCATION_ENABLED 6
 
+// Contains the version we were running the last time we were launched
+#define PERSIST_KEY_VERSION 7
+
 #endif //APP_PERSIST_KEYS_H
