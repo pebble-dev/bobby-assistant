@@ -7,6 +7,7 @@ toolchain go1.23.3
 require (
 	github.com/google/uuid v1.6.0
 	github.com/honeycombio/beeline-go v1.18.0
+	github.com/joho/godotenv v1.5.1
 	github.com/redis/go-redis/v9 v9.7.1
 	github.com/yuin/gopher-lua v1.1.1
 	golang.org/x/exp v0.0.0-20250228200357-dead58393ab7

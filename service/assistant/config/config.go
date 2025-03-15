@@ -14,7 +14,12 @@
 
 package config
 
-import "os"
+import (
+	"log"
+	"os"
+
+	"github.com/joho/godotenv"
+)
 
 // TODO: something reasonable.
 
@@ -35,6 +40,14 @@ func GetConfig() *Config {
 }
 
 func init() {
+	// Load .env file if it exists
+	if err := godotenv.Load(); err != nil {
+		// Only log if the file exists but couldn't be loaded
+		if !os.IsNotExist(err) {
+			log.Printf("Error loading .env file: %v", err)
+		}
+	}
+
 	c = Config{
 		GeminiKey:             os.Getenv("GEMINI_KEY"),
 		MapboxKey:             os.Getenv("MAPBOX_KEY"),
