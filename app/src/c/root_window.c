@@ -22,6 +22,7 @@
 #include "converse/session_window.h"
 #include "menus/root_menu.h"
 #include "util/style.h"
+#include "util/time.h"
 #include "version/version.h"
 
 struct RootWindow {
@@ -132,17 +133,7 @@ static void prv_window_disappear(Window* window) {
 
 static void prv_time_changed(struct tm *tick_time, TimeUnits time_changed, void *context) {
   RootWindow* rw = context;
-  if (clock_is_24h_style()) {
-    strftime(rw->time_string, 6, "%H:%M", tick_time);
-  } else if (tick_time->tm_hour > 0 && tick_time->tm_hour < 10) {
-    snprintf(rw->time_string, 2, "%d", tick_time->tm_hour);
-    strftime(rw->time_string + 1, 5, ":%M", tick_time);
-  } else if (tick_time->tm_hour > 12 && tick_time->tm_hour < 22) {
-    snprintf(rw->time_string, 2, "%d", tick_time->tm_hour - 12);
-    strftime(rw->time_string + 1, 5, ":%M", tick_time);
-  } else {
-    strftime(rw->time_string, 6, "%I:%M", tick_time);
-  }
+  format_time(rw->time_string, sizeof(rw->time_string), tick_time);
   if (tick_time->tm_hour >= 6 && tick_time->tm_hour < 12) {
     talking_horse_layer_set_text(rw->talking_horse_layer, "Good morning!");
   } else if (tick_time->tm_hour >= 12 && tick_time->tm_hour < 18) {

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
-// put your server here.
-exports.QUERY_URL = 'wss://bobby-api.rebble.io/query';
-exports.QUOTA_URL = 'http://bobby-api.rebble.io/quota';
+#pragma once
+
+#include <pebble.h>
+
+void format_time(char *buffer, size_t size, struct tm *time);
+void format_time_ampm(char *buffer, size_t size, struct tm *time);

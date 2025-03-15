@@ -162,6 +162,12 @@ static void prv_handle_app_message_inbox_received(DictionaryIterator *iter, void
         },
       };
       conversation_manager_add_action(manager, &action);
+    } else if (tuple->key == MESSAGE_KEY_ACTION_REMINDER_DELETED) {
+      ConversationAction action = {
+        .type = ConversationActionTypeDeleteReminder,
+        .action = {},
+      };
+      conversation_manager_add_action(manager, &action);
     } else if (tuple->key == MESSAGE_KEY_WARNING) {
       conversation_complete_response(manager->conversation);
       prv_conversation_updated(manager, false);

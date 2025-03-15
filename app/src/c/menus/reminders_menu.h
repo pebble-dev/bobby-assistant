@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
-// put your server here.
-exports.QUERY_URL = 'wss://bobby-api.rebble.io/query';
-exports.QUOTA_URL = 'http://bobby-api.rebble.io/quota';
+#ifndef BOBBY_APP_REMINDERS_MENU_H
+#define BOBBY_APP_REMINDERS_MENU_H
+
+void reminders_menu_push();
+
+#endif //BOBBY_APP_REMINDERS_MENU_H 

@@ -67,7 +67,14 @@
       "WEATHER_WIDGET_MULTI_DAY[3]",
       "WEATHER_WIDGET_MULTI_ICON[3]",
       "WEATHER_WIDGET_MULTI_HIGH[3]",
-      "WEATHER_WIDGET_MULTI_LOW[3]"
+      "WEATHER_WIDGET_MULTI_LOW[3]",
+      "REMINDER_LIST_REQUEST",
+      "REMINDER_COUNT",
+      "REMINDER_TEXT",
+      "REMINDER_ID",
+      "REMINDER_TIME",
+      "REMINDER_DELETE",
+      "ACTION_REMINDER_DELETED"
     ],
     "resources": {
       "media": [

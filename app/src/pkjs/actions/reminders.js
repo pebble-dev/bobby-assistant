@@ -14,38 +14,57 @@
  * limitations under the License.
  */
 
-var timeline = require('./timeline');
+var reminders = require('../lib/reminders');
 
 exports.setReminder = function(session, message, callback) {
-    var when = message['time'];
-    var what = message['what'];
-    var date = (new Date(when)).toISOString();
-    console.log("Setting a reminder: \"" + what + "\" at " + date);
-    var pin = {
-        "id": "bobby-reminder-" + Math.random(),
-        "time": date,
-        "layout": {
-            "type": "genericPin",
-            "title": what,
-            "tinyIcon": "system://images/NOTIFICATION_REMINDER",
-        },
-        "reminders": [{
-            "time": date,
-            "layout": {
-                "type": "genericReminder",
-                "title": what,
-                "tinyIcon": "system://images/NOTIFICATION_REMINDER",
-            },
-        }],
-    };
-    timeline.insertUserPin(pin, function() {
-        var unixTime = (new Date(when)).getTime() / 1000;
-        session.enqueue({ACTION_REMINDER_WAS_SET: unixTime});
-        if (unixTime < (new Date()).getTime() / 1000 + 3600) {
-            callback({"warning": "Your reminder was set. It is **critical** you warn the user: Due to timeline delays, reminders set in the near future may not appear on time."});
-        } else {
-            callback({"status": "ok"});
-        }
-        console.log("Done.");
+  var when = message['time'];
+  var what = message['what'];
+  
+  try {
+    reminders.addReminder(what, when);
+    var unixTime = (new Date(when)).getTime() / 1000;
+    session.enqueue({ACTION_REMINDER_WAS_SET: unixTime});
+    
+    if (unixTime < (new Date()).getTime() / 1000 + 3600) {
+      callback({"warning": "Your reminder was set. It is **critical** you warn the user: Due to timeline delays, reminders set in the near future may not appear on time."});
+    } else {
+      callback({"status": "ok"});
+    }
+  } catch (err) {
+    callback({"error": "Failed to set reminder: " + err.message});
+  }
+};
+
+exports.getReminders = function(session, message, callback) {
+  try {
+    var allReminders = reminders.getAllReminders();
+    for (var i = 0; i < allReminders.length; i++) {
+      var reminder = allReminders[i];
+      reminder.time = new Date(reminder.time).toString();
+    }
+    callback({
+      "status": "ok",
+      "reminders": allReminders
     });
-}
+  } catch (err) {
+    callback({"error": "Failed to get reminders: " + err.message});
+  }
+};
+
+exports.deleteReminder = function(session, message, callback) {
+  var reminderId = message['id'];
+  if (!reminderId) {
+    callback({"error": "No reminder ID provided"});
+  }
+  
+  try {
+    var success = reminders.deleteReminder(reminderId);
+    if (!success) {
+      callback({"error": "Reminder not found"});
+    }
+    session.enqueue({ACTION_REMINDER_DELETED: 1});
+    callback({"status": "ok"});
+  } catch (err) {
+    callback({"error": "Failed to delete reminder: " + err.message});
+  }
+};

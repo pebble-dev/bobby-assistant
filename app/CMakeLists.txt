@@ -54,6 +54,7 @@ add_executable(tiny_assistant_app
         src/c/menus/alarm_menu.c
         src/c/menus/alarm_menu.h
         src/c/menus/legal_window.c
+        src/c/menus/reminders_menu.c
         src/c/consent/consent.c
         src/c/util/vector_layer.c
         src/c/util/style.c
@@ -64,4 +65,5 @@ add_executable(tiny_assistant_app
         src/c/converse/segments/widgets/weather_util.c
         src/c/converse/segments/widgets/weather_multi_day.c
         src/c/talking_horse_layer.c
-        src/c/version/version.c)
+        src/c/version/version.c
+        src/c/util/time.c)

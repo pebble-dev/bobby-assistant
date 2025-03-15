@@ -25,6 +25,7 @@ typedef struct ConversationEntry ConversationEntry;
 typedef enum {
   ConversationActionTypeSetAlarm,
   ConversationActionTypeSetReminder,
+  ConversationActionTypeDeleteReminder,
   ConversationActionTypeUpdateChecklist,
   ConversationActionTypeGenericSentence,
 } ConversationActionType;
@@ -44,6 +45,9 @@ typedef struct {
 typedef struct {
   time_t time;
 } ConversationActionSetReminder;
+
+typedef struct {
+} ConversationActionDeleteReminder;
 
 typedef struct {
 } ConversationActionPokeHomeAssistant;

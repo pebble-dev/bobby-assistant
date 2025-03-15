@@ -20,6 +20,8 @@ var config = require('../config.js');
 
 var actionMap = {
     'set_reminder': reminders.setReminder,
+    'get_reminders': reminders.getReminders,
+    'delete_reminder': reminders.deleteReminder,
     'set_alarm': alarms.setAlarm,
     'get_alarm': alarms.getAlarm,
 };
