@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-const timeline = require('../actions/timeline');
+var timeline = require('../actions/timeline');
 
 // Store reminders in localStorage
-const REMINDERS_STORAGE_KEY = 'bobby_reminders';
+var REMINDERS_STORAGE_KEY = 'bobby_reminders';
 // Keep expired reminders for 24 hours before cleanup
-const EXPIRED_REMINDER_TTL = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+var EXPIRED_REMINDER_TTL = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
 function loadReminders() {
-  const stored = localStorage.getItem(REMINDERS_STORAGE_KEY);
+  var stored = localStorage.getItem(REMINDERS_STORAGE_KEY);
   return stored ? JSON.parse(stored) : [];
 }
 
@@ -31,13 +31,13 @@ function saveReminders(reminders) {
 }
 
 function cleanupExpiredReminders() {
-  const reminders = loadReminders();
-  const now = new Date();
-  const cutoffTime = now.getTime() - EXPIRED_REMINDER_TTL;
+  var reminders = loadReminders();
+  var now = new Date();
+  var cutoffTime = now.getTime() - EXPIRED_REMINDER_TTL;
   
   // Filter out reminders that are older than the cutoff time
-  const activeReminders = reminders.filter(function(reminder) {
-    const reminderTime = new Date(reminder.time).getTime();
+  var activeReminders = reminders.filter(function(reminder) {
+    var reminderTime = new Date(reminder.time).getTime();
     return reminderTime > cutoffTime;
   });
   
@@ -54,33 +54,33 @@ function addReminder(text, time) {
   // Clean up expired reminders first
   cleanupExpiredReminders();
   
-  const date = (new Date(time)).toISOString();
+  var date = (new Date(time)).toISOString();
   console.log("Setting a reminder: \"" + text + "\" at " + date);
-  const reminderId = "bobby-reminder-" + Math.random();
+  var reminderId = "bobby-reminder-" + Math.random();
   
-  const pin = {
+  var pin = {
     "id": reminderId,
     "time": date,
     "layout": {
       "type": "genericPin",
       "title": text,
-      "tinyIcon": "system://images/NOTIFICATION_REMINDER",
+      "tinyIcon": "system://images/NOTIFICATION_REMINDER"
     },
     "reminders": [{
       "time": date,
       "layout": {
         "type": "genericReminder",
         "title": text,
-        "tinyIcon": "system://images/NOTIFICATION_REMINDER",
-      },
-    }],
+        "tinyIcon": "system://images/NOTIFICATION_REMINDER"
+      }
+    }]
   };
 
   // Insert into timeline first - if this fails it will throw
   timeline.insertUserPin(pin);
 
   // Store reminder locally
-  const reminders = loadReminders();
+  var reminders = loadReminders();
   reminders.push({
     id: reminderId,
     time: date,
@@ -95,8 +95,14 @@ function deleteReminder(id) {
   // Clean up expired reminders first
   cleanupExpiredReminders();
   
-  const reminders = loadReminders();
-  const reminderIndex = reminders.findIndex(r => r.id === id);
+  var reminders = loadReminders();
+  var reminderIndex = -1;
+  for (var i = 0; i < reminders.length; i++) {
+    if (reminders[i].id === id) {
+      reminderIndex = i;
+      break;
+    }
+  }
   
   if (reminderIndex === -1) {
     return false;
@@ -113,18 +119,22 @@ function deleteReminder(id) {
 
 function getAllReminders() {
   // Clean up expired reminders before returning the list
-  const reminders = cleanupExpiredReminders();
+  var reminders = cleanupExpiredReminders();
   
   // Sort reminders by time
-  reminders.sort((a, b) => new Date(a.time) - new Date(b.time));
+  reminders.sort(function(a, b) {
+    return new Date(a.time) - new Date(b.time);
+  });
   
   // Only return future reminders
-  const now = new Date();
-  return reminders.filter(r => new Date(r.time) > now);
+  var now = new Date();
+  return reminders.filter(function(r) {
+    return new Date(r.time) > now;
+  });
 }
 
 module.exports = {
-  addReminder,
-  deleteReminder,
-  getAllReminders
+  addReminder: addReminder,
+  deleteReminder: deleteReminder,
+  getAllReminders: getAllReminders
 }; 

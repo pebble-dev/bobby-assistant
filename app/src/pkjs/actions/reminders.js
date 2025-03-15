@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-const reminders = require('../lib/reminders');
+var reminders = require('../lib/reminders');
 
 exports.setReminder = function(session, message, callback) {
-  const when = message['time'];
-  const what = message['what'];
+  var when = message['time'];
+  var what = message['what'];
   
   try {
     reminders.addReminder(what, when);
-    const unixTime = (new Date(when)).getTime() / 1000;
+    var unixTime = (new Date(when)).getTime() / 1000;
     session.enqueue({ACTION_REMINDER_WAS_SET: unixTime});
     
     if (unixTime < (new Date()).getTime() / 1000 + 3600) {
@@ -33,11 +33,11 @@ exports.setReminder = function(session, message, callback) {
   } catch (err) {
     callback({"error": "Failed to set reminder: " + err.message});
   }
-}
+};
 
 exports.getReminders = function(session, message, callback) {
   try {
-    const allReminders = reminders.getAllReminders();
+    var allReminders = reminders.getAllReminders();
     callback({
       "status": "ok",
       "reminders": allReminders
@@ -45,16 +45,16 @@ exports.getReminders = function(session, message, callback) {
   } catch (err) {
     callback({"error": "Failed to get reminders: " + err.message});
   }
-}
+};
 
 exports.deleteReminder = function(session, message, callback) {
-  const reminderId = message['id'];
+  var reminderId = message['id'];
   if (!reminderId) {
     callback({"error": "No reminder ID provided"});
   }
   
   try {
-    const success = reminders.deleteReminder(reminderId);
+    var success = reminders.deleteReminder(reminderId);
     if (!success) {
       callback({"error": "Reminder not found"});
     }
@@ -62,4 +62,4 @@ exports.deleteReminder = function(session, message, callback) {
   } catch (err) {
     callback({"error": "Failed to delete reminder: " + err.message});
   }
-}
+};

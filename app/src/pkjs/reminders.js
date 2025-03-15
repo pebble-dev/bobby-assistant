@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-const reminders = require('./lib/reminders');
+var reminders = require('./lib/reminders');
 
 function handleReminderMessage(data) {
   console.log("hi! " + JSON.stringify(data));
   if (data.REMINDER_LIST_REQUEST) {
-    const allReminders = reminders.getAllReminders();
+    var allReminders = reminders.getAllReminders();
     
     // Convert from storage format to menu format
-    const menuReminders = allReminders.map(r => ({
-      id: r.id,
-      text: r.what,
-      time: new Date(r.time)
-    }));
+    var menuReminders = allReminders.map(function(r) {
+      return {
+        id: r.id,
+        text: r.what,
+        time: new Date(r.time)
+      };
+    });
 
     // First send the count
     Pebble.sendAppMessage({
@@ -37,7 +39,7 @@ function handleReminderMessage(data) {
     function sendNextReminder(index) {
       if (index >= menuReminders.length) return;
       
-      const reminder = menuReminders[index];
+      var reminder = menuReminders[index];
       Pebble.sendAppMessage({
         'REMINDER_TEXT': reminder.text,
         'REMINDER_ID': reminder.id,
@@ -56,7 +58,7 @@ function handleReminderMessage(data) {
     sendNextReminder(0);
     return true;
   } else if (data.REMINDER_DELETE) {
-    const id = data.REMINDER_DELETE;
+    var id = data.REMINDER_DELETE;
     try {
       reminders.deleteReminder(id);
     } catch (err) {
