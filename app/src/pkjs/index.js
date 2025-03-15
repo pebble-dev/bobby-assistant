@@ -22,6 +22,7 @@ var clayConfig = require('./config.json');
 var customConfigFunction = require('./custom_config');
 var config = require('./config');
 var git_version = require('git_version');
+var reminders = require('./reminders');
 
 
 var clay = new Clay(clayConfig, customConfigFunction);
@@ -41,6 +42,11 @@ function handleAppMessage(e) {
         s.run();
         return;
     }
+
+    if (reminders.handleReminderMessage(data)) {
+        return;
+    }
+
     if (data.QUOTA_REQUEST) {
         console.log("Requesting quota...");
         quota.fetchQuota();

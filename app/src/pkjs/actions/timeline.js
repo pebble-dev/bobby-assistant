@@ -25,7 +25,9 @@ function timelineRequest(pin, type, topics, apiKey, callback) {
     var xhr = new XMLHttpRequest();
     xhr.onload = function () {
         console.log('timeline: response received: ' + this.responseText);
-        callback(this.responseText);
+        if (callback) {
+            callback(this.responseText);
+        }
     };
     xhr.open(type, url);
 
