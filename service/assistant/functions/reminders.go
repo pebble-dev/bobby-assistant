@@ -16,11 +16,12 @@ package functions
 
 import (
 	"context"
+	"log"
+	"time"
+
 	"github.com/honeycombio/beeline-go"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
 	"google.golang.org/genai"
-	"log"
-	"time"
 
 	"github.com/pebble-dev/bobby-assistant/service/assistant/query"
 )
@@ -32,6 +33,15 @@ type SetReminderInput struct {
 	Delay int `json:"delay_mins"`
 	// What to remind the user to do.
 	What string `json:"what" jsonschema:"required"`
+}
+
+type GetRemindersInput struct {
+	// No parameters needed
+}
+
+type DeleteReminderInput struct {
+	// The ID of the reminder to delete
+	ID string `json:"id" jsonschema:"required"`
 }
 
 func init() {
@@ -67,6 +77,38 @@ func init() {
 		Thought:   reminderThought,
 		InputType: SetReminderInput{},
 	})
+
+	registerFunction(Registration{
+		Definition: genai.FunctionDeclaration{
+			Name:        "get_reminders",
+			Description: "Get a list of all active reminders.",
+		},
+		Cb:        getReminders,
+		Thought:   getRemindersThought,
+		InputType: GetRemindersInput{},
+	})
+
+	registerFunction(Registration{
+		Definition: genai.FunctionDeclaration{
+			Name:        "delete_reminder",
+			Description: "Delete a specific reminder by its ID.",
+			Parameters: &genai.Schema{
+				Type:     genai.TypeObject,
+				Nullable: false,
+				Properties: map[string]*genai.Schema{
+					"id": {
+						Type:        genai.TypeString,
+						Description: "The ID of the reminder to delete. You *must* call get_reminders first to discover the ID of the correct reminder.",
+						Nullable:    false,
+					},
+				},
+				Required: []string{"id"},
+			},
+		},
+		Cb:        deleteReminder,
+		Thought:   deleteReminderThought,
+		InputType: DeleteReminderInput{},
+	})
 }
 
 func setReminder(ctx context.Context, quotaTracker *quota.Tracker, args interface{}, requestChan chan<- map[string]interface{}, responseChan <-chan map[string]interface{}) interface{} {
@@ -91,9 +133,43 @@ func setReminder(ctx context.Context, quotaTracker *quota.Tracker, args interfac
 		"what":   arg.What,
 		"action": "set_reminder",
 	}
-	// In actuality the only thing a reminder does is create a timeline pin... which we could do from here.
-	// We already have a timeline token, after all. Send it to the watch for now anyway.
 	log.Println("Asking watch to set reminder...")
+	requestChan <- req
+	log.Println("Waiting for confirmation...")
+	resp := <-responseChan
+	return resp
+}
+
+func getReminders(ctx context.Context, quotaTracker *quota.Tracker, args interface{}, requestChan chan<- map[string]interface{}, responseChan <-chan map[string]interface{}) interface{} {
+	ctx, span := beeline.StartSpan(ctx, "get_reminders")
+	defer span.Send()
+	if !query.SupportsAction(ctx, "get_reminders") {
+		return Error{Error: "You need to update the app on your watch to get reminders."}
+	}
+
+	req := map[string]interface{}{
+		"action": "get_reminders",
+	}
+	log.Println("Asking watch to get reminders...")
+	requestChan <- req
+	log.Println("Waiting for response...")
+	resp := <-responseChan
+	return resp
+}
+
+func deleteReminder(ctx context.Context, quotaTracker *quota.Tracker, args interface{}, requestChan chan<- map[string]interface{}, responseChan <-chan map[string]interface{}) interface{} {
+	ctx, span := beeline.StartSpan(ctx, "delete_reminder")
+	defer span.Send()
+	if !query.SupportsAction(ctx, "delete_reminder") {
+		return Error{Error: "You need to update the app on your watch to delete reminders."}
+	}
+	arg := args.(*DeleteReminderInput)
+
+	req := map[string]interface{}{
+		"action": "delete_reminder",
+		"id":     arg.ID,
+	}
+	log.Println("Asking watch to delete reminder...")
 	requestChan <- req
 	log.Println("Waiting for confirmation...")
 	resp := <-responseChan
@@ -102,4 +178,12 @@ func setReminder(ctx context.Context, quotaTracker *quota.Tracker, args interfac
 
 func reminderThought(args interface{}) string {
 	return "Setting a reminder"
+}
+
+func getRemindersThought(args interface{}) string {
+	return "Getting your reminders"
+}
+
+func deleteReminderThought(args interface{}) string {
+	return "Deleting a reminder"
 }

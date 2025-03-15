@@ -17,7 +17,6 @@
 // The timeline public URL root
 var API_URL_ROOT = 'https://timeline-api.rebble.io/';
 
-
 function timelineRequest(pin, type, topics, apiKey, callback) {
     // User or shared?
     var url = API_URL_ROOT + 'v1/' + ((topics != null) ? 'shared/' : 'user/') + 'pins/' + pin.id;
@@ -45,17 +44,16 @@ function timelineRequest(pin, type, topics, apiKey, callback) {
         // Send
         xhr.send(JSON.stringify(pin));
         console.log('timeline: request sent.');
-        }, function(error) { console.log('timeline: error getting timeline token: ' + error); });
+    }, function(error) { console.log('timeline: error getting timeline token: ' + error); });
 }
 
-function insertUserPin(pin, callback) {
+// Insert a pin into the timeline
+exports.insertUserPin = function(pin, callback) {
     timelineRequest(pin, 'PUT', null, null, callback);
-}
+};
 
-function deleteUserPin(pin, callback) {
+// Delete a pin from the timeline
+exports.deleteUserPin = function(pinId, callback) {
+    var pin = { "id": pinId };
     timelineRequest(pin, 'DELETE', null, null, callback);
-}
-
-// Export
-exports.insertUserPin = insertUserPin;
-exports.deleteUserPin = deleteUserPin;
+};
