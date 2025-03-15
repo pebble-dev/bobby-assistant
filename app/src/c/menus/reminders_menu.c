@@ -252,7 +252,6 @@ static void prv_draw_row(GContext *ctx, const Layer *cell_layer, MenuIndex *cell
   format_time_ampm(time_pointer, remaining_buffer, reminder_time);
 
   GRect bounds = layer_get_bounds(cell_layer);
-  graphics_context_set_text_color(ctx, GColorBlack);
   graphics_draw_text(ctx, reminder->text,
     fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
     GRect(4, -4, bounds.size.w - 8, 24),
@@ -278,8 +277,8 @@ static void prv_select_click(MenuLayer *menu_layer, MenuIndex *cell_index, void 
   ActionMenuConfig config = (ActionMenuConfig) {
     .root_level = root_level,
     .colors = {
-      .background = GColorWhite,
-      .foreground = GColorBlack,
+      .background = BRANDED_BACKGROUND_COLOUR,
+      .foreground = gcolor_legible_over(BRANDED_BACKGROUND_COLOUR),
     },
     .align = ActionMenuAlignCenter,
     .context = data
