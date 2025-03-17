@@ -111,6 +111,12 @@ void conversation_manager_add_action(ConversationManager* manager, ConversationA
   prv_conversation_updated(manager, true);
 }
 
+void conversation_manager_add_widget(ConversationManager* manager, ConversationWidget* widget) {
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "Adding widget to conversation.");
+  conversation_add_widget(manager->conversation, widget);
+  prv_conversation_updated(manager, true);
+}
+
 static void prv_handle_app_message_outbox_sent(DictionaryIterator *iterator, void *context) {
   APP_LOG(APP_LOG_LEVEL_INFO, "Sent message successfully.");
 }

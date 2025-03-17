@@ -30,6 +30,7 @@ void conversation_manager_destroy(ConversationManager* manager);
 void conversation_manager_set_handler(ConversationManager* manager, ConversationManagerUpdateHandler handler, void* context);
 void conversation_manager_add_input(ConversationManager* manager, const char* input);
 void conversation_manager_add_action(ConversationManager* manager, ConversationAction* action);
+void conversation_manager_add_widget(ConversationManager* manager, ConversationWidget* widget);
 Conversation* conversation_manager_get_conversation(ConversationManager* manager);
 
 #endif
