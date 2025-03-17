@@ -173,7 +173,9 @@ func FindLies(ctx context.Context, qt *quota.Tracker, message []*genai.Content) 
 		switch check.Topic {
 		case "alarm", "timer":
 			if _, ok := functionsCalled["set_alarm"]; !ok {
-				lies = append(lies, check.Topic)
+				if _, ok := functionsCalled["delete_alarm"]; !ok {
+					lies = append(lies, check.Topic)
+				}
 			}
 		case "reminder":
 			if _, ok := functionsCalled["set_reminder"]; !ok {

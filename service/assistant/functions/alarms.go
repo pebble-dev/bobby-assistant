@@ -32,10 +32,15 @@ type AlarmInput struct {
 	Duration int `json:"duration_seconds"`
 	// True if this is a timer, false if it's an alarm.
 	IsTimer bool `json:"is_timer" jsonschema:"required"`
-	// True if the alarm is being cancelled, false if it's being set.
-	Cancel bool `json:"cancel"`
 	// An optional name for the alarm or timer.
 	Name string `json:"name"`
+}
+
+type DeleteAlarmInput struct {
+	// The time of the alarm or timer to delete in ISO 8601 format, e.g. '2023-07-12T00:00:00-07:00'.
+	Time string `json:"time"`
+	// True if deleting a timer, false if deleting an alarm.
+	IsTimer bool `json:"is_timer"`
 }
 
 type GetAlarmInput struct {
@@ -63,11 +68,6 @@ func init() {
 				Type:        genai.TypeBoolean,
 				Description: "True if this is a timer, false if it's an alarm.",
 				Nullable:    false,
-			},
-			"cancel": {
-				Type:        genai.TypeBoolean,
-				Description: "True if the alarm is being cancelled, false if it's being set.",
-				Nullable:    true,
 			},
 		},
 		Required: []string{"is_timer"},
@@ -128,6 +128,32 @@ func init() {
 		Thought:   getAlarmThought,
 		InputType: GetAlarmInput{},
 	})
+
+	registerFunction(Registration{
+		Definition: genai.FunctionDeclaration{
+			Name:        "delete_alarm",
+			Description: "Delete a specific alarm or timer by its expiration time. When deleting a timer, you must call get_alarm first to get the expiration time (calculating it from the chat history will only be approximate)",
+			Parameters: &genai.Schema{
+				Type:     genai.TypeObject,
+				Nullable: false,
+				Properties: map[string]*genai.Schema{
+					"time": {
+						Type:        genai.TypeString,
+						Description: "The time of the alarm or timer to delete in ISO 8601 format, e.g. '2023-07-12T00:00:00-07:00'.",
+						Nullable:    false,
+					},
+					"is_timer": {
+						Type:        genai.TypeBoolean,
+						Description: "True if deleting a timer, false if deleting an alarm.",
+						Nullable:    false,
+					},
+				},
+			},
+		},
+		Cb:        deleteAlarmImpl,
+		Thought:   deleteAlarmThought,
+		InputType: DeleteAlarmInput{},
+	})
 }
 
 func alarmImpl(ctx context.Context, quotaTracker *quota.Tracker, args interface{}, requests chan<- map[string]interface{}, responses <-chan map[string]interface{}) interface{} {
@@ -144,7 +170,7 @@ func alarmImpl(ctx context.Context, quotaTracker *quota.Tracker, args interface{
 		"isTimer":  input.IsTimer,
 		"name":     input.Name,
 		"action":   "set_alarm",
-		"cancel":   input.Cancel,
+		"cancel":   false,
 	}
 	log.Println("Waiting for confirmation...")
 	resp := <-responses
@@ -153,19 +179,40 @@ func alarmImpl(ctx context.Context, quotaTracker *quota.Tracker, args interface{
 
 func alarmThought(i interface{}) string {
 	args := i.(*AlarmInput)
-	if args.Cancel {
-		if args.IsTimer {
-			return "Setting a timer"
-		} else {
-			return "Cancelling an alarm"
-		}
-	}
 	if args.IsTimer {
 		return "Setting a timer"
 	} else if args.Time == "" {
 		return "Contemplating time"
 	} else {
 		return "Setting an alarm"
+	}
+}
+
+func deleteAlarmImpl(ctx context.Context, quotaTracker *quota.Tracker, args interface{}, requests chan<- map[string]interface{}, responses <-chan map[string]interface{}) interface{} {
+	ctx, span := beeline.StartSpan(ctx, "set_alarm")
+	defer span.Send()
+	if !query.SupportsAction(ctx, "set_alarm") {
+		return Error{Error: "You need to update the app on your watch to delete alarms or timers."}
+	}
+	input := args.(*DeleteAlarmInput)
+	log.Printf("Asking watch to delete an alarm set for %s...\n", input.Time)
+	requests <- map[string]interface{}{
+		"time":    input.Time,
+		"isTimer": input.IsTimer,
+		"action":  "set_alarm",
+		"cancel":  true,
+	}
+	log.Println("Waiting for confirmation...")
+	resp := <-responses
+	return resp
+}
+
+func deleteAlarmThought(i interface{}) string {
+	args := i.(*DeleteAlarmInput)
+	if args.IsTimer {
+		return "Deleting a timer"
+	} else {
+		return "Deleting an alarm"
 	}
 }
 
