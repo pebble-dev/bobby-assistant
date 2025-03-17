@@ -80,8 +80,12 @@ func init() {
 	})
 }
 
-func queryWikiThought(args interface{}) string {
-	return "Looking it up..."
+func queryWikiThought(i interface{}) string {
+	args := i.(*WikiRequest)
+	if args.Query == "" {
+		return "Looking it up..."
+	}
+	return fmt.Sprintf("Looking up %q...", args.Query)
 }
 
 func queryWiki(ctx context.Context, quotaTracker *quota.Tracker, args interface{}) interface{} {

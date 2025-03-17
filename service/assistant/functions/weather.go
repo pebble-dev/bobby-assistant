@@ -23,6 +23,7 @@ import (
 	"github.com/pebble-dev/bobby-assistant/service/assistant/util/mapbox"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/util/weather"
 	"google.golang.org/genai"
+	"strings"
 )
 
 type WeatherInput struct {
@@ -70,8 +71,22 @@ func init() {
 	})
 }
 
-func weatherThought(args interface{}) string {
-	return "Checking the weather..."
+func weatherThought(i interface{}) string {
+	args := i.(*WeatherInput)
+	weatherType := "weather"
+	switch args.Kind {
+	case "forecast daily":
+		weatherType = "daily forecast"
+	case "forecast hourly":
+		weatherType = "hourly forecast"
+	case "current":
+		weatherType = "weather"
+	}
+	if args.Location == "" || args.Location == "here" {
+		return fmt.Sprintf("Checking the %s nearby...", weatherType)
+	}
+	placeName, _, _ := strings.Cut(args.Location, ",")
+	return fmt.Sprintf("Checking the %s in %s...", weatherType, placeName)
 }
 
 func getWeather(ctx context.Context, quotaTracker *quota.Tracker, args interface{}) interface{} {

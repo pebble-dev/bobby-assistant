@@ -24,6 +24,7 @@ import (
 	"google.golang.org/genai"
 	"log"
 	"net/url"
+	"strings"
 )
 
 type POIQuery struct {
@@ -72,7 +73,12 @@ func init() {
 }
 
 func searchPoiThought(args interface{}) string {
-	return "Looking around..."
+	poiQuery := args.(*POIQuery)
+	if poiQuery.Location != "" {
+		location, _, _ := strings.Cut(poiQuery.Location, ",")
+		return fmt.Sprintf("Looking for %s near %s...", poiQuery.Query, location)
+	}
+	return fmt.Sprintf("Looking for %s nearby...", poiQuery.Query)
 }
 
 func searchPoi(ctx context.Context, quotaTracker *quota.Tracker, args interface{}) interface{} {

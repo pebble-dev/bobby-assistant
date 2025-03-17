@@ -106,6 +106,7 @@ func convertCurrency(ctx context.Context, qt *quota.Tracker, input interface{}) 
 	}
 }
 
-func convertCurrencyThought(input interface{}) string {
-	return "Checking rates..."
+func convertCurrencyThought(i interface{}) string {
+	args := i.(*CurrencyConversionRequest)
+	return fmt.Sprintf("Checking the %s/%s rate...", args.From, args.To)
 }
