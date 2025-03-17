@@ -15,5 +15,5 @@
  */
 
 // put your server here.
-exports.QUERY_URL = 'ws://192.168.0.193:8080/query';
-exports.QUOTA_URL = 'http://192.168.0.193:8080/quota';
+exports.QUERY_URL = 'wss://bobby-api.rebble.io/query';
+exports.QUOTA_URL = 'https://bobby-api.rebble.io/quota';
