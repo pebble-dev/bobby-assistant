@@ -20,3 +20,4 @@
 
 void format_time(char *buffer, size_t size, struct tm *time);
 void format_time_ampm(char *buffer, size_t size, struct tm *time);
+void format_datetime(char *buffer, size_t size, time_t time);

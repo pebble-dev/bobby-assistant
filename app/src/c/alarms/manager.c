@@ -26,6 +26,7 @@
 struct Alarm {
   time_t scheduled_time;
   WakeupId wakeup_id;
+  char *name;
   bool is_timer; // what's the difference between an alarm and a timer? the user's intention.
 };
 
@@ -44,8 +45,8 @@ static void prv_handle_app_message_inbox_received(DictionaryIterator *iterator, 
 static void prv_send_alarm_response(StatusCode response);
 static void prv_wakeup_handler(WakeupId wakeup_id, int32_t cookie);
 
-
 #define MAX_ALARMS 8
+#define ALARM_NAME_SIZE 32
 
 void alarm_manager_init() {
   wakeup_service_subscribe(prv_wakeup_handler);
@@ -55,7 +56,7 @@ void alarm_manager_init() {
   prv_load_alarms();
 }
 
-int alarm_manager_add_alarm(time_t when, bool is_timer, bool conversational) {
+int alarm_manager_add_alarm(time_t when, bool is_timer, char* name, bool conversational) {
   if (s_manager.pending_alarm_count >= MAX_ALARMS) {
     APP_LOG(APP_LOG_LEVEL_WARNING, "Not scheduling alarm because MAX_ALARMS (%d) was already reached.", MAX_ALARMS);
     return E_OUT_OF_RESOURCES;
@@ -82,6 +83,15 @@ int alarm_manager_add_alarm(time_t when, bool is_timer, bool conversational) {
   alarm->scheduled_time = when;
   alarm->is_timer = is_timer;
   alarm->wakeup_id = id;
+  alarm->name = NULL;
+  size_t name_len = 0;
+  if (name) {
+    name_len = strlen(name);
+    if (name_len > 0) {
+      alarm->name = malloc(name_len + 1);
+      strncpy(alarm->name, name, name_len + 1);
+    }
+  }
 
   if (conversational && conversation_manager_get_current()) {
     ConversationManager *conversation_manager = conversation_manager_get_current();
@@ -92,9 +102,16 @@ int alarm_manager_add_alarm(time_t when, bool is_timer, bool conversational) {
           .time = alarm->scheduled_time,
           .is_timer = alarm->is_timer,
           .deleted = false,
+          .name = NULL,
         }
       }
     };
+    // The alarm manager and conversation manager both expect to own the alarm name, so it has to be copied to both
+    // places here.
+    if (name) {
+      action.action.set_alarm.name = malloc(name_len + 1);
+      strncpy(action.action.set_alarm.name, name, name_len + 1);
+    }
     conversation_manager_add_action(conversation_manager, &action);
   }
 
@@ -144,10 +161,12 @@ static void prv_load_alarms() {
   time_t times[MAX_ALARMS];
   WakeupId wakeup_ids[MAX_ALARMS];
   bool is_timers[MAX_ALARMS];
+  char names[MAX_ALARMS][ALARM_NAME_SIZE];
   
   persist_read_data(PERSIST_KEY_ALARM_TIMES, &times, sizeof(times));
   persist_read_data(PERSIST_KEY_ALARM_WAKEUP_IDS, &wakeup_ids, sizeof(wakeup_ids));
   persist_read_data(PERSIST_KEY_ALARM_IS_TIMERS, &is_timers, sizeof(is_timers));
+  persist_read_data(PERSIST_KEY_ALARM_NAMES, &names, sizeof(names));
   
   s_manager.pending_alarms = malloc(sizeof(Alarm) * alarm_count);
   s_manager.pending_alarm_count = alarm_count;
@@ -169,11 +188,21 @@ static void prv_load_alarms() {
     alarm->scheduled_time = times[i];
     alarm->wakeup_id = wakeup_ids[i];
     alarm->is_timer = is_timers[i];
+    size_t name_len = strlen(names[i]);
+    if (name_len >= ALARM_NAME_SIZE) {
+      name_len = ALARM_NAME_SIZE - 1;
+    }
+    if (name_len == 0) {
+      alarm->name = NULL;
+    } else {
+      alarm->name = malloc(name_len + 1);
+      strncpy(alarm->name, names[i], name_len + 1);
+    }
   }
   s_manager.pending_alarm_count = j;
   
   if (did_drop_entries) {
-    APP_LOG(APP_LOG_LEVEL_INFO, "Updating saved data after droping entries.");
+    APP_LOG(APP_LOG_LEVEL_INFO, "Updating saved data after dropping entries.");
     prv_save_alarms();
   }
 }
@@ -185,23 +214,33 @@ static void prv_save_alarms() {
     persist_delete(PERSIST_KEY_ALARM_TIMES);
     persist_delete(PERSIST_KEY_ALARM_WAKEUP_IDS);
     persist_delete(PERSIST_KEY_ALARM_IS_TIMERS);
+    persist_delete(PERSIST_KEY_ALARM_NAMES);
     persist_delete(PERSIST_KEY_ALARM_COUNT_TWO);
     wakeup_cancel_all();
   }
   time_t times[MAX_ALARMS];
   WakeupId wakeup_ids[MAX_ALARMS];
   bool is_timers[MAX_ALARMS];
+  char names[MAX_ALARMS][ALARM_NAME_SIZE];
+  memset(names, 0, sizeof(names));
   for (int i = 0; i < s_manager.pending_alarm_count; ++i) {
     Alarm* alarm = &s_manager.pending_alarms[i];
     times[i] = alarm->scheduled_time;
     wakeup_ids[i] = alarm->wakeup_id;
     is_timers[i] = alarm->is_timer;
+    if (alarm->name) {
+      strncpy(names[i], alarm->name, ALARM_NAME_SIZE);
+      names[i][ALARM_NAME_SIZE - 1] = '\0';
+    } else {
+      names[i][0] = '\0';
+    }
   }
   
   persist_write_int(PERSIST_KEY_ALARM_COUNT_ONE, s_manager.pending_alarm_count);
   persist_write_data(PERSIST_KEY_ALARM_TIMES, &times, sizeof(times));
   persist_write_data(PERSIST_KEY_ALARM_WAKEUP_IDS, &wakeup_ids, sizeof(wakeup_ids));
   persist_write_data(PERSIST_KEY_ALARM_IS_TIMERS, &is_timers, sizeof(is_timers));
+  persist_write_data(PERSIST_KEY_ALARM_NAMES, &names, sizeof(names));
   persist_write_int(PERSIST_KEY_ALARM_COUNT_TWO, s_manager.pending_alarm_count);
   APP_LOG(APP_LOG_LEVEL_INFO, "Wrote %d alarms.", s_manager.pending_alarm_count);
 }
@@ -221,10 +260,20 @@ static void prv_remove_alarm(int to_remove) {
           .time = alarm->scheduled_time,
           .is_timer = alarm->is_timer,
           .deleted = true,
+          .name = NULL,
         }
       }
     };
+    if (alarm->name) {
+      size_t name_len = strlen(alarm->name);
+      action.action.set_alarm.name = malloc(name_len + 1);
+      strncpy(action.action.set_alarm.name, alarm->name, name_len + 1);
+    }
     conversation_manager_add_action(conversation_manager, &action);
+  }
+
+  if (alarm->name) {
+    free(alarm->name);
   }
 
   if (s_manager.pending_alarm_count == 1) {
@@ -263,7 +312,7 @@ bool alarm_manager_maybe_alarm() {
     APP_LOG(APP_LOG_LEVEL_INFO, "comparing %d == %d", alarm->wakeup_id, id);
     if (alarm->wakeup_id == id) {
       APP_LOG(APP_LOG_LEVEL_INFO, "alarm found! alarming...");
-      alarm_window_push(alarm->scheduled_time, alarm->is_timer);
+      alarm_window_push(alarm->scheduled_time, alarm->is_timer, alarm->name);
       prv_remove_alarm(i);
       return true;
     }
@@ -277,6 +326,10 @@ time_t alarm_get_time(Alarm* alarm) {
 
 bool alarm_is_timer(Alarm* alarm) {
   return alarm->is_timer;
+}
+
+char* alarm_get_name(Alarm* alarm) {
+  return alarm->name;
 }
 
 static void prv_handle_set_alarm_request(DictionaryIterator *iterator, void *context) {
@@ -294,7 +347,12 @@ static void prv_handle_set_alarm_request(DictionaryIterator *iterator, void *con
   if (is_timer) {
     alarm_time += time(NULL);
   }
-  StatusCode result = alarm_manager_add_alarm(alarm_time, is_timer,true);
+  tuple = dict_find(iterator, MESSAGE_KEY_SET_ALARM_NAME);
+  char* name = NULL;
+  if (tuple != NULL && strlen(tuple->value->cstring) > 0) {
+    name = tuple->value->cstring;
+  }
+  StatusCode result = alarm_manager_add_alarm(alarm_time, is_timer, name, true);
   prv_send_alarm_response(result);
   if (result == S_SUCCESS) {
     APP_LOG(APP_LOG_LEVEL_INFO, "Set alarm for %d (is timer: %d)", alarm_time, is_timer);
@@ -315,7 +373,9 @@ static void prv_handle_get_alarm_request(int16_t is_timer, void* context) {
   for (int i = 0; i < s_manager.pending_alarm_count; ++i) {
     Alarm* alarm = &s_manager.pending_alarms[i];
     if (alarm->is_timer == is_timer) {
-      dict_write_int32(iter, MESSAGE_KEY_GET_ALARM_RESULT + ++write_index, alarm->scheduled_time);
+      ++write_index;
+      dict_write_int32(iter, MESSAGE_KEY_GET_ALARM_RESULT + write_index, alarm->scheduled_time);
+      dict_write_cstring(iter, MESSAGE_KEY_GET_ALARM_NAME + write_index, alarm->name);
     }
   }
   dict_write_int16(iter, MESSAGE_KEY_GET_ALARM_RESULT, write_index);
@@ -394,7 +454,7 @@ static void prv_wakeup_handler(WakeupId wakeup_id, int32_t cookie) {
     APP_LOG(APP_LOG_LEVEL_INFO, "comparing %d == %d", alarm->wakeup_id, wakeup_id);
     if (alarm->wakeup_id == wakeup_id) {
       APP_LOG(APP_LOG_LEVEL_INFO, "alarm found! alarming...");
-      alarm_window_push(alarm->scheduled_time, alarm->is_timer);
+      alarm_window_push(alarm->scheduled_time, alarm->is_timer, alarm->name);
       prv_remove_alarm(i);
       break;
     }

@@ -20,7 +20,8 @@
 // These keys are stored centrally so we can avoid accidental collisions.
 // Remember: these numbers can *never* be changed.
 
-// next key: 7
+// next key: 9
+
 // We write the alarm count twice - once before doing any work, and once after.
 // If they disagree we assume the lower number is correct.
 #define PERSIST_KEY_ALARM_COUNT_ONE 1
@@ -28,6 +29,7 @@
 #define PERSIST_KEY_ALARM_TIMES 3
 #define PERSIST_KEY_ALARM_WAKEUP_IDS 4
 #define PERSIST_KEY_ALARM_IS_TIMERS 5
+#define PERSIST_KEY_ALARM_NAMES 8
 
 // Store whether we have successfully requested location consent.
 #define PERSIST_KEY_LOCATION_ENABLED 6

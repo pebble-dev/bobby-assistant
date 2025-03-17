@@ -26,6 +26,8 @@ var actionMap = {
     'get_alarm': alarms.getAlarm,
 };
 
+var extraActions = ['named_alarms'];
+
 exports.handleAction = function(session, ws, actionParamString) {
     var params = JSON.parse(actionParamString);
     var name = params['action'];
@@ -46,5 +48,5 @@ exports.getSupportedActions = function() {
     for (var name in actionMap) {
         results.push(name);
     }
-    return results;
+    return results.concat(extraActions);
 }

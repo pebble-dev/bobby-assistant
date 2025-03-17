@@ -74,7 +74,9 @@
       "REMINDER_ID",
       "REMINDER_TIME",
       "REMINDER_DELETE",
-      "ACTION_REMINDER_DELETED"
+      "ACTION_REMINDER_DELETED",
+      "SET_ALARM_NAME",
+      "GET_ALARM_NAME[9]"
     ],
     "resources": {
       "media": [

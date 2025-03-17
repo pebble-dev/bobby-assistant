@@ -19,6 +19,7 @@ import (
 	"github.com/honeycombio/beeline-go"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
 	"log"
+	"maps"
 
 	"github.com/pebble-dev/bobby-assistant/service/assistant/query"
 	"google.golang.org/genai"
@@ -33,6 +34,8 @@ type AlarmInput struct {
 	IsTimer bool `json:"is_timer" jsonschema:"required"`
 	// True if the alarm is being cancelled, false if it's being set.
 	Cancel bool `json:"cancel"`
+	// An optional name for the alarm or timer.
+	Name string `json:"name"`
 }
 
 type GetAlarmInput struct {
@@ -41,42 +44,67 @@ type GetAlarmInput struct {
 }
 
 func init() {
+	params := genai.Schema{
+		Type:     genai.TypeObject,
+		Nullable: false,
+		Properties: map[string]*genai.Schema{
+			"time": {
+				Type:        genai.TypeString,
+				Description: "If setting an alarm, the time to schedule the alarm for in ISO 8601 format, e.g. '2023-07-12T00:00:00-07:00'. Required for alarms. Must always be in the future.",
+				Nullable:    true,
+			},
+			"duration_seconds": {
+				Type:        genai.TypeInteger,
+				Description: "If setting a timer, the number of seconds to set the timer for. Required for timers.",
+				Nullable:    true,
+				Format:      "int32",
+			},
+			"is_timer": {
+				Type:        genai.TypeBoolean,
+				Description: "True if this is a timer, false if it's an alarm.",
+				Nullable:    false,
+			},
+			"cancel": {
+				Type:        genai.TypeBoolean,
+				Description: "True if the alarm is being cancelled, false if it's being set.",
+				Nullable:    true,
+			},
+		},
+		Required: []string{"is_timer"},
+	}
+	// This registration is for old watch apps that don't support named alarms. The anticapability prevents it
+	// from being seen by newer apps.
 	registerFunction(Registration{
 		Definition: genai.FunctionDeclaration{
 			Name:        "set_alarm",
 			Description: "Get or set an alarm or a timer for a given time.",
-			Parameters: &genai.Schema{
-				Type:     genai.TypeObject,
-				Nullable: false,
-				Properties: map[string]*genai.Schema{
-					"time": {
-						Type:        genai.TypeString,
-						Description: "If setting an alarm, the time to schedule the alarm for in ISO 8601 format, e.g. '2023-07-12T00:00:00-07:00'. Required for alarms. Must always be in the future.",
-						Nullable:    true,
-					},
-					"duration_seconds": {
-						Type:        genai.TypeInteger,
-						Description: "If setting a timer, the number of seconds to set the timer for. Required for timers.",
-						Nullable:    true,
-						Format:      "int32",
-					},
-					"is_timer": {
-						Type:        genai.TypeBoolean,
-						Description: "True if this is a timer, false if it's an alarm.",
-						Nullable:    false,
-					},
-					"cancel": {
-						Type:        genai.TypeBoolean,
-						Description: "True if the alarm is being cancelled, false if it's being set.",
-						Nullable:    true,
-					},
-				},
-				Required: []string{"is_timer"},
-			},
+			Parameters:  &params,
 		},
-		Cb:        alarmImpl,
-		Thought:   alarmThought,
-		InputType: AlarmInput{},
+		Cb:             alarmImpl,
+		Thought:        alarmThought,
+		InputType:      AlarmInput{},
+		AntiCapability: "named_alarms",
+	})
+
+	paramsWithNames := params
+	paramsWithNames.Properties = maps.Clone(params.Properties)
+	paramsWithNames.Properties["name"] = &genai.Schema{
+		Type:        genai.TypeString,
+		Description: "Only if explicitly specified by the user, the name of the alarm or timer. Use title case. If the user didn't ask to name the timer, just leave it empty.",
+		Nullable:    true,
+	}
+	// This registration is for new watch apps that support named alarms. The capability prevents the option for
+	// naming being presented to the model for older apps.
+	registerFunction(Registration{
+		Definition: genai.FunctionDeclaration{
+			Name:        "set_alarm",
+			Description: "Get or set an alarm or a timer for a given time.",
+			Parameters:  &paramsWithNames,
+		},
+		Cb:         alarmImpl,
+		Thought:    alarmThought,
+		InputType:  AlarmInput{},
+		Capability: "named_alarms",
 	})
 
 	registerFunction(Registration{
@@ -114,6 +142,7 @@ func alarmImpl(ctx context.Context, quotaTracker *quota.Tracker, args interface{
 		"time":     input.Time,
 		"duration": input.Duration,
 		"isTimer":  input.IsTimer,
+		"name":     input.Name,
 		"action":   "set_alarm",
 		"cancel":   input.Cancel,
 	}

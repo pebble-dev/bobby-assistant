@@ -68,9 +68,21 @@ void conversation_destroy(Conversation* conversation) {
         free(entry->content.error);
         break;
       case EntryTypeAction:
-        // Only generic sentence actions need further cleanup.
-        if (entry->content.action->type == ConversationActionTypeGenericSentence) {
-          free(entry->content.action->action.generic_sentence.sentence);
+        // Only alarms and generic sentence actions need further cleanup.
+        switch (entry->content.action->type) {
+          case ConversationActionTypeSetAlarm:
+            if (entry->content.action->action.set_alarm.name) {
+              free(entry->content.action->action.set_alarm.name);
+            }
+            break;
+          case ConversationActionTypeGenericSentence:
+            free(entry->content.action->action.generic_sentence.sentence);
+            break;
+          case ConversationActionTypeSetReminder:
+          case ConversationActionTypeDeleteReminder:
+          case ConversationActionTypeUpdateChecklist:
+            // These have nothing to clean up.
+            break;
         }
         free(entry->content.action);
         break;

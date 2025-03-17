@@ -38,3 +38,18 @@ void format_time_ampm(char *buffer, size_t size, struct tm *time) {
     strftime(buffer + length, size - length, " %p", time);
   }
 }
+
+void format_datetime(char *buffer, size_t size, time_t time) {
+  struct tm *timeinfo = localtime(&time);
+  char* time_pointer = buffer;
+  if (time < time_start_of_today() + 24*60*60) {
+    strncpy(buffer, "Today, ", size);
+  } else if (time < time_start_of_today() + 48*60*60) {
+    strncpy(buffer, "Tomorrow, ", size);
+  } else {
+    strftime(buffer, size, "%a, %b %d, ", timeinfo);
+  }
+  time_pointer += strlen(buffer);
+  size_t remaining_buffer = sizeof(buffer) - (time_pointer - buffer);
+  format_time_ampm(time_pointer, remaining_buffer, timeinfo);
+}

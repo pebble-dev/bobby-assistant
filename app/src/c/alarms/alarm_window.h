@@ -19,6 +19,6 @@
 
 #include <pebble.h>
 
-void alarm_window_push(time_t alarm_time, bool is_timer);
+void alarm_window_push(time_t alarm_time, bool is_timer, char *name);
 
 #endif

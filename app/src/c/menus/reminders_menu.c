@@ -237,19 +237,8 @@ static void prv_draw_row(GContext *ctx, const Layer *cell_layer, MenuIndex *cell
   RemindersMenuData *data = window_get_user_data(context);
   Reminder *reminder = &data->reminders[cell_index->row];
 
-  struct tm *reminder_time = localtime(&reminder->time);
   char time_text[32];
-  char* time_pointer = time_text;
-  if (reminder->time < time_start_of_today() + 24*60*60) {
-    strncpy(time_text, "Today, ", sizeof(time_text));
-  } else if (reminder->time < time_start_of_today() + 48*60*60) {
-    strncpy(time_text, "Tomorrow, ", sizeof(time_text));
-  } else {
-    strftime(time_text, sizeof(time_text), "%a, %d %b, ", reminder_time);
-  }
-  time_pointer += strlen(time_text);
-  size_t remaining_buffer = sizeof(time_text) - (time_pointer - time_text);
-  format_time_ampm(time_pointer, remaining_buffer, reminder_time);
+  format_datetime(time_text, sizeof(time_text), reminder->time);
 
   GRect bounds = layer_get_bounds(cell_layer);
   graphics_draw_text(ctx, reminder->text,

@@ -27,6 +27,7 @@
 typedef struct {
   time_t time;
   bool is_timer;
+  char *name;
   TextLayer *title_layer;
   TextLayer *time_layer;
   StatusBarLayer *status_bar;
@@ -52,12 +53,18 @@ static void prv_click_config_provider(void *context);
 static void prv_handle_snooze(ClickRecognizerRef recognizer, void *context);
 static void prv_handle_dismiss(ClickRecognizerRef recognizer, void *context);
 
-void alarm_window_push(time_t alarm_time, bool is_timer) {
+void alarm_window_push(time_t alarm_time, bool is_timer, char *name) {
   Window* window = window_create();
   AlarmWindowData *data = malloc(sizeof(AlarmWindowData));
   data->time = alarm_time;
   data->is_timer = is_timer;
   data->timer = NULL;
+  data->name = NULL;
+  if (name) {
+    size_t len = strlen(name);
+    data->name = malloc(len + 1);
+    strncpy(data->name, name, len + 1);
+  }
   window_set_user_data(window, data);
   window_set_window_handlers(window, (WindowHandlers) {
       .load = prv_window_load,
@@ -72,13 +79,19 @@ static void prv_window_load(Window *window) {
   AlarmWindowData* data = window_get_user_data(window);
   Layer* root_layer = window_get_root_layer(window);
   GRect rect = layer_get_bounds(root_layer);
-  data->title_layer = text_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT, rect.size.w - ACTION_BAR_WIDTH, 35));
-  text_layer_set_text(data->title_layer, data->is_timer ? "Time's up!" : "Alarm!");
+  data->title_layer = text_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT, rect.size.w - ACTION_BAR_WIDTH, 70));
+  if (data->name) {
+    text_layer_set_text(data->title_layer, data->name);
+  } else {
+    text_layer_set_text(data->title_layer, data->is_timer ? "Time's up!" : "Alarm!");
+  }
   text_layer_set_font(data->title_layer, fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD));
   text_layer_set_text_alignment(data->title_layer, GTextAlignmentCenter);
   text_layer_set_background_color(data->title_layer, GColorClear);
   layer_add_child(root_layer, (Layer *)data->title_layer);
-  data->time_layer = text_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT + 35 + 15, rect.size.w - ACTION_BAR_WIDTH, 45));
+  GSize title_size = text_layer_get_content_size(data->title_layer);
+  int16_t remaining_height = rect.size.h - STATUS_BAR_LAYER_HEIGHT - title_size.h - 49;
+  data->time_layer = text_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT + title_size.h + remaining_height / 2 - 22 / 2, rect.size.w - ACTION_BAR_WIDTH, 32));
   text_layer_set_font(data->time_layer, fonts_get_system_font(FONT_KEY_LECO_32_BOLD_NUMBERS));
   text_layer_set_text_alignment(data->time_layer, GTextAlignmentCenter);
   text_layer_set_background_color(data->time_layer, GColorClear);
@@ -122,6 +135,9 @@ static void prv_window_unload(Window *window) {
   gdraw_command_sequence_destroy(data->draw_commands);
   vector_sequence_layer_destroy(data->animation_layer);
   events_tick_timer_service_unsubscribe(data->tick_handle);
+  if (data->name) {
+    free(data->name);
+  }
   free(data);
   window_destroy(window);
 }
@@ -206,9 +222,9 @@ static void prv_handle_snooze(ClickRecognizerRef recognizer, void *context) {
   AlarmWindowData* data = window_get_user_data(window);
   int result;
   if (data->is_timer) {
-    result = alarm_manager_add_alarm(time(NULL) + 60, true,false);
+    result = alarm_manager_add_alarm(time(NULL) + 60, true, data->name, false);
   } else {
-    result = alarm_manager_add_alarm(time(NULL) + 600, false,false);
+    result = alarm_manager_add_alarm(time(NULL) + 600, false, data->name, false);
   }
   if (result == S_SUCCESS) {
     const char* text = data->is_timer ? "Snoozed for 1 minute" : "Snoozed for 10 minutes";

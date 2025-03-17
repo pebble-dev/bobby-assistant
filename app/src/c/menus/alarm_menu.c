@@ -17,6 +17,7 @@
 #include "alarm_menu.h"
 #include "../alarms/manager.h"
 #include "../util/style.h"
+#include "../util/time.h"
 #include "../util/vector_layer.h"
 
 #include <pebble.h>
@@ -168,42 +169,38 @@ static void prv_draw_row(GContext* ctx, const Layer* cell_layer, MenuIndex* cell
   for (int i = 0; i < alarm_count; ++i) {
     if (alarm_is_timer(alarm_manager_get_alarm(i)) == data->for_timers) {
       if (relevant_count == cell_index->row) {
-        char name[10];
-        time_t t = alarm_get_time(alarm_manager_get_alarm(i));
+        Alarm* alarm = alarm_manager_get_alarm(i);
+        time_t t = alarm_get_time(alarm);
         time_t now = time(NULL);
         if (data->for_timers) {
+          char name[10];
           time_t remaining = t - now;
           int hours = remaining / 3600;
           int minutes = (remaining / 60) % 60;
           int seconds = remaining % 60;
           snprintf(name, sizeof(name), "%d:%02d:%02d", hours, minutes, seconds);
-          menu_cell_basic_draw(ctx, cell_layer, name, NULL, NULL);
+          menu_cell_basic_draw(ctx, cell_layer, name, alarm_get_name(alarm), NULL);
         } else {
-          char subtitle[20];
-          struct tm time_struct = *localtime(&t);
-          if (clock_is_24h_style()) {
-            strftime(name, sizeof(name), "%H:%M", &time_struct);
-          } else {
-            // I disagree with the leading zeros, so we end up doing this manually...
-            int hour = time_struct.tm_hour % 12;
-            if (hour == 0) {
-              hour = 12;
+          char* alarm_name = alarm_get_name(alarm);
+          if (!alarm_name) {
+            char title[10];
+            char subtitle[20];
+            struct tm time_struct = *localtime(&t);
+            format_time_ampm(title, sizeof(title), &time_struct);
+            time_t midnight = time_start_of_today();
+            if (t < midnight + 86400) {
+              snprintf(subtitle, sizeof(subtitle), "Today");
+            } else if (t < midnight + 86400 * 2) {
+              snprintf(subtitle, sizeof(subtitle), "Tomorrow");
+            } else {
+              strftime(subtitle, sizeof(subtitle), "%a, %b %d", &time_struct);
             }
-            snprintf(name, sizeof(name), "%d:%02d %s", hour, time_struct.tm_min, time_struct.tm_hour < 12 ? "AM" : "PM");
-          }
-          struct tm* now_struct = localtime(&now);
-          now_struct->tm_hour = 0;
-          now_struct->tm_min = 0;
-          now_struct->tm_sec = 0;
-          time_t midnight = mktime(now_struct);
-          if (t < midnight + 86400) {
-            snprintf(subtitle, sizeof(subtitle), "Today");
-          } else if (t < midnight + 86400 * 2) {
-            snprintf(subtitle, sizeof(subtitle), "Tomorrow");
+            menu_cell_basic_draw(ctx, cell_layer, title, subtitle, NULL);
           } else {
-            strftime(subtitle, sizeof(subtitle), "%a, %b %d", &time_struct);
+            char subtitle[40];
+            format_datetime(subtitle, sizeof(subtitle), alarm_get_time(alarm));
+            menu_cell_basic_draw(ctx, cell_layer, alarm_name, subtitle, NULL);
           }
-          menu_cell_basic_draw(ctx, cell_layer, name, subtitle, NULL);
         }
         return;
       }

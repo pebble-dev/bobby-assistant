@@ -40,6 +40,7 @@ typedef struct {
   time_t time;
   bool is_timer;
   bool deleted;
+  char* name;
 } ConversationActionSetAlarm;
 
 typedef struct {

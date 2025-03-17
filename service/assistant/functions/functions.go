@@ -49,6 +49,8 @@ type Registration struct {
 	InputType interface{}
 	// A capability the device must report for this function to be provided.
 	Capability string
+	// A capability the device must *not* report for this function to be provided.
+	AntiCapability string
 }
 
 type Error struct {
@@ -201,7 +203,8 @@ func GetFunctionDefinitionsByCapability() map[string][]genai.FunctionDeclaration
 func GetFunctionDefinitionsForCapabilities(capabilities []string) []*genai.FunctionDeclaration {
 	var definitions []*genai.FunctionDeclaration
 	for _, reg := range functionMap {
-		if reg.Capability == "" || slices.Contains(capabilities, reg.Capability) {
+		if (reg.Capability == "" || slices.Contains(capabilities, reg.Capability)) &&
+			(reg.AntiCapability == "" || !slices.Contains(capabilities, reg.AntiCapability)) {
 			d := reg.Definition
 			definitions = append(definitions, &d)
 		}
