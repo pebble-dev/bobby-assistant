@@ -14,15 +14,5 @@
  * limitations under the License.
  */
 
-
-exports.QUERY_URL = 'wss://bobby-api.rebble.io/query';
-exports.QUOTA_URL = 'https://bobby-api.rebble.io/quota';
-
-var override = require('./urls_override');
-
-if (override.QUERY_URL) {
-    exports.QUERY_URL = override.QUERY_URL;
-}
-if (override.QUOTA_URL) {
-    exports.QUOTA_URL = override.QUOTA_URL;
-}
+// You can set exports.QUERY_URL or exports.QUOTA_URL in this file to override them without
+// needing to edit the main urls.js.
