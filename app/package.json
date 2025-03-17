@@ -79,7 +79,10 @@
       "GET_ALARM_NAME[9]",
       "TIMER_WIDGET",
       "TIMER_WIDGET_TARGET_TIME",
-      "TIMER_WIDGET_NAME"
+      "TIMER_WIDGET_NAME",
+      "HIGHLIGHT_WIDGET",
+      "HIGHLIGHT_WIDGET_PRIMARY",
+      "HIGHLIGHT_WIDGET_SECONDARY"
     ],
     "resources": {
       "media": [

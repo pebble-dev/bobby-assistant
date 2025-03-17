@@ -35,6 +35,7 @@ static void prv_handle_app_message_inbox_received(DictionaryIterator *iterator, 
 static void prv_handle_app_message_inbox_dropped(AppMessageResult result, void *context);
 static void prv_process_weather_widget(int widget_type, DictionaryIterator *iter, ConversationManager *manager);
 static void prv_process_timer_widget(int widget_type, DictionaryIterator *iter, ConversationManager *manager);
+static void prv_process_highlight_widget(int widget_type, DictionaryIterator *iter, ConversationManager *manager);
 
 static ConversationManager* s_conversation_manager;
 
@@ -188,6 +189,10 @@ static void prv_handle_app_message_inbox_received(DictionaryIterator *iter, void
       conversation_complete_response(manager->conversation);
       prv_conversation_updated(manager, false);
       prv_process_timer_widget(tuple->value->int32, iter, manager);
+    } else if (tuple->key == MESSAGE_KEY_HIGHLIGHT_WIDGET) {
+      conversation_complete_response(manager->conversation);
+      prv_conversation_updated(manager, false);
+      prv_process_highlight_widget(tuple->value->int32, iter, manager);
     }
   }
 }
@@ -291,9 +296,9 @@ static void prv_process_weather_widget(int widget_type, DictionaryIterator *iter
 static void prv_process_timer_widget(int widget_type, DictionaryIterator *iter, ConversationManager *manager) {
   time_t target_time = dict_find(iter, MESSAGE_KEY_TIMER_WIDGET_TARGET_TIME)->value->int32;
   char *name_stored = NULL;
-  if (dict_find(iter, MESSAGE_KEY_TIMER_WIDGET_NAME)) {
-    const char *name = NULL;
-    name = dict_find(iter, MESSAGE_KEY_TIMER_WIDGET_NAME)->value->cstring;
+  Tuple *tuple = dict_find(iter, MESSAGE_KEY_TIMER_WIDGET_NAME);
+  if (tuple) {
+    const char *name = tuple->value->cstring;
     name_stored = malloc(strlen(name) + 1);
     strcpy(name_stored, name);
   }
@@ -303,6 +308,33 @@ static void prv_process_timer_widget(int widget_type, DictionaryIterator *iter, 
       .timer = {
         .target_time = target_time,
         .name = name_stored,
+      }
+    }
+  };
+  conversation_add_widget(manager->conversation, &widget);
+  prv_conversation_updated(manager, true);
+}
+
+static void prv_process_highlight_widget(int widget_type, DictionaryIterator *iter, ConversationManager *manager) {
+  if (widget_type != 1) {
+    return;
+  }
+  char *number = dict_find(iter, MESSAGE_KEY_HIGHLIGHT_WIDGET_PRIMARY)->value->cstring;
+  char *number_stored = malloc(strlen(number) + 1);
+  strcpy(number_stored, number);
+  char *units_stored = NULL;
+  Tuple *tuple = dict_find(iter, MESSAGE_KEY_HIGHLIGHT_WIDGET_SECONDARY);
+  if (tuple) {
+    const char *units = tuple->value->cstring;
+    units_stored = malloc(strlen(units) + 1);
+    strcpy(units_stored, units);
+  }
+  ConversationWidget widget = {
+    .type = ConversationWidgetTypeNumber,
+    .widget = {
+      .number = {
+        .number = number_stored,
+        .unit = units_stored,
       }
     }
   };

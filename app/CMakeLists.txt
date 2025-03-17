@@ -67,4 +67,5 @@ add_executable(tiny_assistant_app
         src/c/talking_horse_layer.c
         src/c/version/version.c
         src/c/util/time.c
-        src/c/converse/segments/widgets/timer.c)
+        src/c/converse/segments/widgets/timer.c
+        src/c/converse/segments/widgets/number.c)

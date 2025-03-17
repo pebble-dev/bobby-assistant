@@ -106,7 +106,13 @@ void conversation_destroy(Conversation* conversation) {
             if (entry->content.widget->widget.timer.name) {
               free(entry->content.widget->widget.timer.name);
             }
-          break;
+            break;
+          case ConversationWidgetTypeNumber:
+            free(entry->content.widget->widget.number.number);
+            if (entry->content.widget->widget.number.unit) {
+              free(entry->content.widget->widget.number.unit);
+            }
+            break;
         }
         free(entry->content.widget);
         break;
@@ -347,6 +353,9 @@ bool conversation_is_idle(Conversation* conversation) {
   }
   if (entry->type == EntryTypeResponse) {
     return entry->content.response->complete;
+  }
+  if (entry->type == EntryTypeWidget) {
+    return true;
   }
   return false;
 }

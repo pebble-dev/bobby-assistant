@@ -35,6 +35,7 @@ typedef enum {
   ConversationWidgetTypeWeatherCurrent,
   ConversationWidgetTypeWeatherMultiDay,
   ConversationWidgetTypeTimer,
+  ConversationWidgetTypeNumber,
 } ConversationWidgetType;
 
 typedef struct {
@@ -125,12 +126,18 @@ typedef struct {
 } ConversationWidgetTimer;
 
 typedef struct {
+  char *number;
+  char *unit;
+} ConversationWidgetNumber;
+
+typedef struct {
   ConversationWidgetType type;
   union {
     ConversationWidgetWeatherSingleDay weather_single_day;
     ConversationWidgetWeatherCurrent weather_current;
     ConversationWidgetWeatherMultiDay weather_multi_day;
     ConversationWidgetTimer timer;
+    ConversationWidgetNumber number;
   } widget;
 } ConversationWidget;
 

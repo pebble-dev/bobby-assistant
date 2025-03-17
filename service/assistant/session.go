@@ -188,21 +188,23 @@ func (ps *PromptSession) Run(ctx context.Context) {
 				}
 				if bufferedContent != "" {
 					bufferedContent += ourContent
-					if strings.Count(bufferedContent, "<!") != strings.Count(bufferedContent, "!>") {
+					closers := strings.Count(bufferedContent, "!>") + strings.Count(bufferedContent, "/>")
+					if strings.Count(bufferedContent, "<!") != closers {
 						continue
 					} else {
 						ourContent = bufferedContent
 						bufferedContent = ""
 					}
 				} else {
-					if strings.Count(ourContent, "<!") != strings.Count(ourContent, "!>") {
+					closers := strings.Count(ourContent, "!>") + strings.Count(ourContent, "/>")
+					if strings.Count(ourContent, "<!") != closers {
 						bufferedContent += ourContent
 						continue
 					}
 				}
 				if strings.TrimSpace(ourContent) != "" {
 					streamContent := ourContent
-					re := regexp.MustCompile(`(?s)\s*<!.+?!>\s*`)
+					re := regexp.MustCompile(`(?s)\s*<!.+?[!/]>\s*`)
 					widget := re.FindAllString(ourContent, -1)
 					splitting := true
 					if len(widget) > 0 {

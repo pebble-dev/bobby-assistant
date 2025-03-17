@@ -51,7 +51,7 @@ Session.prototype.run = function() {
     // negate this because JavaScript does it backwards for some reason.
     url += '&tzOffset=' + (-(new Date()).getTimezoneOffset());
     url += '&actions=' + actions.getSupportedActions().join(',');
-    url += '&widgets=weather,timer';
+    url += '&widgets=weather,timer,number';
     var settings = getSettings();
     url += '&units=' + settings['UNIT_PREFERENCE'] || '';
     url += '&lang=' + settings['LANGUAGE_CODE'] || '';

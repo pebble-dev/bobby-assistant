@@ -85,6 +85,10 @@ func generateWidgetSentence(ctx context.Context) string {
 		sentence += "<!TIMER targetTime=[time in ISO 8601 format] name=[name of the timer]!>: embeds a timer widget counting down to the given time. If the timer doesn't have a name, the `name` field can be omitted\n" +
 			"If a user asks to see a timer, and the timer exists, you should *always* include that timer as a widget at the beginning of your response. Before including a timer widget, you *must* call get_timers first to verify when the timer is set for. Use the TIMER widget *only* when showing the user how long is left on their timer, not when setting one. \n\n"
 	}
+	if query.SupportsWidget(ctx, "number") {
+		sentence += "<!NUMERIC-ANSWER number=[number] unit=[unit]!>: If the primary response to a question is a single number, optionally with a unit (e.g. 'pounds', 'm/s', 'people') or without (e.g. the answer to some arithmetic), you *should* use this widget at the start of your response to highlight the answer. If there is no further clarification after the widget, **do not** provide any text output. **Never** include words (like 'million') in the number - you can put them in the unit (e.g. number '340.1', unit 'million people'). If no unit is necessary, leave it blank. For this widget only, format the number for human readability.\n" +
+			"If using a NUMERIC-ANSWER widget, *always* put it at the *start* of the response. **NEVER**, UNDER ANY CIRCUMSTANCES, put a number widget after any text.\n"
+	}
 	return sentence
 }
 
@@ -117,6 +121,7 @@ func (ps *PromptSession) generateSystemPrompt(ctx context.Context) string {
 		"Even if in previous turns you have apparently taken an action (like setting an alarm) without using a tool, you must still use tools if asked to do so again. " +
 		"Alarms and reminders are not interchangable - never use alarms when a user asks for reminders, or vice-versa. If the user asks about a specific timer, respond only about that one. " +
 		"Your responses will be displayed on a very small screen, so be brief. Do not use markdown in your responses.\n" +
+		//"If asked to perform a calculation, YOU MUST ALWAYS respond with the answer. The user cannot see the results of calling functions automatically.\n" +
 		generateWidgetSentence(ctx) +
 		generateLanguageSentence(ctx)
 }
