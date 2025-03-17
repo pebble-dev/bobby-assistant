@@ -153,16 +153,10 @@ function getAlarm(session, message, callback) {
             if (isTimer) {
                 var secondsLeft = alarmTime - watchTime;
                 var formattedTimeLeft = "";
-                if (secondsLeft > 3600) {
-                    var hours = Math.floor(secondsLeft / 3600);
-                    var minutes = Math.floor((secondsLeft % 3600) / 60);
-                    var seconds = secondsLeft % 60;
-                    formattedTimeLeft = hours + ":" + leftPad2(minutes) + ":" + leftPad2(seconds);
-                } else {
-                    var minutes = Math.floor(secondsLeft / 60);
-                    var seconds = secondsLeft % 60;
-                    formattedTimeLeft = minutes + ":" + leftPad2(seconds);
-                }
+                var hours = Math.floor(secondsLeft / 3600);
+                var minutes = Math.floor((secondsLeft % 3600) / 60);
+                var seconds = secondsLeft % 60;
+                formattedTimeLeft = hours + ":" + leftPad2(minutes) + ":" + leftPad2(seconds);
                 var expirationDate = new Date(alarmTime * 1000);
                 var r = {"secondsLeft": secondsLeft, "formattedTimeLeft": formattedTimeLeft, "expirationTimeForDeletingAndWidgets": expirationDate.toISOString()};
                 if (alarmName) {
