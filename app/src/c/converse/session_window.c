@@ -269,7 +269,8 @@ static void prv_conversation_manager_handler(bool entry_added, void* context) {
       sw->segment_layers[--sw->segment_count] = NULL;
     }
   }
-  ConversationEntry* entry = conversation_peek(conversation_manager_get_conversation(sw->manager));
+  Conversation *conversation = conversation_manager_get_conversation(sw->manager);
+  ConversationEntry* entry = conversation_peek(conversation);
   if (entry == NULL) {
     // ??????
     APP_LOG(APP_LOG_LEVEL_ERROR, "We were told a new entry was added, but no entries actually exist????");
@@ -282,7 +283,7 @@ static void prv_conversation_manager_handler(bool entry_added, void* context) {
     free(sw->segment_layers);
     sw->segment_layers = new_block;
   }
-  SegmentLayer* layer = segment_layer_create(GRect(0, prv_content_height(sw), holder_size.w, 10), entry);
+  SegmentLayer* layer = segment_layer_create(GRect(0, prv_content_height(sw), holder_size.w, 10), entry, conversation_assistant_just_started(conversation));
   sw->segment_layers[sw->segment_count++] = layer;
   scroll_layer_add_child(sw->scroll_layer, layer);
   int layer_height = layer_get_frame(layer).size.h;

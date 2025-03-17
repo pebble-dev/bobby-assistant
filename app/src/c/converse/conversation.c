@@ -359,3 +359,33 @@ bool conversation_is_idle(Conversation* conversation) {
   }
   return false;
 }
+
+static bool prv_entry_type_is_assistant(ConversationEntry* entry) {
+  switch (entry->type) {
+    case EntryTypePrompt:
+    case EntryTypeError:
+    case EntryTypeThought:
+    case EntryTypeAction:
+      return false;
+    case EntryTypeResponse:
+      return true;
+    case EntryTypeWidget:
+      return !entry->content.widget->locally_created;
+  }
+  return false;
+}
+
+bool conversation_assistant_just_started(Conversation* conversation) {
+  ConversationEntry *entry = conversation_peek(conversation);
+  if (entry == NULL) {
+    return false;
+  }
+  if (!prv_entry_type_is_assistant(entry)) {
+    return false;
+  }
+  if (conversation->entry_count == 1) {
+    return true;
+  }
+  ConversationEntry *previous = &conversation->entries[conversation->entry_count - 2];
+  return !prv_entry_type_is_assistant(previous);
+}

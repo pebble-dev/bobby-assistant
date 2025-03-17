@@ -38,17 +38,17 @@ MessageLayer* message_layer_create(GRect rect, ConversationEntry* entry) {
     MessageLayerData* data = layer_get_data(layer);
     data->entry = entry;
     data->speaker_layer = text_layer_create(GRect(5, 0, rect.size.w, NAME_HEIGHT));
+    size_t content_origin_y = -5;
     EntryType type = conversation_entry_get_type(entry);
     if (type == EntryTypePrompt) {
       text_layer_set_text(data->speaker_layer, "You");
-    } else if (type == EntryTypeResponse) {
-      text_layer_set_text(data->speaker_layer, "Bobby");
+      content_origin_y = NAME_HEIGHT;
     }
     layer_add_child(layer, (Layer *)data->speaker_layer);
     data->last_newline_offset = 0;
     data->content_height = 24;
     data->content_height = prv_get_content_height(layer);
-    data->content_layer = text_layer_create(GRect(5, NAME_HEIGHT, rect.size.w - 10, data->content_height));
+    data->content_layer = text_layer_create(GRect(5, content_origin_y, rect.size.w - 10, data->content_height));
     text_layer_set_text(data->content_layer, prv_get_content_text(layer));
     text_layer_set_font(data->content_layer, fonts_get_system_font(CONTENT_FONT));
     data->content_height = text_layer_get_content_size(data->content_layer).h;
@@ -73,7 +73,10 @@ void message_layer_update(MessageLayer* layer) {
   data->content_height = prv_get_content_height(layer);
   int width = layer_get_bounds(layer).size.w;
   GRect frame = layer_get_frame(layer);
-  frame.size.h = data->content_height + NAME_HEIGHT + 5;
+  frame.size.h = data->content_height + 5;
+  if (conversation_entry_get_type(data->entry) == EntryTypePrompt) {
+    frame.size.h += NAME_HEIGHT;
+  }
   text_layer_set_size(data->content_layer, GSize(width - 10, data->content_height + 5));
   layer_set_frame(layer, frame);
 }

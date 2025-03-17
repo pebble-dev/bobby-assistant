@@ -28,7 +28,7 @@
 
 
 #define CONTENT_FONT FONT_KEY_GOTHIC_24_BOLD
-#define NAME_HEIGHT 15
+#define NAME_HEIGHT 20
 
 typedef enum {
   SegmentTypeMessage,
@@ -42,6 +42,7 @@ typedef enum {
 
 typedef struct {
   ConversationEntry* entry;
+  TextLayer* assistant_label_layer;
   SegmentType type;
   union {
     // fun fact: every member of this union is actually a Layer*.
@@ -60,44 +61,50 @@ typedef struct {
 
 static SegmentType prv_get_segment_type(ConversationEntry* entry);
 
-SegmentLayer* segment_layer_create(GRect rect, ConversationEntry* entry) {
+SegmentLayer* segment_layer_create(GRect rect, ConversationEntry* entry, bool assistant_label) {
   Layer* layer = layer_create_with_data(rect, sizeof(SegmentLayerData));
   SegmentLayerData* data = layer_get_data(layer);
   data->entry = entry;
   data->type = prv_get_segment_type(entry);
   GRect child_frame = GRect(0, 0, rect.size.w, rect.size.h);
+  if (assistant_label) {
+    data->assistant_label_layer = text_layer_create(GRect(5, 0, rect.size.w, NAME_HEIGHT));
+    layer_add_child(layer, text_layer_get_layer(data->assistant_label_layer));
+    text_layer_set_text(data->assistant_label_layer, "Bobby");
+    child_frame = GRect(0, NAME_HEIGHT, rect.size.w, rect.size.h - NAME_HEIGHT);
+  } else {
+    data->assistant_label_layer = NULL;
+  }
   switch (data->type) {
     case SegmentTypeMessage:
       data->message_layer = message_layer_create(child_frame, entry);
-      layer_add_child(layer, data->message_layer);
       break;
     case SegmentTypeInfo:
       data->info_layer = info_layer_create(child_frame, entry);
-      layer_add_child(layer, data->info_layer);
       break;
     case SegmentTypeWeatherSingleDayWidget:
       data->weather_single_day_widget = weather_single_day_widget_create(child_frame, entry);
-      layer_add_child(layer, data->weather_single_day_widget);
       break;
     case SegmentTypeWeatherCurrentWidget:
       data->weather_current_widget = weather_current_widget_create(child_frame, entry);
-      layer_add_child(layer, data->weather_current_widget);
       break;
     case SegmentTypeWeatherMultiDayWidget:
       data->weather_multi_day_widget = weather_multi_day_widget_create(child_frame, entry);
-      layer_add_child(layer, data->weather_multi_day_widget);
       break;
     case SegmentTypeTimerWidget:
       data->timer_widget = timer_widget_create(child_frame, entry);
-      layer_add_child(layer, data->timer_widget);
       break;
     case SegmentTypeNumberWidget:
       data->number_widget = number_widget_create(child_frame, entry);
-      layer_add_child(layer, data->number_widget);
       break;
   }
+  layer_add_child(layer, data->layer);
   GSize child_size = layer_get_frame(data->layer).size;
-  layer_set_frame(layer, GRect(rect.origin.x, rect.origin.y, child_size.w, child_size.h));
+  GRect final_size = GRect(rect.origin.x, rect.origin.y, child_size.w, child_size.h);
+  if (data->assistant_label_layer) {
+    final_size.size.h += NAME_HEIGHT;
+  }
+  layer_set_frame(layer, final_size);
   return layer;
 }
 
@@ -126,6 +133,9 @@ void segment_layer_destroy(SegmentLayer* layer) {
     case SegmentTypeNumberWidget:
       number_widget_destroy(data->number_widget);
       break;
+  }
+  if (data->assistant_label_layer) {
+    text_layer_destroy(data->assistant_label_layer);
   }
   layer_destroy(layer);
 }
@@ -162,7 +172,11 @@ void segment_layer_update(SegmentLayer* layer) {
   }
   GSize child_size = layer_get_frame(data->layer).size;
   GPoint origin = layer_get_frame(layer).origin;
-  layer_set_frame(layer, GRect(origin.x, origin.y, child_size.w, child_size.h));
+  GRect final_frame = GRect(origin.x, origin.y, child_size.w, child_size.h);
+  if (data->assistant_label_layer) {
+    final_frame.size.h += NAME_HEIGHT;
+  }
+  layer_set_frame(layer, final_frame);
 }
 
 static SegmentType prv_get_segment_type(ConversationEntry* entry) {

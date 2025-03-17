@@ -99,6 +99,7 @@ int alarm_manager_add_alarm(time_t when, bool is_timer, char* name, bool convers
       // For timers, instead of the standard action item, we add a countdown widget.
       ConversationWidget widget = {
         .type = ConversationWidgetTypeTimer,
+        .locally_created = true,
         .widget = {
           .timer = {
             .target_time = alarm->scheduled_time,
