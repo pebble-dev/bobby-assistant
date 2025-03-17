@@ -95,24 +95,39 @@ int alarm_manager_add_alarm(time_t when, bool is_timer, char* name, bool convers
 
   if (conversational && conversation_manager_get_current()) {
     ConversationManager *conversation_manager = conversation_manager_get_current();
-    ConversationAction action = {
-      .type = ConversationActionTypeSetAlarm,
-      .action = {
-        .set_alarm = {
-          .time = alarm->scheduled_time,
-          .is_timer = alarm->is_timer,
-          .deleted = false,
-          .name = NULL,
+    if (alarm->is_timer) {
+      // For timers, instead of the standard action item, we add a countdown widget.
+      ConversationWidget widget = {
+        .type = ConversationWidgetTypeTimer,
+        .widget = {
+          .timer = {
+            .target_time = alarm->scheduled_time,
+          }
         }
+      };
+      if (alarm->name) {
+        widget.widget.timer.name = malloc(name_len + 1);
+        strncpy(widget.widget.timer.name, alarm->name, name_len + 1);
       }
-    };
-    // The alarm manager and conversation manager both expect to own the alarm name, so it has to be copied to both
-    // places here.
-    if (name) {
-      action.action.set_alarm.name = malloc(name_len + 1);
-      strncpy(action.action.set_alarm.name, name, name_len + 1);
+      conversation_manager_add_widget(conversation_manager, &widget);
+    } else {
+      ConversationAction action = {
+        .type = ConversationActionTypeSetAlarm,
+        .action = {
+          .set_alarm = {
+            .time = alarm->scheduled_time,
+            .is_timer = alarm->is_timer,
+            .deleted = false,
+            .name = NULL,
+          }
+        }
+      };
+      if (name) {
+        action.action.set_alarm.name = malloc(name_len + 1);
+        strncpy(action.action.set_alarm.name, name, name_len + 1);
+      }
+      conversation_manager_add_action(conversation_manager, &action);
     }
-    conversation_manager_add_action(conversation_manager, &action);
   }
 
   ++s_manager.pending_alarm_count;
