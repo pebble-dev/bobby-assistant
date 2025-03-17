@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,23 +14,14 @@
  * limitations under the License.
  */
 
-var weather = require('./weather');
-var timer = require('./timer');
+#pragma once
 
-var widgetMap = {
-    'timer': timer.timer,
-    'weather-single-day': weather.singleDay,
-    'weather-current': weather.current,
-    'weather-multi-day': weather.multiDay
-}
+#include <pebble.h>
+#include "../../conversation.h"
 
-exports.handleWidget = function(session, widgetString) {
-    var params = JSON.parse(widgetString);
-    var name = params['type'];
-    console.log("got a widget: ", widgetString);
-    if (name in widgetMap) {
-        widgetMap[name](session, params['content']);
-    } else {
-        console.log("Unknown widget '" + name + "'.");
-    }
-}
+typedef Layer TimerWidget;
+
+TimerWidget* timer_widget_create(GRect rect, ConversationEntry* entry);
+ConversationEntry* timer_widget_get_entry(TimerWidget* layer);
+void timer_widget_destroy(TimerWidget* layer);
+void timer_widget_update(TimerWidget* layer);

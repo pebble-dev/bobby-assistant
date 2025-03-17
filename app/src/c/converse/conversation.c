@@ -102,6 +102,11 @@ void conversation_destroy(Conversation* conversation) {
           case ConversationWidgetTypeWeatherMultiDay:
             free(entry->content.widget->widget.weather_multi_day.location);
             break;
+          case ConversationWidgetTypeTimer:
+            if (entry->content.widget->widget.timer.name) {
+              free(entry->content.widget->widget.timer.name);
+            }
+          break;
         }
         free(entry->content.widget);
         break;

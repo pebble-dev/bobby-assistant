@@ -76,7 +76,10 @@
       "REMINDER_DELETE",
       "ACTION_REMINDER_DELETED",
       "SET_ALARM_NAME",
-      "GET_ALARM_NAME[9]"
+      "GET_ALARM_NAME[9]",
+      "TIMER_WIDGET",
+      "TIMER_WIDGET_TARGET_TIME",
+      "TIMER_WIDGET_NAME"
     ],
     "resources": {
       "media": [

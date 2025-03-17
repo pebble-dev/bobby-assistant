@@ -109,8 +109,8 @@ func init() {
 
 	registerFunction(Registration{
 		Definition: genai.FunctionDeclaration{
-			Name:        "get_alarm",
-			Description: "Get the set alarms or timers.",
+			Name:        "get_alarms",
+			Description: "Get any existing alarms or timers. **There is no get_timers, call this with is_timer=true instead.**",
 			Parameters: &genai.Schema{
 				Type:     genai.TypeObject,
 				Nullable: false,
@@ -124,6 +124,7 @@ func init() {
 				Required: []string{"is_timer"},
 			},
 		},
+		Aliases:   []string{"get_alarms", "get_timer", "get_timers"},
 		Cb:        getAlarmImpl,
 		Thought:   getAlarmThought,
 		InputType: GetAlarmInput{},

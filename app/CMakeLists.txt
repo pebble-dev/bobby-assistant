@@ -66,4 +66,5 @@ add_executable(tiny_assistant_app
         src/c/converse/segments/widgets/weather_multi_day.c
         src/c/talking_horse_layer.c
         src/c/version/version.c
-        src/c/util/time.c)
+        src/c/util/time.c
+        src/c/converse/segments/widgets/timer.c)

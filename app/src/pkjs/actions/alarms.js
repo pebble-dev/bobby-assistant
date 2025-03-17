@@ -164,7 +164,7 @@ function getAlarm(session, message, callback) {
                     formattedTimeLeft = minutes + ":" + leftPad2(seconds);
                 }
                 var expirationDate = new Date(alarmTime * 1000);
-                var r = {"secondsLeft": secondsLeft, "formattedTimeLeft": formattedTimeLeft, "expirationTimeForDeleting": expirationDate.toISOString()};
+                var r = {"secondsLeft": secondsLeft, "formattedTimeLeft": formattedTimeLeft, "expirationTimeForDeletingAndWidgets": expirationDate.toISOString()};
                 if (alarmName) {
                     r.name = alarmName;
                 }

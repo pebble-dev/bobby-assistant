@@ -14,23 +14,17 @@
  * limitations under the License.
  */
 
-var weather = require('./weather');
-var timer = require('./timer');
-
-var widgetMap = {
-    'timer': timer.timer,
-    'weather-single-day': weather.singleDay,
-    'weather-current': weather.current,
-    'weather-multi-day': weather.multiDay
-}
-
-exports.handleWidget = function(session, widgetString) {
-    var params = JSON.parse(widgetString);
-    var name = params['type'];
-    console.log("got a widget: ", widgetString);
-    if (name in widgetMap) {
-        widgetMap[name](session, params['content']);
-    } else {
-        console.log("Unknown widget '" + name + "'.");
+exports.timer = function(session, params) {
+    console.log(JSON.stringify(params));
+    var time = new Date(params['target_time'])
+    var name = params['name'] || null;
+    var message = {
+        TIMER_WIDGET: 1,
+        TIMER_WIDGET_TARGET_TIME: Math.round(time.getTime() / 1000),
+    };
+    if (name && name.length > 0) {
+        message['TIMER_WIDGET_NAME'] = name;
     }
+    console.log(JSON.stringify(message));
+    session.enqueue(message);
 }

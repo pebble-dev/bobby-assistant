@@ -7,6 +7,7 @@ import (
 	"regexp"
 )
 
+var timerWidgetRegex = regexp.MustCompile(`<!TIMER targetTime=[\["]?(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{0,5})?(?:Z|[+-]\d{4}))[]"!]? ?(?: name=[\["]?(.+?)[]"]?)?!>`)
 var weatherWidgetRegex = regexp.MustCompile(`<!WEATHER-(CURRENT|SINGLE-DAY|MULTI-DAY) location=[\["]?(.+?)[]"!]? units=[\["]?(imperial|metric|uk hybrid)[]"!]?(?: day=[\["]?(.+?)[]"]?)?!>`)
 
 type Widget struct {
@@ -42,6 +43,15 @@ func ProcessWidget(ctx context.Context, widget string) (any, error) {
 		default:
 			log.Printf("Unknown weather widget %q", weatherWidget[1])
 		}
+	}
+	timerWidgets := timerWidgetRegex.FindAllStringSubmatch(widget, -1)
+	for _, w := range timerWidgets {
+		widget, err := timerWidget(ctx, w[1], w[2])
+		if err != nil {
+			log.Printf("Error processing timer widget: %v", err)
+			return nil, fmt.Errorf("error processing timer widget: %w", err)
+		}
+		return Widget{Content: widget, Type: "timer"}, nil
 	}
 	return nil, fmt.Errorf("unknown widget %q", widget)
 }
