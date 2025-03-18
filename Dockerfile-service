@@ -15,11 +15,11 @@
 FROM --platform=$BUILDPLATFORM golang:1.23 AS build
 
 WORKDIR /go/src/app
-COPY go.mod go.sum .
+COPY service/go.mod service/go.sum .
 RUN go mod download
 ADD . /go/src/app
 ARG TARGETARCH TARGETOS
-RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o /go/bin/app
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -C service -buildvcs=true -o /go/bin/app .
 
 FROM gcr.io/distroless/static
 COPY --from=build /go/bin/app /
