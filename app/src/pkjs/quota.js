@@ -18,7 +18,7 @@ var session = require('./session');
 
 var QUOTA_URL = require('./urls').QUOTA_URL;
 
-exports.fetchQuota = function() {
+exports.fetchQuota = function(callback) {
     var url = QUOTA_URL;
     url += '?token=' + session.userToken;
     console.log("Fetching quota from " + url);
@@ -29,14 +29,22 @@ exports.fetchQuota = function() {
             if (req.status === 200) {
                 console.log("Got quota response: " + req.responseText);
                 var response = JSON.parse(req.responseText);
-                Pebble.sendAppMessage({
-                    QUOTA_RESPONSE_USED: response.used,
-                    QUOTA_RESPONSE_REMAINING: response.remaining,
-                });
+                callback(response);
             } else {
                 console.log("Request returned error code " + req.status.toString());
             }
         }
     }
     req.send();
+}
+
+exports.handleQuotaRequest = function() {
+    console.log("Requesting quota...");
+    exports.fetchQuota(function(response) {
+        Pebble.sendAppMessage({
+            QUOTA_RESPONSE_USED: response.used,
+            QUOTA_RESPONSE_REMAINING: response.remaining,
+            QUOTA_HAS_SUBSCRIPTION: response.hasSubscription,
+        });
+    });
 }

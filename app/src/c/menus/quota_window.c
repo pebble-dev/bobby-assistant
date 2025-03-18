@@ -110,10 +110,15 @@ static void prv_app_message_received(DictionaryIterator* iter, void* context) {
     return;
   }
   int remaining = tuple->value->int32;
+  uint64_t percentage = PERCENTAGE_MAX;
   APP_LOG(APP_LOG_LEVEL_INFO, "Quota: %d used, %d remaining", used, remaining);
-  int display_percent = (int)(((uint64_t)used * 100) / (used + remaining));
-  uint64_t percentage = ((uint64_t)used * PERCENTAGE_MAX) / (used + remaining);
-  snprintf(data->explanation, sizeof(data->explanation), "You've used %d%% of your Bobby quota for this month. Once you've used 100%%, Bobby will stop working until next month. Quota resets on the first day of each month.", display_percent);
+  if (used == 0 && remaining == 0) {
+    strncpy(data->explanation, "You need a Rebble subscription to use Bobby. You can sign up at auth.rebble.io.", sizeof(data->explanation));
+  } else {
+    int display_percent = (int)(((uint64_t)used * 100) / (used + remaining));
+    percentage = ((uint64_t)used * PERCENTAGE_MAX) / (used + remaining);
+    snprintf(data->explanation, sizeof(data->explanation), "You've used %d%% of your Bobby quota for this month. Once you've used 100%%, Bobby will stop working until next month. Quota resets on the first day of each month.", display_percent);
+  }
   text_layer_set_text(data->explanation_layer, data->explanation);
   usage_layer_set_percentage(data->usage_layer, (int16_t)percentage);
   vector_sequence_layer_stop(data->loading_layer);

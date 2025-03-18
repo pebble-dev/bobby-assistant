@@ -60,9 +60,9 @@ func (s *Service) handleQuota(rw http.ResponseWriter, r *http.Request) {
 	}
 	if !userInfo.HasSubscription {
 		response, err := json.Marshal(map[string]interface{}{
-			"user":           0,
-			"remaining":      0,
-			"hasSubcription": false,
+			"used":            0,
+			"remaining":       0,
+			"hasSubscription": false,
 		})
 		if err != nil {
 			log.Printf("Error marshalling quota response: %v", err)
@@ -79,9 +79,10 @@ func (s *Service) handleQuota(rw http.ResponseWriter, r *http.Request) {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	response, err := json.Marshal(map[string]int{
-		"used":      used,
-		"remaining": remaining,
+	response, err := json.Marshal(map[string]any{
+		"used":            used,
+		"remaining":       remaining,
+		"hasSubscription": true,
 	})
 	if err != nil {
 		log.Printf("Error marshalling quota response: %v", err)

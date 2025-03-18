@@ -82,7 +82,8 @@
       "TIMER_WIDGET_NAME",
       "HIGHLIGHT_WIDGET",
       "HIGHLIGHT_WIDGET_PRIMARY",
-      "HIGHLIGHT_WIDGET_SECONDARY"
+      "HIGHLIGHT_WIDGET_SECONDARY",
+      "QUOTA_HAS_SUBSCRIPTION"
     ],
     "resources": {
       "media": [
