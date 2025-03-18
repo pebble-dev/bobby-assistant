@@ -68,4 +68,5 @@ add_executable(tiny_assistant_app
         src/c/version/version.c
         src/c/util/time.c
         src/c/converse/segments/widgets/timer.c
-        src/c/converse/segments/widgets/number.c)
+        src/c/converse/segments/widgets/number.c
+        src/c/menus/feedback_window.c)

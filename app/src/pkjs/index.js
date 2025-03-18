@@ -22,6 +22,7 @@ var clayConfig = require('./config.json');
 var customConfigFunction = require('./custom_config');
 var config = require('./config');
 var reminders = require('./reminders');
+var feedback = require('./feedback');
 var package_json = require('package.json');
 
 
@@ -70,6 +71,10 @@ function handleAppMessage(e) {
         Pebble.sendAppMessage({
             LOCATION_ENABLED: data.LOCATION_ENABLED,
         });
+    }
+    if ('FEEDBACK_TEXT' in data) {
+        console.log("Handling feedback...");
+        feedback.handleFeedbackRequest(data);
     }
 }
 

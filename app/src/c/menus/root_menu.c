@@ -19,6 +19,7 @@
 #include "alarm_menu.h"
 #include "legal_window.h"
 #include "reminders_menu.h"
+#include "feedback_window.h"
 #include "../util/style.h"
 #include <pebble.h>
 
@@ -30,6 +31,7 @@ static void prv_push_alarm_screen(int index, void* context);
 static void prv_push_timer_screen(int index, void* context);
 static void prv_push_legal_screen(int index, void* context);
 static void prv_push_reminders_screen(int index, void* context);
+static void prv_push_feedback_screen(int index, void* context);
 
 typedef struct {
   SimpleMenuLayer *menu_layer;
@@ -53,7 +55,7 @@ static void prv_window_load(Window* window) {
   static SimpleMenuSection section = {
     .num_items = 0,
   };
-  static SimpleMenuItem items[5];
+  static SimpleMenuItem items[6];
   // This setup has to be done separately because otherwise the initializer isn't constant.
   if (section.num_items == 0) {
     items[0] = (SimpleMenuItem) {
@@ -73,10 +75,14 @@ static void prv_window_load(Window* window) {
       .callback = prv_push_quota_screen,
     };
     items[4] = (SimpleMenuItem) {
+      .title = "Feedback",
+      .callback = prv_push_feedback_screen,
+    };
+    items[5] = (SimpleMenuItem) {
       .title = "Legal",
       .callback = prv_push_legal_screen,
     };
-    section.num_items = 5;
+    section.num_items = 6;
     section.items = items;
   }
 
@@ -118,4 +124,8 @@ static void prv_push_legal_screen(int index, void* context) {
 
 static void prv_push_reminders_screen(int index, void* context) {
   reminders_menu_push();
+}
+
+static void prv_push_feedback_screen(int index, void* context) {
+  feedback_window_push();
 }

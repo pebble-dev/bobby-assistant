@@ -11,6 +11,7 @@ require (
 	github.com/redis/go-redis/v9 v9.7.1
 	github.com/yuin/gopher-lua v1.1.1
 	golang.org/x/exp v0.0.0-20250228200357-dead58393ab7
+	golang.org/x/text v0.22.0
 	google.golang.org/api v0.223.0
 	google.golang.org/genai v0.4.0
 	nhooyr.io/websocket v1.8.10

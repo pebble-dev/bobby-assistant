@@ -17,6 +17,7 @@ package assistant
 import (
 	"encoding/json"
 	"github.com/honeycombio/beeline-go/wrappers/hnynethttp"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/feedback"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
 	"log"
 	"net/http"
@@ -37,6 +38,7 @@ func NewService(r *redis.Client) *Service {
 	s.mux.HandleFunc("/query", s.handleQuery)
 	s.mux.HandleFunc("/quota", s.handleQuota)
 	s.mux.HandleFunc("/heartbeat", s.handleHeartbeat)
+	s.mux.HandleFunc("/feedback", feedback.HandleFeedback)
 	return s
 }
 

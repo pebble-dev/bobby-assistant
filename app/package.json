@@ -83,7 +83,12 @@
       "HIGHLIGHT_WIDGET",
       "HIGHLIGHT_WIDGET_PRIMARY",
       "HIGHLIGHT_WIDGET_SECONDARY",
-      "QUOTA_HAS_SUBSCRIPTION"
+      "QUOTA_HAS_SUBSCRIPTION",
+      "FEEDBACK_TEXT",
+      "FEEDBACK_APP_MAJOR",
+      "FEEDBACK_APP_MINOR",
+      "FEEDBACK_ALARM_COUNT",
+      "FEEDBACK_SEND_RESULT"
     ],
     "resources": {
       "media": [
@@ -194,6 +199,11 @@
           "type": "raw"
         },
         {
+          "file": "text/feedback_blurb.txt",
+          "name": "FEEDBACK_BLURB",
+          "type": "raw"
+        },
+        {
           "file": "weather/medium/generic.pdc",
           "name": "WEATHER_MEDIUM_GENERIC",
           "type": "raw"
@@ -271,6 +281,11 @@
         {
           "file": "weather/small/sunny.pdc",
           "name": "WEATHER_SMALL_SUNNY",
+          "type": "raw"
+        },
+        {
+          "file": "images/sent.pdc",
+          "name": "SENT_IMAGE",
           "type": "raw"
         }
       ]
