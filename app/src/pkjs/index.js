@@ -21,8 +21,8 @@ var Clay = require('pebble-clay');
 var clayConfig = require('./config.json');
 var customConfigFunction = require('./custom_config');
 var config = require('./config');
-var git_version = require('git_version');
 var reminders = require('./reminders');
+var package_json = require('package.json');
 
 
 var clay = new Clay(clayConfig, customConfigFunction);
@@ -63,7 +63,7 @@ function handleAppMessage(e) {
 
 Pebble.addEventListener("ready",
     function(e) {
-        console.log("Bobby " + git_version.tag);
+        console.log("Bobby " + package_json['version']);
         Pebble.getTimelineToken(function(token) {
             session.userToken = token;
             main();

@@ -19,7 +19,6 @@
 
 #include <pebble.h>
 #include "pebble_process_info.h"
-#include <git_version.auto.h>
 
 // The standard pebble app build process injects this structure.
 extern const PebbleProcessInfo __pbl_app_info;
@@ -77,8 +76,4 @@ int version_info_compare(VersionInfo a, VersionInfo b) {
         return 1;
     }
     return 0;
-}
-
-const char* version_git_tag() {
-    return GIT_VERSION_TAG;
 }

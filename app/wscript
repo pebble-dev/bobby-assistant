@@ -14,9 +14,6 @@
 import os.path
 import sys
 
-sys.path.append(os.path.abspath('waftools'))
-import gitinfo
-
 top = '.'
 out = 'build'
 
@@ -35,18 +32,11 @@ def build(ctx):
     build_worker = os.path.exists('worker_src')
     binaries = []
 
-    git_version = gitinfo.get_git_revision(ctx)
-
     cached_env = ctx.env
     for platform in ctx.env.TARGET_PLATFORMS:
         ctx.env = ctx.all_envs[platform]
         ctx.set_group(ctx.env.PLATFORM_NAME)
         app_elf = '{}/pebble-app.elf'.format(ctx.env.BUILD_DIR)
-
-        ctx(features='subst',
-            source='src/c/generated/git_version.auto.h.in',
-            target='include/git_version.auto.h',
-            **git_version)
 
         ctx.pbl_build(
             source=ctx.path.ant_glob(['src/c/**/*.c']),
@@ -62,11 +52,6 @@ def build(ctx):
         else:
             binaries.append({'platform': platform, 'app_elf': app_elf})
     ctx.env = cached_env
-
-    ctx(features='subst',
-        source='src/pkjs/generated/git_version.js.in',
-        target='js/git_version.js',
-        **git_version)
 
     ctx(features='subst',
         source='package.json',

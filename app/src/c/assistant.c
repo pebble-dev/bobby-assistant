@@ -41,7 +41,7 @@ static void prv_deinit(void) {
 
 int main(void) {
   VersionInfo version_info = version_get_current();
-  APP_LOG(APP_LOG_LEVEL_INFO, "Bobby %d.%d (%s)", version_info.major, version_info.minor, version_git_tag());
+  APP_LOG(APP_LOG_LEVEL_INFO, "Bobby %d.%d", version_info.major, version_info.minor);
   prv_init();
   
   if (alarm_manager_maybe_alarm()) {
