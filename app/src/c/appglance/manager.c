@@ -40,7 +40,7 @@ static void prv_app_glance_reload(AppGlanceReloadSession *session, size_t limit,
       if (!name) {
         name = "Timer";
       }
-      snprintf(template, sizeof(template), "%.26s: {time_until(%ld)|format(>=1M:'%%T',>1S:'%%S seconds',>0S:'1 second','Now!')}", name, expiry);
+      snprintf(template, sizeof(template), "{time_until(%ld)|format(>=1M:'%%T',>1S:'%%S seconds',>0S:'1 second','Now!')} - %.25s", expiry, name);
       slice = (AppGlanceSlice) {
       .layout = {
           .icon = APP_GLANCE_SLICE_DEFAULT_ICON,
@@ -57,7 +57,7 @@ static void prv_app_glance_reload(AppGlanceReloadSession *session, size_t limit,
       format_datetime(target_time_long, sizeof(target_time_long), expiry);
       char target_time_short[10];
       format_time_ampm(target_time_short, sizeof(target_time_short), expiry_tm);
-      snprintf(template, sizeof(template), "%.24s: {time_until(%ld)|format(>=24H:'%s','%s')}", name, expiry, target_time_long, target_time_short);
+      snprintf(template, sizeof(template), "{time_until(%ld)|format(>=24H:'%s','%s')} - %.23s", expiry, target_time_long, target_time_short, name);
       slice = (AppGlanceSlice) {
         .layout = {
           .icon = APP_GLANCE_SLICE_DEFAULT_ICON,
