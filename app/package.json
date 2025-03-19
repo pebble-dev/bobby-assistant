@@ -287,6 +287,41 @@
           "file": "images/sent.pdc",
           "name": "SENT_IMAGE",
           "type": "raw"
+        },
+        {
+          "file": "icons/menu_about.png",
+          "name": "MENU_ICON_ABOUT",
+          "type": "bitmap"
+        },
+        {
+          "file": "icons/menu_alarms.png",
+          "name": "MENU_ICON_ALARMS",
+          "type": "bitmap"
+        },
+        {
+          "file": "icons/menu_feedback.png",
+          "name": "MENU_ICON_FEEDBACK",
+          "type": "bitmap"
+        },
+        {
+          "file": "icons/menu_legal.png",
+          "name": "MENU_ICON_LEGAL",
+          "type": "bitmap"
+        },
+        {
+          "file": "icons/menu_quota.png",
+          "name": "MENU_ICON_QUOTA",
+          "type": "bitmap"
+        },
+        {
+          "file": "icons/menu_reminders.png",
+          "name": "MENU_ICON_REMINDERS",
+          "type": "bitmap"
+        },
+        {
+          "file": "icons/menu_timers.png",
+          "name": "MENU_ICON_TIMERS",
+          "type": "bitmap"
         }
       ]
     }
