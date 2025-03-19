@@ -20,6 +20,7 @@
 #include "converse/conversation_manager.h"
 #include "alarms/manager.h"
 #include "version/version.h"
+#include "appglance/manager.h"
 
 #include <pebble.h>
 #include <pebble-events/pebble-events.h>
@@ -37,6 +38,7 @@ static void prv_deinit(void) {
   if (s_root_window) {
     root_window_destroy(s_root_window);
   }
+  app_glance_manager_refresh();
 }
 
 int main(void) {
