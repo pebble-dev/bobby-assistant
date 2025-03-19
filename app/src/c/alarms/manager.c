@@ -15,6 +15,7 @@
  */
 
 #include "manager.h"
+#include "../appglance/manager.h"
 #include "../converse/conversation_manager.h"
 #include "../util/persist_keys.h"
 
@@ -135,8 +136,25 @@ int alarm_manager_add_alarm(time_t when, bool is_timer, char* name, bool convers
   if (s_manager.pending_alarm_count == 1) {
     s_manager.pending_alarms = alarm;
   } else {
-    s_manager.pending_alarms = realloc(s_manager.pending_alarms, sizeof(Alarm) * s_manager.pending_alarm_count);
-    s_manager.pending_alarms[s_manager.pending_alarm_count-1] = *alarm;
+    // Insert the new alarm in order, so the expiry time is always ascending.
+    Alarm *new_alarms = malloc(sizeof(Alarm) * s_manager.pending_alarm_count);
+    int i = 0;
+    for (; i < s_manager.pending_alarm_count - 1; ++i) {
+      if (s_manager.pending_alarms[i].scheduled_time < alarm->scheduled_time) {
+        new_alarms[i] = s_manager.pending_alarms[i];
+      } else {
+        new_alarms[i] = *alarm;
+        for (int j = i; j < s_manager.pending_alarm_count - 1; ++j) {
+          new_alarms[j+1] = s_manager.pending_alarms[j];
+        }
+        break;
+      }
+    }
+    if (i == s_manager.pending_alarm_count - 1) {
+      new_alarms[i] = *alarm;
+    }
+    free(s_manager.pending_alarms);
+    s_manager.pending_alarms = new_alarms;
     free(alarm);
   }
   prv_save_alarms();
@@ -259,6 +277,7 @@ static void prv_save_alarms() {
   persist_write_data(PERSIST_KEY_ALARM_NAMES, &names, sizeof(names));
   persist_write_int(PERSIST_KEY_ALARM_COUNT_TWO, s_manager.pending_alarm_count);
   APP_LOG(APP_LOG_LEVEL_INFO, "Wrote %d alarms.", s_manager.pending_alarm_count);
+  app_glance_manager_refresh();
 }
 
 static void prv_remove_alarm(int to_remove) {
