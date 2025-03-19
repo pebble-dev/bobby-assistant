@@ -93,7 +93,7 @@
     "resources": {
       "media": [
         {
-          "file": "icons/menu_icon.png",
+          "file": "icons/menu_icon_default.png",
           "menuIcon": true,
           "name": "IMAGE_MENU_ICON",
           "type": "bitmap"
