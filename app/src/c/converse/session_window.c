@@ -42,6 +42,7 @@ struct SessionWindow {
   bool dictation_pending;
   int content_height;
   int last_prompt_end_offset;
+  time_t query_time;
 };
 
 static void prv_window_load(Window *window);
@@ -173,6 +174,7 @@ static void prv_dictation_status_callback(DictationSession *session, DictationSe
   switch (status) {
   case DictationSessionStatusSuccess:
     conversation_manager_add_input(sw->manager, transcript);
+    sw->query_time = time(NULL);
     break;
   default:
     if (conversation_peek(conversation_manager_get_conversation(sw->manager)) == NULL) {
@@ -295,6 +297,27 @@ static void prv_conversation_manager_handler(bool entry_added, void* context) {
   prv_update_thinking_layer(sw);
   prv_set_scroll_height(sw);
   light_enable_interaction();
+  // For responses that took longer than five seconds, pulse the vibe when we get useful data.
+  switch (entry_type) {
+    case EntryTypeResponse:
+    case EntryTypeWidget:
+    case EntryTypeAction:
+    case EntryTypeError:
+      if (sw->query_time > 0) {
+        if (time(NULL) >= sw->query_time + 5) {
+          vibes_short_pulse();
+        }
+        sw->query_time = 0;
+      }
+      break;
+    case EntryTypePrompt:
+    case EntryTypeThought:
+      // nothing to do here.
+      break;
+  }
+  if (entry_type == EntryTypeResponse || entry_type == EntryTypeWidget || entry_type == EntryTypeAction) {
+
+  }
   // For now, whenever we add a new entry, we want to scroll to the top of it.
 //  scroll_layer_set_content_offset(sw->scroll_layer, GPoint(0, layer_get_frame(layer).origin.y), true);
 }
