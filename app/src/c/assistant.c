@@ -21,13 +21,17 @@
 #include "alarms/manager.h"
 #include "version/version.h"
 #include "appglance/manager.h"
+#include "settings/settings.h"
 
 #include <pebble.h>
 #include <pebble-events/pebble-events.h>
 
+#define QUICK_LAUNCH_TIMEOUT_MS 60000
+
 static RootWindow* s_root_window = NULL;
 
 static void prv_init(void) {
+  settings_init();
   version_store_current();
   conversation_manager_init();
   events_app_message_open();
@@ -53,7 +57,13 @@ int main(void) {
       consent_window_push();
     } else {
       if (launch_reason() == APP_LAUNCH_QUICK_LAUNCH) {
-        session_window_push();
+        QuickLaunchBehaviour quick_launch_behaviour = settings_get_quick_launch_behaviour();
+        if (quick_launch_behaviour != QuickLaunchBehaviourHomeScreen) {
+          session_window_push(quick_launch_behaviour == QuickLaunchBehaviourConverseWithTimeout ? QUICK_LAUNCH_TIMEOUT_MS : 0);
+        } else {
+          s_root_window = root_window_create();
+          root_window_push(s_root_window);
+        }
       } else {
         s_root_window = root_window_create();
         root_window_push(s_root_window);

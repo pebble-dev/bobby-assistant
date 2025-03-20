@@ -88,7 +88,8 @@
       "FEEDBACK_APP_MAJOR",
       "FEEDBACK_APP_MINOR",
       "FEEDBACK_ALARM_COUNT",
-      "FEEDBACK_SEND_RESULT"
+      "FEEDBACK_SEND_RESULT",
+      "QUICK_LAUNCH_BEHAVIOUR"
     ],
     "resources": {
       "media": [

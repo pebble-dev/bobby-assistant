@@ -20,7 +20,7 @@
 // These keys are stored centrally so we can avoid accidental collisions.
 // Remember: these numbers can *never* be changed.
 
-// next key: 9
+// next key: 10
 
 // We write the alarm count twice - once before doing any work, and once after.
 // If they disagree we assume the lower number is correct.
@@ -36,5 +36,8 @@
 
 // Contains the version we were running the last time we were launched
 #define PERSIST_KEY_VERSION 7
+
+// Persist keys for our settings
+#define PERSIST_KEY_QUICK_LAUNCH_BEHAVIOUR 9
 
 #endif //APP_PERSIST_KEYS_H

@@ -74,11 +74,33 @@
         "items": [
             {
                 "type": "heading",
+                "defaultValue": "Behaviour"
+            },
+            {
+                "type": "select",
+                "messageKey": "QUICK_LAUNCH_BEHAVIOUR",
+                "label": "Quick launch behaviour",
+                "description": "What to do when Bobby is launched via Quick Launch. If 'start conversation' is selected, Bobby will start listening immediately. If 'stay open' is chosen, Bobby will quit after a minute of inactivity. If 'open home screen' is chosen, Bobby will behave the same as if launched from the app launcher.",
+                "defaultValue": 1,
+                "options": [
+                    {"label": "Start conversation and time out", "value": "1"},
+                    {"label": "Start conversation then stay open", "value": "2"},
+                    {"label": "Open home screen", "value": "3"}
+                ]
+            }
+        ]
+    },
+    {
+        "type": "section",
+        "items": [
+            {
+                "type": "heading",
                 "defaultValue": "Permissions"
             },
             {
                 "type": "toggle",
                 "messageKey": "LOCATION_ENABLED",
+                "defaultValue": true,
                 "label": "Allow location access",
                 "description": "Bobby can use your location to provide contextually relevant information, including local weather and transit as well as more broadly understanding your local context."
             }

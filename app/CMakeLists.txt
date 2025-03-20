@@ -70,4 +70,5 @@ add_executable(tiny_assistant_app
         src/c/converse/segments/widgets/timer.c
         src/c/converse/segments/widgets/number.c
         src/c/menus/feedback_window.c
-        src/c/appglance/manager.c)
+        src/c/appglance/manager.c
+        src/c/settings/settings.c)

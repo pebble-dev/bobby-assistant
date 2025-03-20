@@ -20,9 +20,9 @@
 #include "conversation_manager.h"
 #include "segments/segment_layer.h"
 #include "../util/thinking_layer.h"
+#include "../util/style.h"
 
 #include <pebble.h>
-#include "../util/style.h"
 
 #define PADDING 5
 
@@ -43,10 +43,16 @@ struct SessionWindow {
   int content_height;
   int last_prompt_end_offset;
   time_t query_time;
+  AppTimer *timeout_handle;
 };
+
+// this is a stupid hack because the way the session window is pushed is also stupid for some reason
+// since we only ever have one session window, we get away with it. but ew.
+static int s_timeout = 0;
 
 static void prv_window_load(Window *window);
 static void prv_window_appear(Window *window);
+static void prv_window_disappear(Window *window);
 static void prv_window_unload(Window *window);
 static void prv_destroy(SessionWindow *sw);
 static void prv_dictation_status_callback(DictationSession *session, DictationSessionStatus status, char *transcription, void *context);
@@ -55,20 +61,27 @@ static void prv_click_config_provider(void *context);
 static void prv_select_clicked(ClickRecognizerRef recognizer, void *context);
 static void prv_update_thinking_layer(SessionWindow* sw);
 static int16_t prv_content_height(const SessionWindow* sw);
+static void prv_scrolled_handler(ScrollLayer* scroll_layer, void* context);
+static void prv_refresh_timeout(SessionWindow* sw);
+static void prv_timed_out(void *ctx);
+static void prv_cancel_timeout(SessionWindow* sw);
 
-void session_window_push() {
+void session_window_push(int timeout) {
   Window *window = window_create();
   window_set_user_data(window, (void *)1);
+  s_timeout = timeout;
   window_set_window_handlers(window, (WindowHandlers) {
       .load = prv_window_load,
       .unload = prv_window_unload,
       .appear = prv_window_appear,
+      .disappear = prv_window_disappear,
   });
   window_stack_push(window, true);
 }
 
 static void prv_destroy(SessionWindow *sw) {
   APP_LOG(APP_LOG_LEVEL_INFO, "destroying SessionWindow %p.", sw);
+  prv_cancel_timeout(sw);
   dictation_session_destroy(sw->dictation);
   conversation_manager_destroy(sw->manager);
   status_bar_layer_destroy(sw->status_layer);
@@ -140,6 +153,7 @@ static void prv_window_load(Window *window) {
   scroll_layer_set_context(sw->scroll_layer, sw);
   scroll_layer_set_callbacks(sw->scroll_layer, (ScrollLayerCallbacks) {
     .click_config_provider = prv_click_config_provider,
+    .content_offset_changed_handler = prv_scrolled_handler,
   });
   scroll_layer_set_click_config_onto_window(sw->scroll_layer, window);
 
@@ -161,6 +175,11 @@ static void prv_window_appear(Window *window) {
     sw->dictation_pending = false;
     dictation_session_start(sw->dictation);
   }
+}
+
+static void prv_window_disappear(Window *window) {
+  SessionWindow *sw = (SessionWindow *)window_get_user_data(window);
+  prv_cancel_timeout(sw);
 }
 
 static void prv_window_unload(Window *window) {
@@ -297,6 +316,7 @@ static void prv_conversation_manager_handler(bool entry_added, void* context) {
   prv_update_thinking_layer(sw);
   prv_set_scroll_height(sw);
   light_enable_interaction();
+  prv_refresh_timeout(sw);
   // For responses that took longer than five seconds, pulse the vibe when we get useful data.
   switch (entry_type) {
     case EntryTypeResponse:
@@ -331,4 +351,33 @@ static void prv_select_clicked(ClickRecognizerRef recognizer, void *context) {
   if (conversation_is_idle(conversation_manager_get_conversation(sw->manager))) {
     dictation_session_start(sw->dictation);
   }
+}
+
+static void prv_scrolled_handler(ScrollLayer* scroll_layer, void* context) {
+  SessionWindow* sw = context;
+  prv_refresh_timeout(sw);
+}
+
+static void prv_refresh_timeout(SessionWindow* sw) {
+  if (s_timeout == 0) {
+    return;
+  }
+  if (sw->timeout_handle) {
+    app_timer_cancel(sw->timeout_handle);
+  }
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "Refreshed timeout");
+  sw->timeout_handle = app_timer_register(s_timeout, prv_timed_out, sw);
+}
+
+static void prv_cancel_timeout(SessionWindow* sw) {
+  if (sw->timeout_handle) {
+    app_timer_cancel(sw->timeout_handle);
+    sw->timeout_handle = NULL;
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "Canceled timeout");
+  }
+}
+
+static void prv_timed_out(void *ctx) {
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "Timed out");
+  window_stack_pop(true);
 }

@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-#ifndef SESSION_WINDOW_H
-#define SESSION_WINDOW_H
+#pragma once
 
-#include <pebble.h>
+typedef enum {
+  QuickLaunchBehaviourConverseWithTimeout = 1,
+  QuickLaunchBehaviourConverseForever = 2,
+  QuickLaunchBehaviourHomeScreen = 3,
+} QuickLaunchBehaviour;
 
-typedef struct SessionWindow SessionWindow;
-
-void session_window_push(int timeout);
-void session_window_destroy(SessionWindow* window);
-
-#endif
+void settings_init();
+void settings_deinit();
+QuickLaunchBehaviour settings_get_quick_launch_behaviour();

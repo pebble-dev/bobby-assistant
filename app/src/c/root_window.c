@@ -158,7 +158,7 @@ static void prv_up_clicked(ClickRecognizerRef recognizer, void *context) {
 }
 
 static void prv_prompt_clicked(ClickRecognizerRef recognizer, void *context) {
-  session_window_push();
+  session_window_push(0);
 }
 
 static void prv_more_clicked(ClickRecognizerRef recognizer, void* context) {
