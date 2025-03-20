@@ -74,9 +74,10 @@ func init() {
 				Required: []string{"wiki", "article_name"},
 			},
 		},
-		Fn:        queryWiki,
-		Thought:   queryWikiThought,
-		InputType: WikiRequest{},
+		Fn:                        queryWiki,
+		Thought:                   queryWikiThought,
+		RedactOutputInChatHistory: true,
+		InputType:                 WikiRequest{},
 	})
 }
 

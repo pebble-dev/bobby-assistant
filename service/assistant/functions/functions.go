@@ -46,6 +46,8 @@ type Registration struct {
 	Cb CallbackFunction
 	// A function that summarises the provided input
 	Thought ThoughtFunction
+	// Whether to redact the function output in chat history.
+	RedactOutputInChatHistory bool
 	// An instance of the object used to hold the function's parameters. This is what will be passed to
 	// either Fn or Cb, and it will also be processed to pass to the model - including the comments.
 	InputType interface{}
@@ -230,4 +232,13 @@ func GetFunctionDefinitionsForCapabilities(capabilities []string) []*genai.Funct
 		}
 	}
 	return definitions
+}
+func GetFunctionRegistration(fn string) *Registration {
+	if realFunction, ok := functionAliases[fn]; ok {
+		fn = realFunction
+	}
+	if reg, ok := functionMap[fn]; ok {
+		return &reg
+	}
+	return nil
 }
