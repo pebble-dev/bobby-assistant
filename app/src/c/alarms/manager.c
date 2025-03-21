@@ -15,7 +15,6 @@
  */
 
 #include "manager.h"
-#include "../appglance/manager.h"
 #include "../converse/conversation_manager.h"
 #include "../util/persist_keys.h"
 
@@ -277,7 +276,6 @@ static void prv_save_alarms() {
   persist_write_data(PERSIST_KEY_ALARM_NAMES, &names, sizeof(names));
   persist_write_int(PERSIST_KEY_ALARM_COUNT_TWO, s_manager.pending_alarm_count);
   APP_LOG(APP_LOG_LEVEL_INFO, "Wrote %d alarms.", s_manager.pending_alarm_count);
-  app_glance_manager_refresh();
 }
 
 static void prv_remove_alarm(int to_remove) {
