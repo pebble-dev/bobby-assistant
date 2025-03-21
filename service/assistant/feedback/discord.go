@@ -78,6 +78,7 @@ func sendToDiscord(ctx context.Context, title, message string, metadata feedback
 			Description: message,
 			Color:       0xffa9ff,
 			Fields:      fields,
+			Timestamp:   time.Now(),
 		}},
 		Username:  "Bobby Feedback",
 		AvatarUrl: "https://assets2.rebble.io/144x144/67c3afe9d2acb30009a3c7cd",
