@@ -64,6 +64,9 @@ type feedbackMetadata struct {
 	JsVersion          string `json:"jsVersion"`
 	Timezone           int    `json:"timezone"`
 	Platform           string `json:"platform"`
+	WatchFirmware      string `json:"watchFirmware"`
+	WatchModel         string `json:"watchModel"`
+	WatchPlatform      string `json:"watchPlatform"`
 	AuthToken          string `json:"timelineToken"`
 }
 
@@ -145,6 +148,11 @@ func generateEmbedFields(ctx context.Context, req feedbackMetadata) ([]discordFi
 		{
 			Name:   "App",
 			Value:  p.Sprintf("Version: %s/%s\nPlatform: %s", req.AppVersion, req.JsVersion, req.Platform),
+			Inline: true,
+		},
+		{
+			Name:   "Watch",
+			Value:  p.Sprintf("Model: %s\nPlatform: %s\nFirmware: %s", req.WatchModel, req.WatchPlatform, req.WatchFirmware),
 			Inline: true,
 		},
 		{

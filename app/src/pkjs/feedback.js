@@ -47,6 +47,13 @@ function constructFeedbackMetadata(request) {
     } else {
         platform = 'iOS';
     }
+    var watch = Pebble.getActiveWatchInfo ? Pebble.getActiveWatchInfo() : null;
+    var watchFirmware = watch ? '' + watch.firmware.major + '.' + watch.firmware.minor + '.' + watch.firmware.patch : '(unknown)';
+    if (watch && watch.firmware.suffix) {
+        watchFirmware += '-' + watch.firmware.suffix;
+    }
+    var platform = watch ? watch.platform : '(unknown)';
+    var model = watch ? watch.model : '(unknown)';
     return {
         'appVersion': appVersion,
         'alarmCount': alarmCount,
@@ -58,6 +65,9 @@ function constructFeedbackMetadata(request) {
         'jsVersion': jsVersion,
         'timezone': timezone,
         'platform': platform,
+        'watchFirmware': watchFirmware,
+        'watchModel': model,
+        'watchPlatform': platform,
         'timelineToken': session.userToken
     };
 }
