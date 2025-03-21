@@ -30,17 +30,20 @@ void app_glance_manager_refresh() {
 static void prv_app_glance_reload(AppGlanceReloadSession *session, size_t limit, void *context) {
   int alarm_count = alarm_manager_get_alarm_count();
   uint32_t glances = 0;
+  const size_t template_size = 111;
+  char *template = malloc(template_size);
+  const size_t target_time_long_size = 25;
+  char *target_time_long = malloc(target_time_long_size);
   for (int i = 0; i < alarm_count && glances < limit; i++) {
     Alarm *alarm = alarm_manager_get_alarm(i);
     AppGlanceSlice slice;
     time_t expiry = alarm_get_time(alarm);
     char *name = alarm_get_name(alarm);
-    char template[111];
     if (alarm_is_timer(alarm)) {
       if (!name) {
         name = "Timer";
       }
-      snprintf(template, sizeof(template), "{time_until(%ld)|format(>=1M:'%%T',>1S:'%%S seconds',>0S:'1 second','Now!')} - %.25s", expiry, name);
+      snprintf(template, template_size, "{time_until(%ld)|format(>=1M:'%%T',>1S:'%%S seconds',>0S:'1 second','Now!')} - %.25s", expiry, name);
       slice = (AppGlanceSlice) {
       .layout = {
           .icon = APP_GLANCE_SLICE_DEFAULT_ICON,
@@ -52,12 +55,11 @@ static void prv_app_glance_reload(AppGlanceReloadSession *session, size_t limit,
       if (!name) {
         name = "Alarm";
       }
-      char target_time_long[25];
       struct tm *expiry_tm = localtime(&expiry);
-      format_datetime(target_time_long, sizeof(target_time_long), expiry);
+      format_datetime(target_time_long, target_time_long_size, expiry);
       char target_time_short[10];
       format_time_ampm(target_time_short, sizeof(target_time_short), expiry_tm);
-      snprintf(template, sizeof(template), "{time_until(%ld)|format(>=24H:'%s','%s')} - %.23s", expiry, target_time_long, target_time_short, name);
+      snprintf(template, template_size, "{time_until(%ld)|format(>=24H:'%s','%s')} - %.23s", expiry, target_time_long, target_time_short, name);
       slice = (AppGlanceSlice) {
         .layout = {
           .icon = APP_GLANCE_SLICE_DEFAULT_ICON,
@@ -66,8 +68,9 @@ static void prv_app_glance_reload(AppGlanceReloadSession *session, size_t limit,
         .expiration_time = expiry + 2,
       };
     }
-    APP_LOG(APP_LOG_LEVEL_INFO, "%s", slice.layout.subtitle_template_string);
     app_glance_add_slice(session, slice);
     glances++;
   }
+  free(template);
+  free(target_time_long);
 }
