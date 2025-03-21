@@ -75,4 +75,5 @@ add_executable(tiny_assistant_app
         src/c/vibes/sad_vibe_score.c
         src/c/util/formatted_text_layer.c
         src/c/menus/about_window.c
-        src/c/converse/report_window.c)
+        src/c/converse/report_window.c
+        src/c/vibes/haptic_feedback.c)

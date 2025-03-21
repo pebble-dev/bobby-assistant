@@ -21,7 +21,7 @@
 #include "segments/segment_layer.h"
 #include "../util/thinking_layer.h"
 #include "../util/style.h"
-#include "../vibes/sad_vibe_score.h"
+#include "../vibes/haptic_feedback.h"
 
 #include <pebble.h>
 
@@ -47,7 +47,6 @@ struct SessionWindow {
   int last_prompt_end_offset;
   time_t query_time;
   AppTimer *timeout_handle;
-  SadVibeScore *haptic_score;
   ActionMenuLevel *action_menu;
 };
 
@@ -105,7 +104,6 @@ static void prv_destroy(SessionWindow *sw) {
     segment_layer_destroy(sw->segment_layers[i]);
   }
   free(sw->segment_layers);
-  sad_vibe_score_destroy(sw->haptic_score);
   window_destroy(sw->window);
   free(sw);
 }
@@ -123,8 +121,6 @@ static void prv_window_load(Window *window) {
   conversation_manager_set_handler(sw->manager, prv_conversation_manager_handler, sw);
   sw->dictation = dictation_session_create(0, prv_dictation_status_callback, sw);
   dictation_session_enable_confirmation(sw->dictation, false);
-
-  sw->haptic_score = sad_vibe_score_create_with_resource(RESOURCE_ID_VIBE_HAPTIC_FEEDBACK);
 
   sw->segment_space = 3;
   sw->segment_count = 0;
@@ -336,7 +332,7 @@ static void prv_conversation_manager_handler(bool entry_added, void* context) {
     case EntryTypeError:
       if (sw->query_time > 0) {
         if (time(NULL) >= sw->query_time + 5) {
-          sad_vibe_score_play(sw->haptic_score);
+          vibe_haptic_feedback();
         }
         sw->query_time = 0;
       }
@@ -355,7 +351,7 @@ static void prv_conversation_manager_handler(bool entry_added, void* context) {
 
 static void prv_click_config_provider(void *context) {
   window_single_click_subscribe(BUTTON_ID_SELECT, prv_select_clicked);
-  window_long_click_subscribe(BUTTON_ID_SELECT, 1000, prv_select_long_pressed, NULL);
+  window_long_click_subscribe(BUTTON_ID_SELECT, 0, prv_select_long_pressed, NULL);
 }
 
 static void prv_select_clicked(ClickRecognizerRef recognizer, void *context) {
@@ -382,6 +378,7 @@ static void prv_select_long_pressed(ClickRecognizerRef recognizer, void *context
     .align = ActionMenuAlignCenter,
     .context = sw
   };
+  vibe_haptic_feedback();
   action_menu_open(&config);
 }
 
