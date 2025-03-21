@@ -411,6 +411,11 @@
           ]
         },
         {
+          "file": "vibes/haptic_feedback.vibe",
+          "name": "VIBE_HAPTIC_FEEDBACK",
+          "type": "raw"
+        },
+        {
           "file": "vibes/jackhammer.vibe",
           "name": "VIBE_JACKHAMMER",
           "type": "raw"
