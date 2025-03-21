@@ -1,0 +1,56 @@
+{
+  "comments": "Mario",
+  "notes": [
+    {
+      "id": "note_0",
+      "vibe_duration_ms": 120,
+      "brake_duration_ms": 0,
+      "strength": 0
+    },
+    {
+      "id": "note_1",
+      "vibe_duration_ms": 111,
+      "brake_duration_ms": 9,
+      "strength": 40
+    },
+    {
+      "id": "note_6",
+      "vibe_duration_ms": 105,
+      "brake_duration_ms": 15,
+      "strength": 55
+    },
+    {
+      "id": "note_10",
+      "vibe_duration_ms": 102,
+      "brake_duration_ms": 18,
+      "strength": 76
+    },
+    {
+      "id": "note_13",
+      "vibe_duration_ms": 100,
+      "brake_duration_ms": 20,
+      "strength": 100
+    },
+    {
+      "id": "sleep_30ms",
+      "vibe_duration_ms": 30,
+      "brake_duration_ms": 0,
+      "strength": 0
+    }
+
+  ],
+  "pattern": ["note_10", "sleep_30ms",
+              "note_10", "sleep_30ms",
+              "note_0", "sleep_30ms",
+              "note_10", "sleep_30ms",
+              "note_0", "sleep_30ms",
+              "note_6", "sleep_30ms",
+              "note_10", "sleep_30ms",
+              "note_0", "sleep_30ms",
+              "note_13", "sleep_30ms",
+              "note_0", "sleep_30ms",
+              "note_0", "sleep_30ms",
+              "note_0", "sleep_30ms",
+              "note_1"],
+  "repeat_delay_ms": 1000
+}

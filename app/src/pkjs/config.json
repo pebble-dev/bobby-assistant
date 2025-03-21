@@ -78,10 +78,36 @@
             },
             {
                 "type": "select",
+                "messageKey": "ALARM_VIBE_PATTERN",
+                "label": "Alarm vibration",
+                "defaultValue": "5",
+                "options": [
+                    {"label": "Reveille", "value": "1"},
+                    {"label": "Mario", "value": "2"},
+                    {"label": "Nudge Nudge", "value": "3"},
+                    {"label": "Jackhammer", "value": "4"},
+                    {"label": "Standard", "value": "5"}
+                ]
+            },
+            {
+                "type": "select",
+                "messageKey": "TIMER_VIBE_PATTERN",
+                "label": "Timer vibration",
+                "defaultValue": "5",
+                "options": [
+                    {"label": "Reveille", "value": "1"},
+                    {"label": "Mario", "value": "2"},
+                    {"label": "Nudge Nudge", "value": "3"},
+                    {"label": "Jackhammer", "value": "4"},
+                    {"label": "Standard", "value": "5"}
+                ]
+            },
+            {
+                "type": "select",
                 "messageKey": "QUICK_LAUNCH_BEHAVIOUR",
                 "label": "Quick launch behaviour",
                 "description": "What to do when Bobby is launched via Quick Launch. If 'start conversation' is selected, Bobby will start listening immediately. If 'stay open' is chosen, Bobby will quit after a minute of inactivity. If 'open home screen' is chosen, Bobby will behave the same as if launched from the app launcher.",
-                "defaultValue": 1,
+                "defaultValue": "1",
                 "options": [
                     {"label": "Start conversation and time out", "value": "1"},
                     {"label": "Start conversation then stay open", "value": "2"},

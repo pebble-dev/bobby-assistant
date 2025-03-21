@@ -18,6 +18,8 @@
 #include "../util/style.h"
 #include "../util/vector_sequence_layer.h"
 #include "../util/result_window.h"
+#include "../settings/settings.h"
+#include "../vibes/sad_vibe_score.h"
 
 #include <pebble-events/pebble-events.h>
 #include <pebble.h>
@@ -39,6 +41,7 @@ typedef struct {
   GBitmap *icon_x;
   ActionBarLayer *action_bar;
   char time_content[20];
+  SadVibeScore* vibes;
 } AlarmWindowData;
 
 static void prv_window_load(Window *window);
@@ -52,6 +55,8 @@ static void prv_tick_callback(struct tm *tick_time, TimeUnits units_changed, voi
 static void prv_click_config_provider(void *context);
 static void prv_handle_snooze(ClickRecognizerRef recognizer, void *context);
 static void prv_handle_dismiss(ClickRecognizerRef recognizer, void *context);
+static uint32_t prv_resource_id_for_setting(VibePatternSetting setting);
+static SadVibeScore *prv_load_vibe_score(bool is_timer);
 
 void alarm_window_push(time_t alarm_time, bool is_timer, char *name) {
   Window* window = window_create();
@@ -118,6 +123,7 @@ static void prv_window_load(Window *window) {
   action_bar_layer_add_to_window(data->action_bar, window);
   data->animation_layer = vector_sequence_layer_create(GRect((rect.size.w - ACTION_BAR_WIDTH) / 2 - 25, rect.size.h - 55, 50, 50));
   data->draw_commands = gdraw_command_sequence_create_with_resource(RESOURCE_ID_TIRED_PONY);
+  data->vibes = prv_load_vibe_score(data->is_timer);
   vector_sequence_layer_set_sequence(data->animation_layer, data->draw_commands);
   layer_add_child(root_layer, (Layer *)data->animation_layer);
 }
@@ -138,6 +144,7 @@ static void prv_window_unload(Window *window) {
   if (data->name) {
     free(data->name);
   }
+  sad_vibe_score_destroy(data->vibes);
   free(data);
   window_destroy(window);
 }
@@ -157,20 +164,9 @@ static void prv_window_disappear(Window *window) {
 
 static void prv_do_vibe(Window *window) {
   AlarmWindowData* data = window_get_user_data(window);
-  // If we've been vibing for over ten minutes, give up.
-  if (time(NULL) - data->time > 600) {
-    prv_stop_vibe(window);
-    return;
-  }
-  if (data->timer != NULL) {
-    app_timer_cancel(data->timer);
-  }
-  data->timer = app_timer_register(6000, prv_timer_callback, window);
-  static const uint32_t vibe_segments[] = {2000, 1000, 2000};
-  vibes_enqueue_custom_pattern((VibePattern) {
-    .durations = vibe_segments,
-    .num_segments = ARRAY_LENGTH(vibe_segments),
-  });
+  // Register a timer to stop vibing after a while.
+  data->timer = app_timer_register(600000, prv_timer_callback, window);
+  sad_vibe_score_play(data->vibes);
 }
 
 static void prv_stop_vibe(Window *window) {
@@ -179,11 +175,11 @@ static void prv_stop_vibe(Window *window) {
     app_timer_cancel(data->timer);
     data->timer = NULL;
   }
-  vibes_cancel();
+  sad_vibe_score_stop();
 }
 
 static void prv_timer_callback(void* ctx) {
-  prv_do_vibe(ctx);
+  sad_vibe_score_stop();
 }
 
 static void prv_tick_callback(struct tm *tick_time, TimeUnits units_changed, void* context) {
@@ -238,4 +234,31 @@ static void prv_handle_snooze(ClickRecognizerRef recognizer, void *context) {
 
 static void prv_handle_dismiss(ClickRecognizerRef recognizer, void *context) {
   window_stack_pop(true);
+}
+
+static uint32_t prv_resource_id_for_setting(VibePatternSetting setting) {
+  switch (setting) {
+    case VibePatternSettingReveille:
+      return RESOURCE_ID_VIBE_REVEILLE;
+    case VibePatternSettingJackhammer:
+      return RESOURCE_ID_VIBE_JACKHAMMER;
+    case VibePatternSettingMario:
+      return RESOURCE_ID_VIBE_MARIO;
+    case VibePatternSettingStandard:
+      return RESOURCE_ID_VIBE_STANDARD;
+    case VibePatternSettingNudgeNudge:
+      return RESOURCE_ID_VIBE_NUDGE_NUDGE;
+  }
+  return RESOURCE_ID_VIBE_STANDARD;
+}
+
+static SadVibeScore *prv_load_vibe_score(bool is_timer) {
+  VibePatternSetting vibe_setting;
+  if (is_timer) {
+    vibe_setting = settings_get_timer_vibe_pattern();
+  } else {
+    vibe_setting = settings_get_alarm_vibe_pattern();
+  }
+  uint32_t resource_id = prv_resource_id_for_setting(vibe_setting);
+  return sad_vibe_score_create_with_resource(resource_id);
 }

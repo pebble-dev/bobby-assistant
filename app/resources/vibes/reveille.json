@@ -1,0 +1,75 @@
+{
+  "comments": "Reveille",
+  "notes": [
+    {
+      "id": "note_0",
+      "vibe_duration_ms": 120,
+      "brake_duration_ms": 0,
+      "strength": 0
+    },
+    {
+      "id": "note_1",
+      "vibe_duration_ms": 111,
+      "brake_duration_ms": 9,
+      "strength": 40
+    },
+    {
+      "id": "note_6",
+      "vibe_duration_ms": 105,
+      "brake_duration_ms": 15,
+      "strength": 55
+    },
+    {
+      "id": "note_6___",
+      "vibe_duration_ms": 465,
+      "brake_duration_ms": 15,
+      "strength": 55
+    },
+    {
+      "id": "note_10",
+      "vibe_duration_ms": 102,
+      "brake_duration_ms": 18,
+      "strength": 76
+    },
+    {
+      "id": "note_10_",
+      "vibe_duration_ms": 222,
+      "brake_duration_ms": 18,
+      "strength": 76
+    },
+    {
+      "id": "note_10___",
+      "vibe_duration_ms": 462,
+      "brake_duration_ms": 18,
+      "strength": 76
+    },
+    {
+      "id": "note_13_",
+      "vibe_duration_ms": 220,
+      "brake_duration_ms": 20,
+      "strength": 100
+    }
+  ],
+  "pattern": ["note_1", "note_0",
+              "note_6", "note_0", "note_10", "note_6", "note_1", "note_0", "note_10", "note_0",
+              "note_6", "note_0", "note_10", "note_6", "note_1", "note_0", "note_10", "note_0",
+              "note_6", "note_0", "note_10", "note_6", "note_1", "note_0", "note_6", "note_0",
+              "note_10_", "note_0", "note_0", "note_6", "note_0", "note_1", "note_0",
+
+              "note_6", "note_0", "note_10", "note_6", "note_1", "note_0", "note_10", "note_0",
+              "note_6", "note_0", "note_10", "note_6", "note_1", "note_0", "note_10", "note_0",
+              "note_6", "note_0", "note_10", "note_6", "note_1", "note_0", "note_1", "note_0",
+              "note_6___", "note_0", "note_0", "note_10", "note_0",
+
+              "note_10", "note_0", "note_10", "note_0", "note_10", "note_0", "note_10", "note_0",
+              "note_13_", "note_0", "note_0", "note_10", "note_0", "note_10", "note_0",
+              "note_10", "note_0", "note_6", "note_0", "note_10", "note_0", "note_6", "note_0",
+              "note_10___", "note_0", "note_0", "note_10", "note_0",
+
+              "note_10", "note_0", "note_10", "note_0", "note_10", "note_0", "note_10", "note_0",
+              "note_13_", "note_0", "note_0", "note_10", "note_0", "note_10", "note_0",
+              "note_6", "note_0", "note_10", "note_6", "note_1", "note_0", "note_1", "note_0",
+              "note_6___", "note_0", "note_0", "note_0", "note_0"],
+
+  "repeat_delay_ms": 1500
+}

@@ -40,14 +40,31 @@ QuickLaunchBehaviour settings_get_quick_launch_behaviour() {
   return result;
 }
 
+VibePatternSetting settings_get_alarm_vibe_pattern() {
+  int result = persist_read_int(PERSIST_KEY_ALARM_VIBE_PATTERN);
+  if (result == 0) {
+    return VibePatternSettingStandard;
+  }
+  return result;
+}
+
+VibePatternSetting settings_get_timer_vibe_pattern() {
+  int result = persist_read_int(PERSIST_KEY_TIMER_VIBE_PATTERN);
+  if (result == 0) {
+    return VibePatternSettingStandard;
+  }
+  return result;
+}
 
 static void prv_app_message_handler(DictionaryIterator *iter, void *context) {
   for (Tuple *tuple = dict_read_first(iter); tuple; tuple = dict_read_next(iter)) {
     if (tuple->key == MESSAGE_KEY_QUICK_LAUNCH_BEHAVIOUR) {
       int value = atoi(tuple->value->cstring);
-      APP_LOG(APP_LOG_LEVEL_INFO, "Updated quick launch behaviour to %d", value);
       persist_write_int(PERSIST_KEY_QUICK_LAUNCH_BEHAVIOUR, value);
-      break;
+    } else if (tuple->key == MESSAGE_KEY_ALARM_VIBE_PATTERN) {
+      persist_write_int(PERSIST_KEY_ALARM_VIBE_PATTERN, atoi(tuple->value->cstring));
+    } else if (tuple->key == MESSAGE_KEY_TIMER_VIBE_PATTERN) {
+      persist_write_int(PERSIST_KEY_TIMER_VIBE_PATTERN, atoi(tuple->value->cstring));
     }
   }
 }
