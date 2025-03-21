@@ -27,4 +27,5 @@ void formatted_text_layer_set_text(FormattedTextLayer* layer, const char* text);
 void formatted_text_layer_set_title_font(FormattedTextLayer* layer, GFont font);
 void formatted_text_layer_set_subtitle_font(FormattedTextLayer* layer, GFont font);
 void formatted_text_layer_set_body_font(FormattedTextLayer* layer, GFont font);
+void formatted_text_layer_set_text_alignment(FormattedTextLayer* layer, GTextAlignment alignment);
 GSize formatted_text_layer_get_content_size(FormattedTextLayer* layer);

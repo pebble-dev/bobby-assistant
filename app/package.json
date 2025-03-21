@@ -187,6 +187,11 @@
           "type": "raw"
         },
         {
+          "file": "text/about.txt",
+          "name": "ABOUT_TEXT",
+          "type": "raw"
+        },
+        {
           "file": "text/gemini_consent.txt",
           "name": "GEMINI_CONSENT_TEXT",
           "type": "raw"
@@ -438,6 +443,11 @@
         {
           "file": "vibes/standard_long_high.vibe",
           "name": "VIBE_STANDARD",
+          "type": "raw"
+        },
+        {
+          "file": "images/fence_pony.pdc",
+          "name": "FENCE_PONY",
           "type": "raw"
         }
       ]

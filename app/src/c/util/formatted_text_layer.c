@@ -96,6 +96,12 @@ void formatted_text_layer_set_body_font(FormattedTextLayer* layer, GFont font) {
   prv_recalculate(layer);
 }
 
+void formatted_text_layer_set_text_alignment(FormattedTextLayer* layer, GTextAlignment alignment) {
+  FormattedTextLayerData *data = layer_get_data(layer);
+  data->alignment = alignment;
+  prv_recalculate(layer);
+}
+
 static void prv_layer_update(Layer *layer, GContext *ctx) {
   FormattedTextLayerData *data = layer_get_data(layer);
   GRect bounds = layer_get_bounds(layer);
@@ -118,7 +124,7 @@ static void prv_layer_update(Layer *layer, GContext *ctx) {
     // If the next fragment starts before the beginning of the screen, skip ahead.
     if (i < data->fragment_count - 1) {
       TextFragment *next_fragment = &data->fragments[i+1];
-      if (layer_convert_point_to_screen(layer, GPoint(0, next_fragment->vertical_offset)).y < 0) {
+      if (layer_convert_point_to_screen(layer, GPoint(0, next_fragment->vertical_offset)).y < -10) {
         continue;
       }
     }
@@ -223,6 +229,9 @@ static void prv_layout(FormattedTextLayer* layer) {
 
 static void prv_recalculate(FormattedTextLayer* layer) {
   FormattedTextLayerData *data = layer_get_data(layer);
+  if (!data->text) {
+    return;
+  }
   prv_fragment(data);
   prv_layout(layer);
   layer_mark_dirty(layer);
