@@ -21,6 +21,7 @@
 #include "segments/segment_layer.h"
 #include "../util/thinking_layer.h"
 #include "../util/style.h"
+#include "../vibes/sad_vibe_score.h"
 
 #include <pebble.h>
 
@@ -44,6 +45,7 @@ struct SessionWindow {
   int last_prompt_end_offset;
   time_t query_time;
   AppTimer *timeout_handle;
+  SadVibeScore *haptic_score;
 };
 
 // this is a stupid hack because the way the session window is pushed is also stupid for some reason
@@ -97,6 +99,7 @@ static void prv_destroy(SessionWindow *sw) {
     segment_layer_destroy(sw->segment_layers[i]);
   }
   free(sw->segment_layers);
+  sad_vibe_score_destroy(sw->haptic_score);
   window_destroy(sw->window);
   free(sw);
 }
@@ -114,6 +117,8 @@ static void prv_window_load(Window *window) {
   conversation_manager_set_handler(sw->manager, prv_conversation_manager_handler, sw);
   sw->dictation = dictation_session_create(0, prv_dictation_status_callback, sw);
   dictation_session_enable_confirmation(sw->dictation, false);
+
+  sw->haptic_score = sad_vibe_score_create_with_resource(RESOURCE_ID_VIBE_HAPTIC_FEEDBACK);
 
   sw->segment_space = 3;
   sw->segment_count = 0;
@@ -325,7 +330,7 @@ static void prv_conversation_manager_handler(bool entry_added, void* context) {
     case EntryTypeError:
       if (sw->query_time > 0) {
         if (time(NULL) >= sw->query_time + 5) {
-          vibes_short_pulse();
+          sad_vibe_score_play(sw->haptic_score);
         }
         sw->query_time = 0;
       }
