@@ -72,4 +72,5 @@ add_executable(tiny_assistant_app
         src/c/menus/feedback_window.c
         src/c/appglance/manager.c
         src/c/settings/settings.c
-        src/c/vibes/sad_vibe_score.c)
+        src/c/vibes/sad_vibe_score.c
+        src/c/util/formatted_text_layer.c)
