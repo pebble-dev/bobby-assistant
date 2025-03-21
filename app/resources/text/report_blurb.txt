@@ -1,0 +1,4 @@
+# Report thread
+If something is wrong, you can report this conversation thread to Rebble. The entire conversation will be sent to Rebble, including your queries, Bobby's responses, and any internal tool usage.
+
+Reports are tied to your Rebble account. Consider whether this conversation contains personal information you would not wish to share with Rebble's developers before continuing.

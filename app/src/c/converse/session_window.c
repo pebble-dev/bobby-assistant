@@ -25,6 +25,8 @@
 
 #include <pebble.h>
 
+#include "report_window.h"
+
 #define PADDING 5
 
 struct SessionWindow {
@@ -46,6 +48,7 @@ struct SessionWindow {
   time_t query_time;
   AppTimer *timeout_handle;
   SadVibeScore *haptic_score;
+  ActionMenuLevel *action_menu;
 };
 
 // this is a stupid hack because the way the session window is pushed is also stupid for some reason
@@ -61,12 +64,15 @@ static void prv_dictation_status_callback(DictationSession *session, DictationSe
 static void prv_conversation_manager_handler(bool entry_added, void* context);
 static void prv_click_config_provider(void *context);
 static void prv_select_clicked(ClickRecognizerRef recognizer, void *context);
+static void prv_select_long_pressed(ClickRecognizerRef recognizer, void *context);
 static void prv_update_thinking_layer(SessionWindow* sw);
 static int16_t prv_content_height(const SessionWindow* sw);
 static void prv_scrolled_handler(ScrollLayer* scroll_layer, void* context);
 static void prv_refresh_timeout(SessionWindow* sw);
 static void prv_timed_out(void *ctx);
 static void prv_cancel_timeout(SessionWindow* sw);
+static void prv_action_menu_query(ActionMenu *action_menu, const ActionMenuItem *action, void *context);
+static void prv_action_menu_report_thread(ActionMenu *action_menu, const ActionMenuItem *action, void *context);
 
 void session_window_push(int timeout) {
   Window *window = window_create();
@@ -349,6 +355,7 @@ static void prv_conversation_manager_handler(bool entry_added, void* context) {
 
 static void prv_click_config_provider(void *context) {
   window_single_click_subscribe(BUTTON_ID_SELECT, prv_select_clicked);
+  window_long_click_subscribe(BUTTON_ID_SELECT, 1000, prv_select_long_pressed, NULL);
 }
 
 static void prv_select_clicked(ClickRecognizerRef recognizer, void *context) {
@@ -356,6 +363,40 @@ static void prv_select_clicked(ClickRecognizerRef recognizer, void *context) {
   if (conversation_is_idle(conversation_manager_get_conversation(sw->manager))) {
     dictation_session_start(sw->dictation);
   }
+}
+
+static void prv_select_long_pressed(ClickRecognizerRef recognizer, void *context) {
+  SessionWindow* sw = context;
+  if (!conversation_is_idle(conversation_manager_get_conversation(sw->manager))) {
+    return;
+  }
+  ActionMenuLevel *action_menu = action_menu_level_create(2);
+  action_menu_level_add_action(action_menu, "Prompt", prv_action_menu_query, sw);
+  action_menu_level_add_action(action_menu, "Report conversation", prv_action_menu_report_thread, sw);
+  ActionMenuConfig config = (ActionMenuConfig) {
+    .root_level = action_menu,
+    .colors = {
+      .background = BRANDED_BACKGROUND_COLOUR,
+      .foreground = gcolor_legible_over(BRANDED_BACKGROUND_COLOUR),
+    },
+    .align = ActionMenuAlignCenter,
+    .context = sw
+  };
+  action_menu_open(&config);
+}
+
+static void prv_action_menu_query(ActionMenu *action_menu, const ActionMenuItem *action, void *context) {
+  SessionWindow* sw = context;
+  dictation_session_start(sw->dictation);
+  action_menu_hierarchy_destroy(sw->action_menu, NULL, NULL);
+  sw->action_menu = NULL;
+}
+
+static void prv_action_menu_report_thread(ActionMenu *action_menu, const ActionMenuItem *action, void *context) {
+  SessionWindow* sw = context;
+  action_menu_hierarchy_destroy(sw->action_menu, NULL, NULL);
+  sw->action_menu = NULL;
+  report_window_push(conversation_get_thread_id(conversation_manager_get_conversation(sw->manager)));
 }
 
 static void prv_scrolled_handler(ScrollLayer* scroll_layer, void* context) {

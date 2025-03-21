@@ -21,8 +21,7 @@ var package_json = require('package.json');
 var urls = require('./urls');
 var session = require('./session');
 
-exports.handleFeedbackRequest = function(request) {
-    var text = request['FEEDBACK_TEXT'];
+function constructFeedbackMetadata(request) {
     var appVersion = '' + request['FEEDBACK_APP_MAJOR'] + '.' + request['FEEDBACK_APP_MINOR'];
     var alarmCount = request['FEEDBACK_ALARM_COUNT'];
     var locationEnabled = config.isLocationEnabled();
@@ -48,8 +47,7 @@ exports.handleFeedbackRequest = function(request) {
     } else {
         platform = 'iOS';
     }
-    var feedback = {
-        'text': text,
+    return {
         'appVersion': appVersion,
         'alarmCount': alarmCount,
         'locationEnabled': locationEnabled,
@@ -61,22 +59,38 @@ exports.handleFeedbackRequest = function(request) {
         'timezone': timezone,
         'platform': platform,
         'timelineToken': session.userToken
-    }
-    console.log("Feedback request: " + JSON.stringify(feedback));
+    };
+}
 
+function sendRequest(request, url, responseKey) {
     var req = new XMLHttpRequest();
-    req.open('POST', urls.FEEDBACK_URL, true);
+    req.open('POST', url, true);
     req.setRequestHeader('Content-Type', 'application/json');
     req.onload = function(e) {
         if (req.readyState === 4) {
+            var response = {};
             if (req.status === 200) {
                 console.log("Feedback sent successfully");
-                Pebble.sendAppMessage({FEEDBACK_SEND_RESULT: 0});
+                response[responseKey] = 0;
             } else {
                 console.log("Feedback request returned error code " + req.status.toString());
-                Pebble.sendAppMessage({FEEDBACK_SEND_RESULT: 1});
+                response[responseKey] = 1;
             }
+            Pebble.sendAppMessage(response);
         }
     }
-    req.send(JSON.stringify(feedback));
+    console.log("Feedback request: " + JSON.stringify(request));
+    req.send(JSON.stringify(request));
+}
+
+exports.handleFeedbackRequest = function(request) {
+    var feedback = constructFeedbackMetadata(request);
+    feedback['text'] = request['FEEDBACK_TEXT'];
+    sendRequest(feedback, urls.FEEDBACK_URL, 'FEEDBACK_SEND_RESULT');
+}
+
+exports.handleReportRequest = function(request) {
+    var report = constructFeedbackMetadata(request);
+    report['thread_uuid'] = request['REPORT_THREAD_UUID'];
+    sendRequest(report, urls.REPORT_URL, 'REPORT_SEND_RESULT');
 }

@@ -15,163 +15,110 @@
 package feedback
 
 import (
-	"bytes"
+	"context"
 	"encoding/json"
-	"golang.org/x/text/language"
-	"golang.org/x/text/message"
-	"io"
+	"fmt"
+	"github.com/google/uuid"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/config"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/persistence"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/util/storage"
+	"github.com/redis/go-redis/v9"
 	"log"
 	"net/http"
-	"os"
-	"runtime/debug"
 	"time"
-
-	"github.com/pebble-dev/bobby-assistant/service/assistant/config"
-	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
-	"github.com/pebble-dev/bobby-assistant/service/assistant/util/storage"
 )
 
-type discordField struct {
-	Name   string `json:"name"`
-	Value  string `json:"value"`
-	Inline bool   `json:"inline"`
-}
-
-type discordEmbed struct {
-	Title       string         `json:"title"`
-	Description string         `json:"description"`
-	Color       int            `json:"color"`
-	Fields      []discordField `json:"fields"`
-	Timestamp   time.Time      `json:"timestamp"`
-}
-
-type discordMessage struct {
-	Content   string         `json:"content"`
-	Embeds    []discordEmbed `json:"embeds"`
-	Username  string         `json:"username"`
-	AvatarUrl string         `json:"avatar_url"`
-}
-
 type feedbackRequest struct {
-	Text               string `json:"text"`
-	AppVersion         string `json:"appVersion"`
-	AlarmCount         int    `json:"alarmCount"`
-	LocationEnabled    bool   `json:"locationEnabled"`
-	LocationReady      bool   `json:"locationReady"`
-	UnitPreference     string `json:"unitPreference"`
-	LanguagePreference string `json:"languagePreference"`
-	ReminderCount      int    `json:"reminderCount"`
-	JsVersion          string `json:"jsVersion"`
-	Timezone           int    `json:"timezone"`
-	Platform           string `json:"platform"`
-	AuthToken          string `json:"timelineToken"`
+	feedbackMetadata
+	Text string `json:"text"`
+}
+
+type reportRequest struct {
+	feedbackMetadata
+	ThreadUUID string `json:"thread_uuid"`
+}
+
+type ReportedThread struct {
+	OriginalThreadID string                          `json:"original_thread_id"`
+	ReportTime       time.Time                       `json:"report_time"`
+	ThreadContent    []persistence.SerializedMessage `json:"thread_content"`
 }
 
 func HandleFeedback(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	// Parse the request body
 	var req feedbackRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		log.Printf("Error decoding feedback request: %v", err)
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
-	// Authenticate the request
-	userInfo, err := quota.GetUserInfo(ctx, req.AuthToken)
-	if err != nil {
-		log.Printf("Error getting user info: %v", err)
-		http.Error(rw, err.Error(), http.StatusUnauthorized)
-		return
-	}
-	quotaUsed, _, err := quota.NewTracker(storage.GetRedis(), userInfo.UserId).GetQuota(ctx)
-	if err != nil {
-		quotaUsed = 0
-	}
 
-	serverName, err := os.Hostname()
-	if err != nil {
-		serverName = "unknown"
-	}
-	commitHash := "unknown"
-	buildInfo, ok := debug.ReadBuildInfo()
-	if ok {
-		for _, v := range buildInfo.Settings {
-			if v.Key == "vcs.revision" {
-				commitHash = v.Value
-				break
-			}
-		}
-	}
-	if len(commitHash) > 8 {
-		commitHash = commitHash[:8]
-	}
-
-	p := message.NewPrinter(language.English)
-
-	embed := discordMessage{
-		Embeds: []discordEmbed{{
-			Title:       "Feedback Received",
-			Description: req.Text,
-			Color:       0xffa9ff,
-			Fields: []discordField{
-				{
-					Name:   "User",
-					Value:  p.Sprintf("ID: %d\nSubscribed: %t\nTZ: %d", userInfo.UserId, userInfo.HasSubscription, req.Timezone),
-					Inline: true,
-				},
-				{
-					Name:   "App",
-					Value:  p.Sprintf("Version: %s/%s\nPlatform: %s", req.AppVersion, req.JsVersion, req.Platform),
-					Inline: true,
-				},
-				{
-					Name:   "Settings",
-					Value:  p.Sprintf("Units: %q\nLanguage: %q", req.UnitPreference, req.LanguagePreference),
-					Inline: true,
-				},
-				{
-					Name:   "Usage",
-					Value:  p.Sprintf("Quota: %d\nAlarms: %d\nReminders: %d", quotaUsed, req.AlarmCount, req.ReminderCount),
-					Inline: true,
-				},
-				{
-					Name:   "Location",
-					Value:  p.Sprintf("Enabled: %t\nReady: %t", req.LocationEnabled, req.LocationReady),
-					Inline: true,
-				},
-				{
-					Name:   "Server",
-					Value:  p.Sprintf("Name: %s\nCommit: %s", serverName, commitHash),
-					Inline: true,
-				},
-			},
-		}},
-		Username:  "Bobby Feedback",
-		AvatarUrl: "https://assets2.rebble.io/144x144/67c3afe9d2acb30009a3c7cd",
-	}
-
-	marshalled, err := json.Marshal(embed)
-	if err != nil {
-		log.Printf("Error marshalling feedback: %v", err)
+	if err := sendToDiscord(ctx, "Feedback Received", req.Text, req.feedbackMetadata); err != nil {
+		log.Printf("Error sending feedback to Discord: %v", err)
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	reader := bytes.NewReader(marshalled)
+}
 
-	// Send the feedback to Discord
-	url := config.GetConfig().DiscordFeedbackURL
-	result, err := http.Post(url, "application/json", reader)
+func HandleReport(rw http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var req reportRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Printf("Error decoding report request: %v", err)
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	rd := storage.GetRedis()
+	messages, err := persistence.LoadThread(ctx, rd, req.ThreadUUID)
 	if err != nil {
-		log.Printf("Error sending feedback: %v", err)
+		log.Printf("Error loading thread: %v", err)
+		http.Error(rw, err.Error(), http.StatusGone)
+		return
+	}
+
+	report := ReportedThread{
+		OriginalThreadID: req.ThreadUUID,
+		ReportTime:       time.Now(),
+		ThreadContent:    messages,
+	}
+
+	reportId, err := storeReport(ctx, rd, report)
+	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	defer result.Body.Close()
-	if result.StatusCode < 200 || result.StatusCode >= 300 {
-		content, _ := io.ReadAll(result.Body)
-		log.Printf("Error sending feedback: %s\n%s", result.Status, string(content))
-		http.Error(rw, "Error sending feedback", http.StatusInternalServerError)
+
+	dm := fmt.Sprintf("A user has reported a bad thread: %s/reported-thread/%s", config.GetConfig().BaseURL, reportId)
+	if err := sendToDiscord(ctx, "Report Received", dm, req.feedbackMetadata); err != nil {
+		log.Printf("Error sending report to Discord: %v", err)
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
+}
+
+func storeReport(ctx context.Context, rd *redis.Client, report ReportedThread) (string, error) {
+	reportId := uuid.New()
+
+	j, err := json.Marshal(report)
+	if err != nil {
+		log.Printf("Error marshalling report: %v", err)
+		return "", fmt.Errorf("Error marshalling report: %w", err)
+	}
+	rd.Set(ctx, "reported-thread:"+reportId.String(), j, 0)
+	return reportId.String(), nil
+}
+
+func loadReport(ctx context.Context, rd *redis.Client, report string) (ReportedThread, error) {
+	j, err := rd.Get(ctx, "reported-thread:"+report).Result()
+	if err != nil {
+		return ReportedThread{}, err
+	}
+	var rt ReportedThread
+	if err := json.Unmarshal([]byte(j), &rt); err != nil {
+		return ReportedThread{}, err
+	}
+	return rt, nil
 }

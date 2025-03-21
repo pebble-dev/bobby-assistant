@@ -76,6 +76,10 @@ function handleAppMessage(e) {
         console.log("Handling feedback...");
         feedback.handleFeedbackRequest(data);
     }
+    if ('REPORT_THREAD_UUID' in data) {
+        console.log("Handling report...");
+        feedback.handleReportRequest(data);
+    }
 }
 
 Pebble.addEventListener("ready",

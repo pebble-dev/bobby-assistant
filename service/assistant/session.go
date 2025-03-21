@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/honeycombio/beeline-go"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/persistence"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/verifier"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/widgets"
@@ -379,21 +380,14 @@ func (ps *PromptSession) Run(ctx context.Context) {
 	_ = ps.conn.Close(websocket.StatusNormalClosure, "")
 }
 
-type SerializedMessage struct {
-	Role             string                  `json:"role"`
-	Content          string                  `json:"content"`
-	FunctionCall     *genai.FunctionCall     `json:"functionCall,omitempty"`
-	FunctionResponse *genai.FunctionResponse `json:"functionResponse,omitempty"`
-}
-
 func (ps *PromptSession) storeThread(ctx context.Context, messages []*genai.Content) error {
 	ctx, span := beeline.StartSpan(ctx, "store_thread")
 	defer span.Send()
-	var toStore []SerializedMessage
+	var toStore []persistence.SerializedMessage
 	for _, m := range messages {
 		if len(m.Parts) != 0 {
 			if m.Role == "user" || m.Role == "model" {
-				sm := SerializedMessage{
+				sm := persistence.SerializedMessage{
 					Role:         m.Role,
 					Content:      m.Parts[0].Text,
 					FunctionCall: m.Parts[0].FunctionCall,
@@ -407,7 +401,7 @@ func (ps *PromptSession) storeThread(ctx context.Context, messages []*genai.Cont
 				if fnInfo != nil && fnInfo.RedactOutputInChatHistory {
 					fr.Response = map[string]any{"redacted": "redacted to reduce context size, call again if necessary"}
 				}
-				toStore = append(toStore, SerializedMessage{
+				toStore = append(toStore, persistence.SerializedMessage{
 					Role:             m.Role,
 					FunctionResponse: &fr,
 				})
@@ -426,13 +420,8 @@ func (ps *PromptSession) storeThread(ctx context.Context, messages []*genai.Cont
 func (ps *PromptSession) restoreThread(ctx context.Context, oldThreadId string) ([]*genai.Content, error) {
 	ctx, span := beeline.StartSpan(ctx, "restore_thread")
 	defer span.Send()
-	j, err := ps.redis.Get(ctx, "thread:"+oldThreadId).Result()
+	messages, err := persistence.LoadThread(ctx, ps.redis, oldThreadId)
 	if err != nil {
-		span.AddField("error", err)
-		return nil, err
-	}
-	var messages []SerializedMessage
-	if err := json.Unmarshal([]byte(j), &messages); err != nil {
 		span.AddField("error", err)
 		return nil, err
 	}

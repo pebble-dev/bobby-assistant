@@ -39,6 +39,9 @@ func NewService(r *redis.Client) *Service {
 	s.mux.HandleFunc("/quota", s.handleQuota)
 	s.mux.HandleFunc("/heartbeat", s.handleHeartbeat)
 	s.mux.HandleFunc("/feedback", feedback.HandleFeedback)
+	s.mux.HandleFunc("/report", feedback.HandleReport)
+	s.mux.HandleFunc("/reported-thread/", feedback.HandleShowReport)
+	s.mux.HandleFunc("/robots.txt", s.handleRobots)
 	return s
 }
 
@@ -102,6 +105,10 @@ func (s *Service) handleQuery(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 	session.Run(r.Context())
+}
+
+func (s *Service) handleRobots(rw http.ResponseWriter, r *http.Request) {
+	_, _ = rw.Write([]byte("User-agent: *\nDisallow: /\n"))
 }
 
 func (s *Service) ListenAndServe(addr string) error {

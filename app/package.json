@@ -91,7 +91,9 @@
       "FEEDBACK_SEND_RESULT",
       "QUICK_LAUNCH_BEHAVIOUR",
       "TIMER_VIBE_PATTERN",
-      "ALARM_VIBE_PATTERN"
+      "ALARM_VIBE_PATTERN",
+      "REPORT_THREAD_UUID",
+      "REPORT_SEND_RESULT"
     ],
     "resources": {
       "media": [
@@ -209,6 +211,11 @@
         {
           "file": "text/feedback_blurb.txt",
           "name": "FEEDBACK_BLURB",
+          "type": "raw"
+        },
+        {
+          "file": "text/report_blurb.txt",
+          "name": "REPORT_BLURB",
           "type": "raw"
         },
         {

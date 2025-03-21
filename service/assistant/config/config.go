@@ -24,6 +24,7 @@ import (
 // TODO: something reasonable.
 
 type Config struct {
+	BaseURL               string
 	GeminiKey             string
 	MapboxKey             string
 	IBMKey                string
@@ -50,6 +51,7 @@ func init() {
 	}
 
 	c = Config{
+		BaseURL:               os.Getenv("BASE_URL"),
 		GeminiKey:             os.Getenv("GEMINI_KEY"),
 		MapboxKey:             os.Getenv("MAPBOX_KEY"),
 		IBMKey:                os.Getenv("IBM_KEY"),

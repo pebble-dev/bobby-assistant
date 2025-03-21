@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Feedback Report</title>
+    <style type="text/css">
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+        }
+        p {
+            margin: 0;
+        }
+        .thread {
+        }
+        .speaker {
+            margin-bottom: 0;
+        }
+        .assistant {
+            background-color: #ecd8ea;
+        }
+        .turn {
+            padding: 5px;
+        }
+        .speaker {
+            font-weight: bold;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 5px;
+            text-align: left;
+        }
+        pre {
+            margin: 0;
+        }
+        .widget {
+            font-family: monospace;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/lua.min.js"></script>
+</head>
+<body>
+<h1>Reported thread</h1>
+<p>Thread ID: <code>{{.OriginalThreadID}}</code></p>
+<p>Report time: {{.ReportTime}}</p>
+<hr>
+<div class="thread">
+{{range .ThreadContent}}
+    {{if eq .Role "user"}}
+        <div class="turn user">
+            <p class="speaker">User</p>
+            <p class="query-text">{{.Content}}</p>
+        </div>
+    {{else}}
+        {{if .Content}}
+        <div class="turn assistant">
+            <p class="speaker">Bobby</p>
+            <p class="response-text">{{.Content}}</p>
+        </div>
+        {{else if .FunctionCall}}
+        <div class="turn assistant">
+            <p class="speaker">Bobby</p>
+            <p>Function call: <code>{{.FunctionCall.Name}}</code></p>
+            <div class="function_args">
+                <table>
+                    <tr>
+                        <th>Argument</th>
+                        <th>Value</th>
+                    </tr>
+                    {{$fn:=.FunctionCall.Name}}
+                    {{range $key, $value := .FunctionCall.Args}}
+                        <tr>
+                            <td><code>{{$key}}</code></td>
+                            <td><pre class="arg-{{$fn}}-{{$key}}">{{$value}}</pre></td>
+                        </tr>
+                    {{end}}
+                </table>
+            </div>
+        </div>
+        {{else if .FunctionResponse}}
+        <div class="turn function">
+            <p class="speaker">Function: <code>{{.FunctionResponse.Name}}</code></p>
+            <div class="function_args">
+                <table>
+                    <tr>
+                        <th>Key</th>
+                        <th>Value</th>
+                    </tr>
+                    {{$fn:=.FunctionResponse.Name}}
+                    {{range $key, $value := .FunctionResponse.Response}}
+                        <tr>
+                            <td><code>{{$key}}</code></td>
+                            <td><pre class="arg-{{$fn}}-{{$key}}">{{$value}}</pre></td>
+                        </tr>
+                    {{end}}
+                </table>
+            </div>
+        </div>
+        {{end}}
+    {{end}}
+{{end}}
+</div>
+<script type="text/javascript">
+    const widgetRegex = /&lt;!.+?!&gt;/g;
+    let bobbyResponses = document.querySelectorAll('.response-text');
+    for (let response of bobbyResponses) {
+        response.innerHTML = response.innerHTML.replace(widgetRegex, match => `<span class="widget">${match}</span>`);
+    }
+    let luaCode = document.querySelectorAll('pre[class="arg-lua-script"]');
+    for (let code of luaCode) {
+        hljs.highlightElement(code);
+    }
+</script>
+</body>
+</html>

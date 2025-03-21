@@ -14,40 +14,41 @@
  * limitations under the License.
  */
 
-#include "feedback_window.h"
+#include "report_window.h"
+
 #include "../util/vector_sequence_layer.h"
-#include "../util/formatted_text_layer.h"
 #include "../util/result_window.h"
 #include "../util/style.h"
+#include "../util/formatted_text_layer.h"
 #include "../alarms/manager.h"
 #include "../version/version.h"
 #include <pebble.h>
 #include <pebble-events/pebble-events.h>
 
 typedef struct {
-  DictationSession *dict_session;
   ScrollLayer *scroll_layer;
   FormattedTextLayer *text_layer;
   GBitmap *select_indicator;
   BitmapLayer *select_indicator_layer;
+  char thread_uuid[37];
   char *blurb;
   EventHandle event_handle;
   GDrawCommandSequence *loading_sequence;
   VectorSequenceLayer *loading_layer;
   Layer *scroll_indicator_down;
   StatusBarLayer *status_bar_layer;
-} FeedbackWindowData;
+} ReportWindowData;
 
 static void prv_window_load(Window *window);
 static void prv_window_unload(Window *window);
-static void prv_dictation_status_callback(DictationSession *session, DictationSessionStatus status, char *transcription, void *context);
 static void prv_click_config_provider();
 static void prv_select_clicked(ClickRecognizerRef recognizer, void *context);
 static void prv_app_message_received(DictionaryIterator *iterator, void *context);
 
-void feedback_window_push() {
+void report_window_push(const char* thread_uuid) {
   Window *window = window_create();
-  FeedbackWindowData *data = malloc(sizeof(FeedbackWindowData));
+  ReportWindowData *data = malloc(sizeof(ReportWindowData));
+  strncpy(data->thread_uuid, thread_uuid, sizeof(data->thread_uuid));
   window_set_user_data(window, data);
   window_set_window_handlers(window, (WindowHandlers) {
     .load = prv_window_load,
@@ -57,7 +58,7 @@ void feedback_window_push() {
 }
 
 static void prv_window_load(Window *window) {
-  FeedbackWindowData *data = window_get_user_data(window);
+  ReportWindowData *data = window_get_user_data(window);
   GRect bounds = layer_get_bounds(window_get_root_layer(window));
   Layer *layer = window_get_root_layer(window);
 
@@ -97,7 +98,7 @@ static void prv_window_load(Window *window) {
   };
   content_indicator_configure_direction(indicator, ContentIndicatorDirectionDown, &down_config);
 
-  ResHandle blurb_handle = resource_get_handle(RESOURCE_ID_FEEDBACK_BLURB);
+  ResHandle blurb_handle = resource_get_handle(RESOURCE_ID_REPORT_BLURB);
   size_t blurb_length = resource_size(blurb_handle);
   data->blurb = malloc(blurb_length + 1);
   resource_load(blurb_handle, (uint8_t *)data->blurb, blurb_length);
@@ -121,16 +122,11 @@ static void prv_window_load(Window *window) {
   data->loading_layer = vector_sequence_layer_create(GRect(bounds.size.w / 2 - pony_size.w / 2, bounds.size.h / 2 - pony_size.h / 2, pony_size.w, pony_size.h));
   vector_sequence_layer_set_sequence(data->loading_layer, data->loading_sequence);
 
-  data->dict_session = dictation_session_create(0, prv_dictation_status_callback, window);
-  dictation_session_enable_error_dialogs(data->dict_session, true);
-  dictation_session_enable_confirmation(data->dict_session, true);
-
   data->event_handle = events_app_message_register_inbox_received(prv_app_message_received, window);
 }
 
 static void prv_window_unload(Window *window) {
-  FeedbackWindowData *data = window_get_user_data(window);
-  dictation_session_destroy(data->dict_session);
+  ReportWindowData *data = window_get_user_data(window);
   formatted_text_layer_destroy(data->text_layer);
   scroll_layer_destroy(data->scroll_layer);
   gbitmap_destroy(data->select_indicator);
@@ -151,22 +147,13 @@ static void prv_click_config_provider() {
 
 static void prv_select_clicked(ClickRecognizerRef recognizer, void *context) {
   Window *window = context;
-  FeedbackWindowData *data = window_get_user_data(window);
-  dictation_session_start(data->dict_session);
-}
-
-static void prv_dictation_status_callback(DictationSession *session, DictationSessionStatus status, char *transcription, void *context) {
-  Window *window = context;
-  FeedbackWindowData *data = window_get_user_data(window);
-  if (status != DictationSessionStatusSuccess) {
-    return;
-  }
+  ReportWindowData *data = window_get_user_data(window);
   layer_remove_from_parent(scroll_layer_get_layer(data->scroll_layer));
   layer_add_child(window_get_root_layer(window), vector_sequence_layer_get_layer(data->loading_layer));
   vector_sequence_layer_play(data->loading_layer);
   DictionaryIterator *iter;
   app_message_outbox_begin(&iter);
-  dict_write_cstring(iter, MESSAGE_KEY_FEEDBACK_TEXT, transcription);
+  dict_write_cstring(iter, MESSAGE_KEY_REPORT_THREAD_UUID, data->thread_uuid);
   VersionInfo version = version_get_current();
   dict_write_int8(iter, MESSAGE_KEY_FEEDBACK_APP_MAJOR, version.major);
   dict_write_int8(iter, MESSAGE_KEY_FEEDBACK_APP_MINOR, version.minor);
@@ -176,7 +163,7 @@ static void prv_dictation_status_callback(DictationSession *session, DictationSe
 
 static void prv_app_message_received(DictionaryIterator *iter, void *context) {
   Window *window = context;
-  Tuple *tuple = dict_find(iter, MESSAGE_KEY_FEEDBACK_SEND_RESULT);
+  Tuple *tuple = dict_find(iter, MESSAGE_KEY_REPORT_SEND_RESULT);
   if (!tuple) {
     return;
   }
