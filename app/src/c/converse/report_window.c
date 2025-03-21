@@ -37,6 +37,7 @@ typedef struct {
   VectorSequenceLayer *loading_layer;
   Layer *scroll_indicator_down;
   StatusBarLayer *status_bar_layer;
+  bool busy;
 } ReportWindowData;
 
 static void prv_window_load(Window *window);
@@ -123,6 +124,8 @@ static void prv_window_load(Window *window) {
   vector_sequence_layer_set_sequence(data->loading_layer, data->loading_sequence);
 
   data->event_handle = events_app_message_register_inbox_received(prv_app_message_received, window);
+
+  data->busy = false;
 }
 
 static void prv_window_unload(Window *window) {
@@ -148,7 +151,12 @@ static void prv_click_config_provider() {
 static void prv_select_clicked(ClickRecognizerRef recognizer, void *context) {
   Window *window = context;
   ReportWindowData *data = window_get_user_data(window);
+  if (data->busy) {
+    return;
+  }
   layer_remove_from_parent(scroll_layer_get_layer(data->scroll_layer));
+  layer_remove_from_parent(bitmap_layer_get_layer(data->select_indicator_layer));
+  data->busy = true;
   layer_add_child(window_get_root_layer(window), vector_sequence_layer_get_layer(data->loading_layer));
   vector_sequence_layer_play(data->loading_layer);
   DictionaryIterator *iter;
