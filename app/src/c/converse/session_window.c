@@ -48,11 +48,8 @@ struct SessionWindow {
   time_t query_time;
   AppTimer *timeout_handle;
   ActionMenuLevel *action_menu;
+  int timeout;
 };
-
-// this is a stupid hack because the way the session window is pushed is also stupid for some reason
-// since we only ever have one session window, we get away with it. but ew.
-static int s_timeout = 0;
 
 static void prv_window_load(Window *window);
 static void prv_window_appear(Window *window);
@@ -75,8 +72,11 @@ static void prv_action_menu_report_thread(ActionMenu *action_menu, const ActionM
 
 void session_window_push(int timeout) {
   Window *window = window_create();
-  window_set_user_data(window, (void *)1);
-  s_timeout = timeout;
+  SessionWindow *sw = malloc(sizeof(SessionWindow));
+  memset(sw, 0, sizeof(SessionWindow));
+  window_set_user_data(window, sw);
+  sw->window = window;
+  sw->timeout = timeout;
   window_set_window_handlers(window, (WindowHandlers) {
       .load = prv_window_load,
       .unload = prv_window_unload,
@@ -112,11 +112,9 @@ static void prv_window_load(Window *window) {
   Layer* root_layer = window_get_root_layer(window);
   bool start_dictation = (bool)window_get_user_data(window);
   GSize window_size = layer_get_frame(window_get_root_layer(window)).size;
-  SessionWindow *sw = malloc(sizeof(SessionWindow));
-  memset(sw, 0, sizeof(SessionWindow));
+  SessionWindow *sw = window_get_user_data(window);
   sw->dictation_pending = start_dictation;
   APP_LOG(APP_LOG_LEVEL_INFO, "created SessionWindow %p.", sw);
-  sw->window = window;
   sw->manager = conversation_manager_create();
   conversation_manager_set_handler(sw->manager, prv_conversation_manager_handler, sw);
   sw->dictation = dictation_session_create(0, prv_dictation_status_callback, sw);
@@ -402,14 +400,14 @@ static void prv_scrolled_handler(ScrollLayer* scroll_layer, void* context) {
 }
 
 static void prv_refresh_timeout(SessionWindow* sw) {
-  if (s_timeout == 0) {
+  if (sw->timeout == 0) {
     return;
   }
   if (sw->timeout_handle) {
     app_timer_cancel(sw->timeout_handle);
   }
   APP_LOG(APP_LOG_LEVEL_DEBUG, "Refreshed timeout");
-  sw->timeout_handle = app_timer_register(s_timeout, prv_timed_out, sw);
+  sw->timeout_handle = app_timer_register(sw->timeout, prv_timed_out, sw);
 }
 
 static void prv_cancel_timeout(SessionWindow* sw) {
