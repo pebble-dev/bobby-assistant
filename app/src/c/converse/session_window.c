@@ -247,6 +247,9 @@ static void prv_update_thinking_layer(SessionWindow* sw) {
       visible = true;
     } else if (entry_type == EntryTypeResponse) {
       visible = !conversation_entry_get_response(entry)->complete;
+    } else if (entry_type == EntryTypeWidget) {
+      // Locally created widgets should still have a response coming after.
+      visible = conversation_entry_get_widget(entry)->locally_created;
     }
   }
 
