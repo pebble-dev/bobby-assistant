@@ -28,8 +28,8 @@ typedef struct {
   FormattedTextLayer *text_layer;
   ScrollLayer *scroll_layer;
   StatusBarLayer *status_bar;
-  VectorLayer *vector_layer;
-  GDrawCommandImage *bobby_image;
+  BitmapLayer *bitmap_layer;
+  GBitmap *bobby_image;
 } AboutWindowData;
 
 static void prv_window_load(Window* window);
@@ -78,14 +78,16 @@ static void prv_window_load(Window* window) {
   formatted_text_layer_set_text(data->text_layer, data->about_text);
   GSize text_size = formatted_text_layer_get_content_size(data->text_layer);
 
-  data->bobby_image = gdraw_command_image_create_with_resource(RESOURCE_ID_FENCE_PONY);
-  GSize image_size = gdraw_command_image_get_bounds_size(data->bobby_image);
-  data->vector_layer = vector_layer_create(GRect((window_bounds.size.w - image_size.w) / 2, text_size.h, image_size.w, image_size.h));
-  vector_layer_set_vector(data->vector_layer, data->bobby_image);
+  data->bobby_image = gbitmap_create_with_resource(RESOURCE_ID_FENCE_PONY_BITMAP);
+  GSize image_size = gbitmap_get_bounds(data->bobby_image).size;
+  image_size.h += 40; // add back the space at the top
+  data->bitmap_layer = bitmap_layer_create(GRect((window_bounds.size.w - image_size.w) / 2, text_size.h, image_size.w, image_size.h));
+  bitmap_layer_set_bitmap(data->bitmap_layer, data->bobby_image);
+  bitmap_layer_set_alignment(data->bitmap_layer, GAlignBottom);
 
   scroll_layer_set_content_size(data->scroll_layer, GSize(window_bounds.size.w, text_size.h + image_size.h));
   scroll_layer_add_child(data->scroll_layer, formatted_text_layer_get_layer(data->text_layer));
-  scroll_layer_add_child(data->scroll_layer, vector_layer_get_layer(data->vector_layer));
+  scroll_layer_add_child(data->scroll_layer, bitmap_layer_get_layer(data->bitmap_layer));
 }
 
 static void prv_window_unload(Window* window) {
@@ -94,8 +96,8 @@ static void prv_window_unload(Window* window) {
   formatted_text_layer_destroy(data->text_layer);
   scroll_layer_destroy(data->scroll_layer);
   status_bar_layer_destroy(data->status_bar);
-  vector_layer_destroy(data->vector_layer);
-  gdraw_command_image_destroy(data->bobby_image);
+  bitmap_layer_destroy(data->bitmap_layer);
+  gbitmap_destroy(data->bobby_image);
   free(data);
   window_destroy(window);
 }

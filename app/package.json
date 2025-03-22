@@ -468,6 +468,24 @@
           "file": "images/fence_pony.pdc",
           "name": "FENCE_PONY",
           "type": "raw"
+        },
+        {
+          "file": "images/fence_pony_color.png",
+          "name": "FENCE_PONY_BITMAP",
+          "type": "bitmap",
+          "memoryFormat": "2BitPalette",
+          "targetPlatforms": [
+            "basalt"
+          ]
+        },
+        {
+          "file": "images/fence_pony_bw.png",
+          "name": "FENCE_PONY_BITMAP",
+          "type": "bitmap",
+          "memoryFormat": "1BitPalette",
+          "targetPlatforms": [
+            "diorite"
+          ]
         }
       ]
     }
