@@ -47,7 +47,6 @@ struct SessionWindow {
   int last_prompt_end_offset;
   time_t query_time;
   AppTimer *timeout_handle;
-  ActionMenuLevel *action_menu;
   int timeout;
   char* starting_prompt;
 };
@@ -373,6 +372,10 @@ static void prv_select_clicked(ClickRecognizerRef recognizer, void *context) {
   }
 }
 
+static void prv_destroy_action_menu(ActionMenu *action_menu, const ActionMenuItem *item, void *context) {
+  action_menu_hierarchy_destroy(action_menu_get_root_level(action_menu), NULL, NULL);
+}
+
 static void prv_select_long_pressed(ClickRecognizerRef recognizer, void *context) {
   SessionWindow* sw = context;
   if (!conversation_is_idle(conversation_manager_get_conversation(sw->manager))) {
@@ -388,7 +391,8 @@ static void prv_select_long_pressed(ClickRecognizerRef recognizer, void *context
       .foreground = gcolor_legible_over(BRANDED_BACKGROUND_COLOUR),
     },
     .align = ActionMenuAlignCenter,
-    .context = sw
+    .context = sw,
+    .did_close = prv_destroy_action_menu,
   };
   vibe_haptic_feedback();
   action_menu_open(&config);
@@ -397,14 +401,10 @@ static void prv_select_long_pressed(ClickRecognizerRef recognizer, void *context
 static void prv_action_menu_query(ActionMenu *action_menu, const ActionMenuItem *action, void *context) {
   SessionWindow* sw = context;
   dictation_session_start(sw->dictation);
-  action_menu_hierarchy_destroy(sw->action_menu, NULL, NULL);
-  sw->action_menu = NULL;
 }
 
 static void prv_action_menu_report_thread(ActionMenu *action_menu, const ActionMenuItem *action, void *context) {
   SessionWindow* sw = context;
-  action_menu_hierarchy_destroy(sw->action_menu, NULL, NULL);
-  sw->action_menu = NULL;
   report_window_push(conversation_get_thread_id(conversation_manager_get_conversation(sw->manager)));
 }
 

@@ -53,6 +53,7 @@ static void prv_draw_row(GContext *ctx, const Layer *cell_layer, MenuIndex *cell
 static void prv_select_click(MenuLayer *menu_layer, MenuIndex *cell_index, void *context);
 static void prv_delete_reminder_callback(ActionMenu *action_menu, const ActionMenuItem *action, void *context);
 static void prv_show_empty(Window *window);
+static void prv_action_menu_did_close(ActionMenu *action_menu, const ActionMenuItem *menu_item, void *context);
 
 void reminders_menu_push() {
   Window *window = window_create();
@@ -255,6 +256,10 @@ static void prv_draw_row(GContext *ctx, const Layer *cell_layer, MenuIndex *cell
     NULL);
 }
 
+static void prv_action_menu_did_close(ActionMenu *action_menu, const ActionMenuItem *menu_item, void *context) {
+  action_menu_hierarchy_destroy(action_menu_get_root_level(action_menu), NULL, NULL);
+}
+
 static void prv_select_click(MenuLayer *menu_layer, MenuIndex *cell_index, void *context) {
   RemindersMenuData *data = window_get_user_data(context);
   Reminder *reminder = &data->reminders[cell_index->row];
@@ -270,7 +275,8 @@ static void prv_select_click(MenuLayer *menu_layer, MenuIndex *cell_index, void 
       .foreground = gcolor_legible_over(BRANDED_BACKGROUND_COLOUR),
     },
     .align = ActionMenuAlignCenter,
-    .context = data
+    .context = data,
+    .did_close = prv_action_menu_did_close,
   };
   
   action_menu_open(&config);
