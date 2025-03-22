@@ -70,10 +70,11 @@ add_executable(tiny_assistant_app
         src/c/converse/segments/widgets/timer.c
         src/c/converse/segments/widgets/number.c
         src/c/menus/feedback_window.c
-        src/c/appglance/manager.c
         src/c/settings/settings.c
         src/c/vibes/sad_vibe_score.c
         src/c/util/formatted_text_layer.c
         src/c/menus/about_window.c
         src/c/converse/report_window.c
-        src/c/vibes/haptic_feedback.c)
+        src/c/vibes/haptic_feedback.c
+        src/c/util/action_menu_crimes.c
+)

@@ -170,6 +170,7 @@ bool conversation_is_idle(Conversation* conversation);
 bool conversation_assistant_just_started(Conversation* conversation);
 ConversationEntry* conversation_entry_at_index(Conversation* conversation, int index);
 ConversationEntry* conversation_peek(Conversation* conversation);
+ConversationEntry* conversation_get_last_of_type(Conversation* conversation, EntryType type);
 EntryType conversation_entry_get_type(ConversationEntry* entry);
 
 ConversationPrompt* conversation_entry_get_prompt(ConversationEntry* entry);

@@ -265,6 +265,16 @@ ConversationEntry* conversation_peek(Conversation* conversation) {
   return &conversation->entries[conversation->entry_count-1];
 }
 
+ConversationEntry* conversation_get_last_of_type(Conversation* conversation, EntryType type) {
+  for (int i = conversation->entry_count - 1; i >= 0; --i) {
+    ConversationEntry* entry = &conversation->entries[i];
+    if (entry->type == type) {
+      return entry;
+    }
+  }
+  return NULL;
+}
+
 const char* prv_type_to_string(EntryType type) {
   switch(type) {
     case EntryTypePrompt:

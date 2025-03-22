@@ -21,6 +21,7 @@
 #include "segments/segment_layer.h"
 #include "../util/thinking_layer.h"
 #include "../util/style.h"
+#include "../util/action_menu_crimes.h"
 #include "../vibes/haptic_feedback.h"
 
 #include <pebble.h>
@@ -49,6 +50,7 @@ struct SessionWindow {
   AppTimer *timeout_handle;
   int timeout;
   char* starting_prompt;
+  char* last_prompt_label;
 };
 
 static void prv_window_load(Window *window);
@@ -68,6 +70,7 @@ static void prv_refresh_timeout(SessionWindow* sw);
 static void prv_timed_out(void *ctx);
 static void prv_cancel_timeout(SessionWindow* sw);
 static void prv_action_menu_query(ActionMenu *action_menu, const ActionMenuItem *action, void *context);
+static void prv_action_menu_input(ActionMenu *action_menu, const ActionMenuItem *action, void *context);
 static void prv_action_menu_report_thread(ActionMenu *action_menu, const ActionMenuItem *action, void *context);
 
 void session_window_push(int timeout, char *starting_prompt) {
@@ -373,7 +376,12 @@ static void prv_select_clicked(ClickRecognizerRef recognizer, void *context) {
 }
 
 static void prv_destroy_action_menu(ActionMenu *action_menu, const ActionMenuItem *item, void *context) {
+  SessionWindow *sw = context;
   action_menu_hierarchy_destroy(action_menu_get_root_level(action_menu), NULL, NULL);
+  if (sw->last_prompt_label) {
+    free(sw->last_prompt_label);
+    sw->last_prompt_label = NULL;
+  }
 }
 
 static void prv_select_long_pressed(ClickRecognizerRef recognizer, void *context) {
@@ -381,26 +389,52 @@ static void prv_select_long_pressed(ClickRecognizerRef recognizer, void *context
   if (!conversation_is_idle(conversation_manager_get_conversation(sw->manager))) {
     return;
   }
-  ActionMenuLevel *action_menu = action_menu_level_create(2);
-  action_menu_level_add_action(action_menu, "Prompt", prv_action_menu_query, sw);
-  action_menu_level_add_action(action_menu, "Report conversation", prv_action_menu_report_thread, sw);
+  ActionMenuLevel *action_menu = action_menu_level_create(5);
+  action_menu_level_add_action(action_menu, "\"Yes.\"", prv_action_menu_input, "Yes.");
+  action_menu_level_add_action(action_menu, "\"No.\"", prv_action_menu_input, "No.");
+  Conversation *conversation = conversation_manager_get_conversation(sw->manager);
+  ConversationEntry *entry = conversation_peek(conversation);
+  EntryType type = conversation_entry_get_type(entry);
+  int separator_index = 3;
+  if (type == EntryTypeError) {
+    ConversationEntry *last_prompt = conversation_get_last_of_type(conversation, EntryTypePrompt);
+    if (last_prompt != NULL) {
+      ConversationPrompt *prompt = conversation_entry_get_prompt(last_prompt);
+      sw->last_prompt_label = malloc(strlen(prompt->prompt) + 3);
+      snprintf(sw->last_prompt_label, strlen(prompt->prompt) + 3, "\"%s\"", prompt->prompt);
+      action_menu_level_add_action(action_menu, sw->last_prompt_label, prv_action_menu_input, prompt->prompt);
+      separator_index++;
+    }
+  }
+  action_menu_level_add_action(action_menu, "Dictate", prv_action_menu_query, NULL);
+  action_menu_level_set_separator_index(action_menu, separator_index);
+  action_menu_level_add_action(action_menu, "Report conversation", prv_action_menu_report_thread, NULL);
   ActionMenuConfig config = (ActionMenuConfig) {
     .root_level = action_menu,
     .colors = {
       .background = BRANDED_BACKGROUND_COLOUR,
       .foreground = gcolor_legible_over(BRANDED_BACKGROUND_COLOUR),
     },
-    .align = ActionMenuAlignCenter,
+    .align = ActionMenuAlignTop,
     .context = sw,
     .did_close = prv_destroy_action_menu,
   };
   vibe_haptic_feedback();
+  sw->query_time = time(NULL);
   action_menu_open(&config);
 }
 
 static void prv_action_menu_query(ActionMenu *action_menu, const ActionMenuItem *action, void *context) {
   SessionWindow* sw = context;
   dictation_session_start(sw->dictation);
+}
+
+
+static void prv_action_menu_input(ActionMenu *action_menu, const ActionMenuItem *action, void *context) {
+  SessionWindow* sw = context;
+  const char* input = action_menu_item_get_action_data(action);
+  conversation_manager_add_input(sw->manager, input);
+  sw->query_time = time(NULL);
 }
 
 static void prv_action_menu_report_thread(ActionMenu *action_menu, const ActionMenuItem *action, void *context) {
