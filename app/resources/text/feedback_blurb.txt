@@ -1,4 +1,6 @@
 # Feedback
 You can give us your feedback on Bobby by dictating a message here. Feedback is not anonymous, and is linked to your Rebble account.
 
+To give feedback during a conversation, you can hold select on the conversation screen to send the content to us.
+
 You can also give us feedback on the Rebble discord at rebble.io/discord.
