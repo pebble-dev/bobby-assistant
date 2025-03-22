@@ -35,12 +35,14 @@ type feedbackRequest struct {
 
 type reportRequest struct {
 	feedbackMetadata
+	Text       string `json:"text"`
 	ThreadUUID string `json:"thread_uuid"`
 }
 
 type ReportedThread struct {
 	OriginalThreadID string                          `json:"original_thread_id"`
 	ReportTime       time.Time                       `json:"report_time"`
+	ReportText       string                          `json:"report_text"`
 	ThreadContent    []persistence.SerializedMessage `json:"thread_content"`
 }
 
@@ -72,17 +74,22 @@ func HandleReport(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	rd := storage.GetRedis()
-	messages, err := persistence.LoadThread(ctx, rd, req.ThreadUUID)
-	if err != nil {
-		log.Printf("Error loading thread: %v", err)
-		http.Error(rw, err.Error(), http.StatusGone)
-		return
+	var messages []persistence.SerializedMessage
+	if req.ThreadUUID != "" {
+		var err error
+		messages, err = persistence.LoadThread(ctx, rd, req.ThreadUUID)
+		if err != nil {
+			log.Printf("Error loading thread: %v", err)
+			http.Error(rw, err.Error(), http.StatusGone)
+			return
+		}
 	}
 
 	report := ReportedThread{
 		OriginalThreadID: req.ThreadUUID,
 		ReportTime:       time.Now(),
 		ThreadContent:    messages,
+		ReportText:       req.Text,
 	}
 
 	reportId, err := storeReport(ctx, rd, report)
@@ -91,7 +98,12 @@ func HandleReport(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dm := fmt.Sprintf("A user has reported a bad thread: %s/reported-thread/%s", config.GetConfig().BaseURL, reportId)
+	var dm string
+	if req.Text == "" {
+		dm = fmt.Sprintf("A user has reported a bad thread: %s/reported-thread/%s", config.GetConfig().BaseURL, reportId)
+	} else {
+		dm = fmt.Sprintf("%s\n\n%s/reported-thread/%s", req.Text, config.GetConfig().BaseURL, reportId)
+	}
 	if err := sendToDiscord(ctx, "Report Received", dm, req.feedbackMetadata); err != nil {
 		log.Printf("Error sending report to Discord: %v", err)
 		http.Error(rw, err.Error(), http.StatusInternalServerError)

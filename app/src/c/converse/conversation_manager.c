@@ -176,6 +176,12 @@ static void prv_handle_app_message_inbox_received(DictionaryIterator *iter, void
         .action = {},
       };
       conversation_manager_add_action(manager, &action);
+    } else if (tuple->key == MESSAGE_KEY_ACTION_FEEDBACK_SENT) {
+      ConversationAction action = {
+        .type = ConversationActionTypeSendFeedback,
+        .action = {}
+      };
+      conversation_manager_add_action(manager, &action);
     } else if (tuple->key == MESSAGE_KEY_WARNING) {
       conversation_complete_response(manager->conversation);
       prv_conversation_updated(manager, false);

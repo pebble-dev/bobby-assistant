@@ -35,6 +35,7 @@ type queryContext struct {
 	supportedWidgets  []string
 	preferredLanguage string
 	preferredUnits    string
+	threadId          string
 }
 
 type qckt int
@@ -58,6 +59,7 @@ func ContextWith(ctx context.Context, q url.Values) context.Context {
 	supportedWidgets := strings.Split(q.Get("widgets"), ",")
 	preferredLanguage := q.Get("lang")
 	preferredUnits := q.Get("units")
+	threadId := q.Get("threadId")
 	qc := queryContext{
 		location:          location,
 		tzOffset:          offset,
@@ -65,6 +67,7 @@ func ContextWith(ctx context.Context, q url.Values) context.Context {
 		supportedWidgets:  supportedWidgets,
 		preferredLanguage: preferredLanguage,
 		preferredUnits:    preferredUnits,
+		threadId:          threadId,
 	}
 	ctx = context.WithValue(ctx, queryContextKey, qc)
 	return ctx
@@ -104,4 +107,8 @@ func SupportsAnyWidgets(ctx context.Context) bool {
 
 func SupportsWidget(ctx context.Context, widget string) bool {
 	return slices.Contains(SupportedWidgetsFromContext(ctx), widget)
+}
+
+func ThreadIdFromContext(ctx context.Context) string {
+	return ctx.Value(queryContextKey).(queryContext).threadId
 }

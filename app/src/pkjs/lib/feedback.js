@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-var config = require('./config');
-var location = require('./location');
-var reminders = require('./lib/reminders');
+var config = require('../config');
+var location = require('../location');
+var reminders = require('./reminders');
 var package_json = require('package.json');
-var urls = require('./urls');
-var session = require('./session');
+var urls = require('../urls');
+var session = require('../session');
 
 function constructFeedbackMetadata(request) {
-    var appVersion = '' + request['FEEDBACK_APP_MAJOR'] + '.' + request['FEEDBACK_APP_MINOR'];
-    var alarmCount = request['FEEDBACK_ALARM_COUNT'];
+    var appVersion = 'unknown'
+    var alarmCount = 0;
+    if (request) {
+        appVersion = '' + request['FEEDBACK_APP_MAJOR'] + '.' + request['FEEDBACK_APP_MINOR'];
+        alarmCount = request['FEEDBACK_ALARM_COUNT'];
+    }
     var locationEnabled = config.isLocationEnabled();
     var locationReady = location.isReady();
     var settings = config.getSettings();
@@ -52,7 +56,7 @@ function constructFeedbackMetadata(request) {
     if (watch && watch.firmware.suffix) {
         watchFirmware += '-' + watch.firmware.suffix;
     }
-    var platform = watch ? watch.platform : '(unknown)';
+    var watchPlatform = watch ? watch.platform : '(unknown)';
     var model = watch ? watch.model : '(unknown)';
     return {
         'appVersion': appVersion,
@@ -67,12 +71,12 @@ function constructFeedbackMetadata(request) {
         'platform': platform,
         'watchFirmware': watchFirmware,
         'watchModel': model,
-        'watchPlatform': platform,
+        'watchPlatform': watchPlatform,
         'timelineToken': session.userToken
     };
 }
 
-function sendRequest(request, url, responseKey) {
+function sendRequest(request, url, callback) {
     var req = new XMLHttpRequest();
     req.open('POST', url, true);
     req.setRequestHeader('Content-Type', 'application/json');
@@ -80,27 +84,50 @@ function sendRequest(request, url, responseKey) {
         if (req.readyState === 4) {
             var response = {};
             if (req.status === 200) {
+                callback(true, req.status);
                 console.log("Feedback sent successfully");
-                response[responseKey] = 0;
+                if (responseKey) {
+                    response[responseKey] = 0;
+                }
             } else {
                 console.log("Feedback request returned error code " + req.status.toString());
-                response[responseKey] = 1;
+                callback(false, req.status);
+                if (responseKey) {
+                    response[responseKey] = 1;
+                }
             }
-            Pebble.sendAppMessage(response);
+            if (responseKey) {
+                Pebble.sendAppMessage(response);
+            }
         }
     }
     console.log("Feedback request: " + JSON.stringify(request));
     req.send(JSON.stringify(request));
 }
 
+exports.sendFeedback = function(feedbackText, threadId, callback) {
+    var feedback = constructFeedbackMetadata(null);
+    if (feedbackText) {
+        feedback['text'] = feedbackText;
+    }
+    if (threadId) {
+        feedback['thread_uuid'] = threadId;
+    }
+    sendRequest(feedback, urls.REPORT_URL, callback);
+}
+
 exports.handleFeedbackRequest = function(request) {
     var feedback = constructFeedbackMetadata(request);
     feedback['text'] = request['FEEDBACK_TEXT'];
-    sendRequest(feedback, urls.FEEDBACK_URL, 'FEEDBACK_SEND_RESULT');
+    sendRequest(feedback, urls.REPORT_URL, function(success, status) {
+        Pebble.sendAppMessage({'FEEDBACK_SEND_RESULT': success ? 0 : 1});
+    });
 }
 
 exports.handleReportRequest = function(request) {
     var report = constructFeedbackMetadata(request);
     report['thread_uuid'] = request['REPORT_THREAD_UUID'];
-    sendRequest(report, urls.REPORT_URL, 'REPORT_SEND_RESULT');
+    sendRequest(report, urls.REPORT_URL, function(success, status) {
+        Pebble.sendAppMessage({'REPORT_SEND_RESULT': success ? 0 : 1});
+    });
 }

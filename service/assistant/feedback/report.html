@@ -44,6 +44,9 @@
 <h1>Reported thread</h1>
 <p>Thread ID: <code>{{.OriginalThreadID}}</code></p>
 <p>Report time: {{.ReportTime}}</p>
+{{if .ReportText}}
+<p class="report-text">{{.ReportText}}</p>
+{{end}}
 <hr>
 <div class="thread">
 {{range .ThreadContent}}

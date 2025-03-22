@@ -22,7 +22,7 @@ var clayConfig = require('./config.json');
 var customConfigFunction = require('./custom_config');
 var config = require('./config');
 var reminders = require('./reminders');
-var feedback = require('./feedback');
+var feedback = require('./lib/feedback');
 var package_json = require('package.json');
 
 

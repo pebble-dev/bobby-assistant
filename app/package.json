@@ -94,7 +94,8 @@
       "ALARM_VIBE_PATTERN",
       "REPORT_THREAD_UUID",
       "REPORT_SEND_RESULT",
-      "COBBLE_WARNING"
+      "COBBLE_WARNING",
+      "ACTION_FEEDBACK_SENT"
     ],
     "resources": {
       "media": [

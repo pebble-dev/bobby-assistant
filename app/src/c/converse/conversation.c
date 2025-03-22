@@ -80,6 +80,7 @@ void conversation_destroy(Conversation* conversation) {
             break;
           case ConversationActionTypeSetReminder:
           case ConversationActionTypeDeleteReminder:
+          case ConversationActionTypeSendFeedback:
           case ConversationActionTypeUpdateChecklist:
             // These have nothing to clean up.
             break;
