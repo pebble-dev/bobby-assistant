@@ -24,6 +24,7 @@
 #include "util/style.h"
 #include "util/time.h"
 #include "version/version.h"
+#include "vibes/haptic_feedback.h"
 
 struct RootWindow {
   Window* window;
@@ -36,9 +37,11 @@ struct RootWindow {
   TextLayer* version_layer;
   TalkingHorseLayer* talking_horse_layer;
   EventHandle event_handle;
+  EventHandle app_message_handle;
   char time_string[6];
   char version_string[9];
   char** sample_prompts;
+  bool talking_horse_overridden;
 };
 
 static void prv_window_load(Window* window);
@@ -52,6 +55,7 @@ static void prv_time_changed(struct tm *tick_time, TimeUnits time_changed, void 
 static int prv_load_suggestions(char*** suggestions);
 static void prv_action_menu_closed(ActionMenu *action_menu, const ActionMenuItem *performed_action, void *context);
 static void prv_suggestion_clicked(ActionMenu *action_menu, const ActionMenuItem *action, void *context);
+static void prv_app_message_handler(DictionaryIterator *iter, void *context);
 
 RootWindow* root_window_create() {
   RootWindow* window = malloc(sizeof(RootWindow));
@@ -81,6 +85,7 @@ RootWindow* root_window_create() {
   layer_add_child(window_get_root_layer(window->window), (Layer *)window->time_layer);
   window->talking_horse_layer = talking_horse_layer_create(GRect(0, 56, 144 - ACTION_BAR_WIDTH, 112));
   layer_add_child(window_get_root_layer(window->window), (Layer *)window->talking_horse_layer);
+  window->talking_horse_overridden = false;
 
   VersionInfo version_info = version_get_current();
   snprintf(window->version_string, sizeof(window->version_string), "v%d.%d", version_info.major, version_info.minor);
@@ -128,6 +133,9 @@ static void prv_window_appear(Window* window) {
     time_t now = time(NULL);
     prv_time_changed(localtime(&now), MINUTE_UNIT, rw);
   }
+  if (!rw->app_message_handle) {
+    rw->app_message_handle = events_app_message_register_inbox_received(prv_app_message_handler, rw);
+  }
 }
 
 static void prv_window_disappear(Window* window) {
@@ -136,11 +144,27 @@ static void prv_window_disappear(Window* window) {
     events_tick_timer_service_unsubscribe(rw->event_handle);
     rw->event_handle = NULL;
   }
+  if (rw->app_message_handle) {
+    events_app_message_unsubscribe(rw->app_message_handle);
+  }
 }
 
+static void prv_app_message_handler(DictionaryIterator *iter, void *context) {
+  RootWindow* rw = context;
+  Tuple *tuple = dict_find(iter, MESSAGE_KEY_COBBLE_WARNING);
+  if (tuple->value->int32 == 1) {
+    rw->talking_horse_overridden = true;
+    talking_horse_layer_set_text(rw->talking_horse_layer, "Cobble has many Bobby bugs.");
+    window_set_background_color(rw->window, COLOR_FALLBACK(GColorRed, GColorDarkGray));
+    vibe_haptic_feedback();
+  }
+}
 
 static void prv_time_changed(struct tm *tick_time, TimeUnits time_changed, void *context) {
   RootWindow* rw = context;
+  if (rw->talking_horse_overridden) {
+    return;
+  }
   format_time(rw->time_string, sizeof(rw->time_string), tick_time);
   if (tick_time->tm_hour >= 6 && tick_time->tm_hour < 12) {
     talking_horse_layer_set_text(rw->talking_horse_layer, "Good morning!");
