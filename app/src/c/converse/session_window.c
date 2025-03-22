@@ -49,6 +49,7 @@ struct SessionWindow {
   AppTimer *timeout_handle;
   ActionMenuLevel *action_menu;
   int timeout;
+  char* starting_prompt;
 };
 
 static void prv_window_load(Window *window);
@@ -70,13 +71,17 @@ static void prv_cancel_timeout(SessionWindow* sw);
 static void prv_action_menu_query(ActionMenu *action_menu, const ActionMenuItem *action, void *context);
 static void prv_action_menu_report_thread(ActionMenu *action_menu, const ActionMenuItem *action, void *context);
 
-void session_window_push(int timeout) {
+void session_window_push(int timeout, char *starting_prompt) {
   Window *window = window_create();
   SessionWindow *sw = malloc(sizeof(SessionWindow));
   memset(sw, 0, sizeof(SessionWindow));
   window_set_user_data(window, sw);
   sw->window = window;
   sw->timeout = timeout;
+  if (starting_prompt != NULL) {
+    sw->starting_prompt = malloc(strlen(starting_prompt) + 1);
+    strncpy(sw->starting_prompt, starting_prompt, strlen(starting_prompt) + 1);
+  }
   window_set_window_handlers(window, (WindowHandlers) {
       .load = prv_window_load,
       .unload = prv_window_unload,
@@ -105,15 +110,17 @@ static void prv_destroy(SessionWindow *sw) {
   }
   free(sw->segment_layers);
   window_destroy(sw->window);
+  if (sw->starting_prompt) {
+    free(sw->starting_prompt);
+  }
   free(sw);
 }
 
 static void prv_window_load(Window *window) {
   Layer* root_layer = window_get_root_layer(window);
-  bool start_dictation = (bool)window_get_user_data(window);
   GSize window_size = layer_get_frame(window_get_root_layer(window)).size;
   SessionWindow *sw = window_get_user_data(window);
-  sw->dictation_pending = start_dictation;
+  sw->dictation_pending = true;
   APP_LOG(APP_LOG_LEVEL_INFO, "created SessionWindow %p.", sw);
   sw->manager = conversation_manager_create();
   conversation_manager_set_handler(sw->manager, prv_conversation_manager_handler, sw);
@@ -176,6 +183,13 @@ static void prv_window_load(Window *window) {
 
 static void prv_window_appear(Window *window) {
   SessionWindow *sw = (SessionWindow *)window_get_user_data(window);
+  if (sw->starting_prompt) {
+    conversation_manager_add_input(sw->manager, sw->starting_prompt);
+    sw->query_time = time(NULL);
+    free(sw->starting_prompt);
+    sw->starting_prompt = NULL;
+    sw->dictation_pending = false;
+  }
   if (sw->dictation_pending) {
     sw->dictation_pending = false;
     dictation_session_start(sw->dictation);

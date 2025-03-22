@@ -29,6 +29,7 @@ struct RootWindow {
   Window* window;
   ActionBarLayer* action_bar;
   SessionWindow* session_window;
+  GBitmap* question_icon;
   GBitmap* dictation_icon;
   GBitmap* more_icon;
   TextLayer* time_layer;
@@ -37,6 +38,7 @@ struct RootWindow {
   EventHandle event_handle;
   char time_string[6];
   char version_string[9];
+  char** sample_prompts;
 };
 
 static void prv_window_load(Window* window);
@@ -47,6 +49,9 @@ static void prv_prompt_clicked(ClickRecognizerRef recognizer, void *context);
 static void prv_more_clicked(ClickRecognizerRef recognizer, void* context);
 static void prv_up_clicked(ClickRecognizerRef recognizer, void *context);
 static void prv_time_changed(struct tm *tick_time, TimeUnits time_changed, void *context);
+static int prv_load_suggestions(char*** suggestions);
+static void prv_action_menu_closed(ActionMenu *action_menu, const ActionMenuItem *performed_action, void *context);
+static void prv_suggestion_clicked(ActionMenu *action_menu, const ActionMenuItem *action, void *context);
 
 RootWindow* root_window_create() {
   RootWindow* window = malloc(sizeof(RootWindow));
@@ -58,10 +63,12 @@ RootWindow* root_window_create() {
   });
   GRect bounds = layer_get_bounds(window_get_root_layer(window->window));
   window_set_background_color(window->window, COLOR_FALLBACK(ACCENT_COLOUR, GColorWhite));
+  window->question_icon = gbitmap_create_with_resource(RESOURCE_ID_QUESTION_ICON);
   window->dictation_icon = gbitmap_create_with_resource(RESOURCE_ID_DICTATION_ICON);
   window->more_icon = gbitmap_create_with_resource(RESOURCE_ID_MORE_ICON);
   window->action_bar = action_bar_layer_create();
   action_bar_layer_set_context(window->action_bar, window);
+  action_bar_layer_set_icon(window->action_bar, BUTTON_ID_UP, window->question_icon);
   action_bar_layer_set_icon(window->action_bar, BUTTON_ID_SELECT, window->dictation_icon);
   action_bar_layer_set_icon(window->action_bar, BUTTON_ID_DOWN, window->more_icon);
   window_set_user_data(window->window, window);
@@ -95,6 +102,7 @@ void root_window_push(RootWindow* window) {
 void root_window_destroy(RootWindow* window) {
   window_destroy(window->window);
   action_bar_layer_destroy(window->action_bar);
+  gbitmap_destroy(window->question_icon);
   gbitmap_destroy(window->dictation_icon);
   gbitmap_destroy(window->more_icon);
   text_layer_destroy(window->time_layer);
@@ -154,13 +162,68 @@ static void prv_click_config_provider(void *context) {
 
 static void prv_up_clicked(ClickRecognizerRef recognizer, void *context) {
   RootWindow* rw = context;
-  talking_horse_layer_set_text(rw->talking_horse_layer, "I'm doing thanks! How help?");
+  // talking_horse_layer_set_text(rw->talking_horse_layer, "I'm doing thanks! How help?");
+  char **suggestions;
+  int count = prv_load_suggestions(&suggestions);
+  ActionMenuLevel *level = action_menu_level_create(count);
+  for (int i = 0; i < count; ++i) {
+    action_menu_level_add_action(level, suggestions[i], prv_suggestion_clicked, rw);
+  }
+  ActionMenuConfig config = (ActionMenuConfig) {
+    .root_level = level,
+    .colors = {
+      .background = BRANDED_BACKGROUND_COLOUR,
+      .foreground = gcolor_legible_over(BRANDED_BACKGROUND_COLOUR),
+    },
+    .align = ActionMenuAlignTop,
+    .context = rw,
+    .did_close = prv_action_menu_closed,
+  };
+  rw->sample_prompts = suggestions;
+  action_menu_open(&config);
+}
+
+static void prv_action_menu_closed(ActionMenu *action_menu, const ActionMenuItem *performed_action, void *context) {
+  RootWindow* rw = context;
+  action_menu_hierarchy_destroy(action_menu_get_root_level(action_menu), NULL, NULL);
+  // memory is allocated for sample_prompts[0], but not the rest of the entries - so just free the first one.
+  free(rw->sample_prompts[0]);
+  free(rw->sample_prompts);
+}
+
+static void prv_suggestion_clicked(ActionMenu *action_menu, const ActionMenuItem *action, void *context) {
+  RootWindow* rw = context;
+  char* suggestion = action_menu_item_get_label(action);
+  session_window_push(0, suggestion);
 }
 
 static void prv_prompt_clicked(ClickRecognizerRef recognizer, void *context) {
-  session_window_push(0);
+  session_window_push(0, NULL);
 }
 
 static void prv_more_clicked(ClickRecognizerRef recognizer, void* context) {
   root_menu_window_push();
+}
+
+static int prv_load_suggestions(char*** suggestions) {
+  ResHandle handle = resource_get_handle(RESOURCE_ID_SAMPLE_PROMPTS);
+  size_t size = resource_size(handle);
+  char* buffer = malloc(size);
+  resource_load(handle, (uint8_t*)buffer, size);
+  int count = 1;
+  for (size_t i = 0; i < size; ++i) {
+    if (buffer[i] == '\n') {
+      ++count;
+    }
+  }
+  *suggestions = malloc(sizeof(char*) * count);
+  for (int i = 0; i < count; ++i) {
+    (*suggestions)[i] = buffer;
+    buffer = strchr(buffer, '\n');
+    if (buffer) {
+      *buffer = '\0';
+      ++buffer;
+    }
+  }
+  return count;
 }

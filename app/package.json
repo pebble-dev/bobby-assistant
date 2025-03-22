@@ -104,6 +104,11 @@
           "type": "bitmap"
         },
         {
+          "file": "icons/question_icon.png",
+          "name": "QUESTION_ICON",
+          "type": "bitmap"
+        },
+        {
           "file": "icons/dictation_icon.png",
           "name": "DICTATION_ICON",
           "type": "bitmap"
@@ -216,6 +221,11 @@
         {
           "file": "text/report_blurb.txt",
           "name": "REPORT_BLURB",
+          "type": "raw"
+        },
+        {
+          "file": "text/sample_prompts.txt",
+          "name": "SAMPLE_PROMPTS",
           "type": "raw"
         },
         {
