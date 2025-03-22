@@ -35,6 +35,9 @@ type AlarmInput struct {
 type TimerInput struct {
 	// If setting a timer, the number of seconds to set the timer for. Required for timers.
 	Duration int `json:"duration_seconds"`
+	// These aren't exposed, but sometimes the model decides to use them anyway.
+	DurationMinutes int `json:"duration_minutes"`
+	DurationHours   int `json:"duration_hours"`
 	// An optional name for the alarm or timer.
 	Name string `json:"name"`
 }
@@ -234,8 +237,12 @@ func timerImpl(ctx context.Context, quotaTracker *quota.Tracker, args interface{
 	}
 	input := args.(*TimerInput)
 	log.Println("Asking watch to set an alarm...")
+	duration := input.Duration + input.DurationMinutes*60 + input.DurationHours*3600
+	if duration == 0 {
+		return Error{Error: "You need to pass the timer duration in seconds to duration_seconds (e.g. duration_seconds=300 for a 5 minute timer)."}
+	}
 	requests <- map[string]interface{}{
-		"duration": input.Duration,
+		"duration": duration,
 		"isTimer":  true,
 		"name":     input.Name,
 		"action":   "set_alarm",
