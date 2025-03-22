@@ -30,8 +30,8 @@
 static RootWindow* s_root_window = NULL;
 
 static void prv_init(void) {
-  settings_init();
   version_store_current();
+  settings_init();
   conversation_manager_init();
   events_app_message_open();
   alarm_manager_init();

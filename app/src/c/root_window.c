@@ -86,6 +86,10 @@ RootWindow* root_window_create() {
   window->talking_horse_layer = talking_horse_layer_create(GRect(0, 56, 144 - ACTION_BAR_WIDTH, 112));
   layer_add_child(window_get_root_layer(window->window), (Layer *)window->talking_horse_layer);
   window->talking_horse_overridden = false;
+  if (version_is_updated() || rand() < RAND_MAX / 10) {
+    window->talking_horse_overridden = true;
+    talking_horse_layer_set_text(window->talking_horse_layer, "Try holding select in chat!");
+  }
 
   VersionInfo version_info = version_get_current();
   snprintf(window->version_string, sizeof(window->version_string), "v%d.%d", version_info.major, version_info.minor);

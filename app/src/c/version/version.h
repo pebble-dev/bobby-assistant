@@ -26,6 +26,7 @@ typedef struct __attribute__((__packed__)) {
 
 void version_store_current();
 bool version_is_first_launch();
+bool version_is_updated();
 VersionInfo version_get_last_launch();
 VersionInfo version_get_current();
 int version_info_compare(VersionInfo a, VersionInfo b);

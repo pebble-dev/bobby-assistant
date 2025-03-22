@@ -23,10 +23,15 @@
 // The standard pebble app build process injects this structure.
 extern const PebbleProcessInfo __pbl_app_info;
 
+static bool s_is_first_launch = false;
+static bool s_is_update = false;
+
 void version_store_current() {
     VersionInfo version_info = version_get_current();
     VersionInfo last_version = version_get_last_launch();
+    s_is_first_launch = last_version.major == 0 && last_version.minor == 0;
     if (version_info_compare(version_info, last_version) != 0) {
+        s_is_update = true;
         int status = persist_write_data(PERSIST_KEY_VERSION, &version_info, sizeof(VersionInfo));
         if (status < 0) {
             APP_LOG(APP_LOG_LEVEL_ERROR, "Failed to write version info: %d", status);
@@ -39,7 +44,11 @@ void version_store_current() {
 }
 
 bool version_is_first_launch() {
-    return persist_exists(PERSIST_KEY_VERSION);
+    return s_is_first_launch;
+}
+
+bool version_is_updated() {
+    return s_is_update;
 }
 
 VersionInfo version_get_last_launch() {
