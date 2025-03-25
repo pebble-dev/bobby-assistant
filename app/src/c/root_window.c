@@ -156,6 +156,9 @@ static void prv_window_disappear(Window* window) {
 static void prv_app_message_handler(DictionaryIterator *iter, void *context) {
   RootWindow* rw = context;
   Tuple *tuple = dict_find(iter, MESSAGE_KEY_COBBLE_WARNING);
+  if (!tuple) {
+    return;
+  }
   if (tuple->value->int32 == 1) {
     rw->talking_horse_overridden = true;
     talking_horse_layer_set_text(rw->talking_horse_layer, "Cobble has many Bobby bugs.");
