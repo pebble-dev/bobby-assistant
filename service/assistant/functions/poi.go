@@ -37,6 +37,7 @@ type POI struct {
 	Address      string
 	Categories   []string
 	OpeningHours map[string]string
+	Distance     int `json:"DistanceMeters,omitempty"`
 }
 
 type POIResponse struct {
@@ -121,6 +122,7 @@ func searchPoi(ctx context.Context, quotaTracker *quota.Tracker, args interface{
 			Address:      feature.Properties.Address,
 			Categories:   feature.Properties.POICategory,
 			OpeningHours: make(map[string]string),
+			Distance:     int(feature.Properties.Distance),
 		}
 		days := []string{"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"}
 		for _, period := range feature.Properties.Metadata.OpenHours.Periods {

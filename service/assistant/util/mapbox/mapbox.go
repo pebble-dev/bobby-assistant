@@ -30,7 +30,7 @@ type Properties struct {
 	Address     string   `json:"address"`
 	POICategory []string `json:"poi_category"`
 	Metadata    Metadata `json:"metadata"`
-	Distance    int      `json:"distance"`
+	Distance    float64  `json:"distance"`
 }
 
 type Metadata struct {
