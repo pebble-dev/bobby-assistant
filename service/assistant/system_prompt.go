@@ -45,12 +45,15 @@ func generateLanguageSentence(ctx context.Context) string {
 		"imperial": "imperial units",
 		"metric":   "metric units",
 		"uk":       "UK hybrid units (temperature in Celsius, wind speed in mph, etc.)",
-		"both":     "both imperial and metric units",
+		"both":     "both imperial and metric units (metric first, always followed by imperial in parentheses)",
 	}
 	units = unitMap[units]
 	if units != "" {
-		sentence += "Give measurements in " + units + ". Always specify the unit for temperature measurements."
+		sentence += "Give measurements in " + units + ". Always specify the unit for temperature measurements. Convert units to the user's preference when nececessary. "
+	} else if query.LocationFromContext(ctx) != nil {
+		sentence += "Give measurements in the common units for the user's location. Always specify the unit for temperature measurements. Convert units to the common unit for the location when nececessary. "
 	}
+	sentence += "Format numbers with commas and/or periods as appropriate for the user's language. "
 	var language = util.GetLanguageName(query.PreferredLanguageFromContext(ctx))
 	if language != "" {
 		sentence += "Respond in " + language + ". "
