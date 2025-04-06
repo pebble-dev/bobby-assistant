@@ -107,3 +107,49 @@ func (q *Tracker) ChargeCredits(ctx context.Context, credits int) error {
 	log.Printf("Charging %d credits to user %d. Total used: %d\n", credits, q.userId, used)
 	return err
 }
+
+func (q *Tracker) ChargeUserOrGlobalQuota(ctx context.Context, quotaType string, globalMax int, userCredits int) error {
+	ctx, span := beeline.StartSpan(ctx, "charge_user_or_global_quota")
+	defer span.Send()
+	// Try charging the global quota first
+	charged, err := q.ChargeGlobalQuota(ctx, quotaType, globalMax)
+	if err != nil {
+		return err
+	}
+	if charged {
+		log.Printf("Charged against global quota %s\n", quotaType)
+		return nil
+	}
+	// Charge the user for the function call.
+	err = q.ChargeCredits(ctx, userCredits)
+	if err != nil {
+		span.AddField("error", err)
+		return err
+	}
+	return nil
+}
+
+// MaybeChargeGlobalQuota charges a single point against a global monthly quota and returns true, if the quota is below
+// max; otherwise still charges it but returns false.
+func (q *Tracker) ChargeGlobalQuota(ctx context.Context, quotaType string, max int) (bool, error) {
+	ctx, span := beeline.StartSpan(ctx, "maybe_charge_global_quota")
+	defer span.Send()
+	// The quota key is per month, so we use the current month and year as a prefix.
+	now := time.Now()
+	quotaKey := fmt.Sprintf("global_quota:%02d%02d:%s", now.Year()%100, now.Month(), quotaType)
+	result := q.redis.Incr(ctx, quotaKey)
+	if result.Err() != nil {
+		span.AddField("error", result.Err())
+		return false, result.Err()
+	}
+	// If the quota is 1 (i.e. we are the first to set it), set the expiration to 45 days so it eventually cleans up.
+	if result.Val() == 1 {
+		_, err := q.redis.Expire(ctx, quotaKey, 45*24*time.Hour).Result()
+		if err != nil {
+			span.AddField("error", result.Err())
+			return false, err
+		}
+	}
+	// Return true if we're at or below the max.
+	return result.Val() <= int64(max), nil
+}

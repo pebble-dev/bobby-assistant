@@ -96,6 +96,14 @@ func searchPoiThought(args interface{}) string {
 	return fmt.Sprintf("Looking for %s nearby...", poiQuery.Query)
 }
 
+func chargeQuota(ctx context.Context, quotaTracker *quota.Tracker) {
+	// Try charging a global quota of 1,000 calls first.
+	// Charge the user for the function call.
+	if err := quotaTracker.ChargeCredits(ctx, quota.PoiSearchCredits); err != nil {
+		log.Printf("Failed to charge credits: %v", err)
+	}
+}
+
 func searchPoi(ctx context.Context, quotaTracker *quota.Tracker, args interface{}) interface{} {
 	ctx, span := beeline.StartSpan(ctx, "search_poi")
 	defer span.Send()
@@ -120,7 +128,11 @@ func searchPoi(ctx context.Context, quotaTracker *quota.Tracker, args interface{
 		return Error{Error: "Error creating places service: " + err.Error()}
 	}
 	log.Printf("Searching for POIs matching %q", poiQuery.Query)
-	_ = quotaTracker.ChargeCredits(ctx, quota.PoiSearchCredits)
+	err = quotaTracker.ChargeUserOrGlobalQuota(ctx, "gplaces_text_search", 1000, quota.PoiSearchCredits)
+	if err != nil {
+		span.AddField("error", err)
+		return Error{Error: "Error charging quota: " + err.Error()}
+	}
 	results, err := placeService.Places.SearchText(&places.GoogleMapsPlacesV1SearchTextRequest{
 		LocationBias: &places.GoogleMapsPlacesV1SearchTextRequestLocationBias{
 			Circle: &places.GoogleMapsPlacesV1Circle{
