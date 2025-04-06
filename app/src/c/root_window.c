@@ -169,10 +169,11 @@ static void prv_app_message_handler(DictionaryIterator *iter, void *context) {
 
 static void prv_time_changed(struct tm *tick_time, TimeUnits time_changed, void *context) {
   RootWindow* rw = context;
+  format_time(rw->time_string, sizeof(rw->time_string), tick_time);
+  text_layer_set_text(rw->time_layer, rw->time_string);
   if (rw->talking_horse_overridden) {
     return;
   }
-  format_time(rw->time_string, sizeof(rw->time_string), tick_time);
   if (tick_time->tm_hour >= 6 && tick_time->tm_hour < 12) {
     talking_horse_layer_set_text(rw->talking_horse_layer, "Good morning!");
   } else if (tick_time->tm_hour >= 12 && tick_time->tm_hour < 18) {
@@ -182,7 +183,6 @@ static void prv_time_changed(struct tm *tick_time, TimeUnits time_changed, void 
   } else {
     talking_horse_layer_set_text(rw->talking_horse_layer, "Hey there, night owl!");
   }
-  text_layer_set_text(rw->time_layer, rw->time_string);
 }
 
 static void prv_click_config_provider(void *context) {
