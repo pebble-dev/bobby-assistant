@@ -21,27 +21,37 @@ import (
 	"github.com/pebble-dev/bobby-assistant/service/assistant/query"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/util/mapbox"
+	"github.com/umahmood/haversine"
+	"google.golang.org/api/places/v1"
 	"google.golang.org/genai"
 	"log"
-	"net/url"
 	"strings"
 )
 
 type POIQuery struct {
-	Location string
-	Query    string
+	Location     string
+	Query        string
+	LanguageCode string
+	Units        string
 }
 
 type POI struct {
-	Name         string
-	Address      string
-	Categories   []string
-	OpeningHours map[string]string
-	Distance     int `json:"DistanceMeters,omitempty"`
+	Name               string
+	Address            string
+	Categories         []string
+	OpeningHours       []string
+	CurrentlyOpen      bool
+	PhoneNumber        string
+	PriceLevel         string
+	StarRating         float64
+	RatingCount        int64
+	DistanceKilometers float64 `json:"DistanceKilometers,omitempty"`
+	DistanceMiles      float64 `json:"DistanceMiles,omitempty"`
 }
 
 type POIResponse struct {
 	Results []POI
+	Warning string `json:"CriticalRequirement,omitempty"`
 }
 
 func init() {
@@ -63,8 +73,12 @@ func init() {
 						Description: "The name of the location to search near. If not provided, the user's current location will be used. Assume that no location should be provided unless explicitly requested: not providing one results in more accurate answers.",
 						Nullable:    true,
 					},
+					"languageCode": {
+						Type:        genai.TypeString,
+						Description: "The language code (e.g. `es` or `pt-BR`) to use for the search results.",
+					},
 				},
-				Required: []string{"query"},
+				Required: []string{"query", "languageCode"},
 			},
 		},
 		Fn:        searchPoi,
@@ -87,7 +101,6 @@ func searchPoi(ctx context.Context, quotaTracker *quota.Tracker, args interface{
 	defer span.Send()
 	poiQuery := args.(*POIQuery)
 	span.AddField("query", poiQuery.Query)
-	qs := url.Values{}
 	location := query.LocationFromContext(ctx)
 	if poiQuery.Location != "" {
 		coords, err := mapbox.GeocodeWithContext(ctx, poiQuery.Location)
@@ -100,43 +113,85 @@ func searchPoi(ctx context.Context, quotaTracker *quota.Tracker, args interface{
 			Lat: coords.Lat,
 		}
 	}
-	qs.Set("q", poiQuery.Query)
-	if location != nil {
-		qs.Set("proximity", fmt.Sprintf("%f,%f", location.Lon, location.Lat))
-	}
 
+	placeService, err := places.NewService(ctx)
+	if err != nil {
+		span.AddField("error", err)
+		return Error{Error: "Error creating places service: " + err.Error()}
+	}
 	log.Printf("Searching for POIs matching %q", poiQuery.Query)
 	_ = quotaTracker.ChargeCredits(ctx, quota.PoiSearchCredits)
-	results, err := mapbox.SearchBoxRequest(ctx, qs)
+	results, err := placeService.Places.SearchText(&places.GoogleMapsPlacesV1SearchTextRequest{
+		LocationBias: &places.GoogleMapsPlacesV1SearchTextRequestLocationBias{
+			Circle: &places.GoogleMapsPlacesV1Circle{
+				Center: &places.GoogleTypeLatLng{
+					Latitude:  location.Lat,
+					Longitude: location.Lon,
+				},
+				// I'm not sure this radius actually does anything.
+				Radius: 20000,
+			},
+		},
+		TextQuery:    poiQuery.Query,
+		PageSize:     10,
+		LanguageCode: poiQuery.LanguageCode,
+	}).Fields(
+		"places.id", "places.accessibilityOptions", "places.businessStatus", "places.containingPlaces",
+		"places.displayName", "places.location", "places.shortFormattedAddress", "places.subDestinations",
+		"places.types", "places.currentOpeningHours", "places.currentSecondaryOpeningHours",
+		"places.nationalPhoneNumber", "places.priceLevel", "places.priceRange", "places.rating",
+		"places.userRatingCount", "places.attributions",
+	).Do()
+
 	if err != nil {
 		span.AddField("error", err)
 		log.Printf("Failed to search for POIs: %v", err)
-		return Error{Error: err.Error()}
+		return Error{Error: "Error searching for POIs: " + err.Error()}
 	}
-	log.Printf("Found %d POIs", len(results.Features))
+
+	log.Printf("Found %d POIs", len(results.Places))
 
 	var pois []POI
-	for _, feature := range results.Features {
+	var attributions map[string]any
+	for _, place := range results.Places {
+		distMiles, distKm := haversine.Distance(
+			haversine.Coord{location.Lat, location.Lon},
+			haversine.Coord{place.Location.Latitude, place.Location.Longitude})
 		poi := POI{
-			Name:         feature.Properties.Name,
-			Address:      feature.Properties.Address,
-			Categories:   feature.Properties.POICategory,
-			OpeningHours: make(map[string]string),
-			Distance:     int(feature.Properties.Distance),
-		}
-		days := []string{"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"}
-		for _, period := range feature.Properties.Metadata.OpenHours.Periods {
-			poi.OpeningHours[days[period.Open.Day]] = fmt.Sprintf("%s - %s", period.Open.Time, period.Close.Time)
-		}
-		for _, day := range days {
-			if _, ok := poi.OpeningHours[day]; !ok {
-				poi.OpeningHours[day] = "Closed"
-			}
+			Name:               place.DisplayName.Text,
+			Address:            place.ShortFormattedAddress,
+			Categories:         place.Types,
+			OpeningHours:       place.CurrentOpeningHours.WeekdayDescriptions,
+			CurrentlyOpen:      place.CurrentOpeningHours.OpenNow,
+			PhoneNumber:        place.NationalPhoneNumber,
+			PriceLevel:         place.PriceLevel,
+			StarRating:         place.Rating,
+			RatingCount:        place.UserRatingCount,
+			DistanceMiles:      distMiles,
+			DistanceKilometers: distKm,
 		}
 		pois = append(pois, poi)
+		if len(place.Attributions) > 0 {
+			for _, attribution := range place.Attributions {
+				attributions[attribution.Provider] = struct{}{}
+			}
+		}
+	}
+
+	var attributionList []string
+	for provider := range attributions {
+		attributionList = append(attributionList, provider)
+	}
+
+	attributionText := ""
+	if len(attributionList) > 0 {
+		// I do not think I would *actually* be sued if the credit were omitted, but telling the model that it will be
+		// causes the model to reliably include the attribution.
+		attributionText = fmt.Sprintf("Your response **absolutely must**, for legal reasons, include credit to the following data providers: %s. Failure to include this will result in being sued.", strings.Join(attributionList, ", "))
 	}
 
 	return &POIResponse{
 		Results: pois,
+		Warning: attributionText,
 	}
 }
