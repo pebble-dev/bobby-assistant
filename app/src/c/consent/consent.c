@@ -39,6 +39,7 @@ typedef struct {
   BitmapLayer* select_indicator_layer;
   ActionMenu* action_menu;
   int stage;
+  int expected_app_response;
   EventHandle app_message_handle;
 } ConsentWindowData;
 
@@ -242,6 +243,9 @@ static void prv_present_consent_menu(Window* window) {
 }
 
 static void prv_consent_menu_select_callback(ActionMenu *action_menu, const ActionMenuItem *action, void *context) {
+  Window *window = context;
+  ConsentWindowData *data = window_get_user_data(window);
+  data->expected_app_response = STAGE_LOCATION_CONSENT;
   bool choice = (int)action_menu_item_get_action_data(action);
   action_menu_freeze(action_menu);
   // We need to inform the phone of the user's choice.
@@ -254,10 +258,15 @@ static void prv_consent_menu_select_callback(ActionMenu *action_menu, const Acti
 static void prv_app_message_handler(DictionaryIterator *iter, void *context) {
   Window* window = context;
   ConsentWindowData* data = window_get_user_data(window);
+  if (data->expected_app_response != STAGE_LOCATION_CONSENT) {
+    APP_LOG(APP_LOG_LEVEL_WARNING, "Ignoring unexpected location consent response.");
+    return;
+  }
   Tuple *tuple = dict_find(iter, MESSAGE_KEY_LOCATION_ENABLED);
   if (tuple == NULL) {
     return;
   }
+  data->expected_app_response = 0;
   APP_LOG(APP_LOG_LEVEL_INFO, "Got location enabled reply, dismissing dialog.");
   events_app_message_unsubscribe(data->app_message_handle);
   bool location_enabled = tuple->value->int16;
