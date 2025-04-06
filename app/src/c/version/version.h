@@ -24,7 +24,7 @@ typedef struct __attribute__((__packed__)) {
     uint8_t minor;
 } VersionInfo;
 
-void version_store_current();
+void version_init();
 bool version_is_first_launch();
 bool version_is_updated();
 VersionInfo version_get_last_launch();

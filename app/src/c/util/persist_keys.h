@@ -20,7 +20,7 @@
 // These keys are stored centrally so we can avoid accidental collisions.
 // Remember: these numbers can *never* be changed.
 
-// next key: 12
+// next key: 13
 
 // We write the alarm count twice - once before doing any work, and once after.
 // If they disagree we assume the lower number is correct.
@@ -33,6 +33,9 @@
 
 // Store whether we have successfully requested location consent.
 #define PERSIST_KEY_LOCATION_ENABLED 6
+
+// Store whether the user has accepted the consents
+#define PERSIST_KEY_CONSENTS_COMPLETED 12
 
 // Contains the version we were running the last time we were launched
 #define PERSIST_KEY_VERSION 7

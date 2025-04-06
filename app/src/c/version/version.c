@@ -25,18 +25,21 @@ extern const PebbleProcessInfo __pbl_app_info;
 
 static bool s_is_first_launch = false;
 static bool s_is_update = false;
+static VersionInfo s_last_launch;
 
-void version_store_current() {
+VersionInfo prv_read_last_launch();
+
+void version_init() {
     VersionInfo version_info = version_get_current();
-    VersionInfo last_version = version_get_last_launch();
-    s_is_first_launch = last_version.major == 0 && last_version.minor == 0;
-    if (version_info_compare(version_info, last_version) != 0) {
+    s_last_launch = prv_read_last_launch();
+    s_is_first_launch = s_last_launch.major == 0 && s_last_launch.minor == 0;
+    if (version_info_compare(version_info, s_last_launch) != 0) {
         s_is_update = true;
         int status = persist_write_data(PERSIST_KEY_VERSION, &version_info, sizeof(VersionInfo));
         if (status < 0) {
             APP_LOG(APP_LOG_LEVEL_ERROR, "Failed to write version info: %d", status);
         } else {
-            APP_LOG(APP_LOG_LEVEL_INFO, "Current version (v%d.%d) stored (previous: v%d.%d)", version_info.major, version_info.minor, last_version.major, last_version.minor);
+            APP_LOG(APP_LOG_LEVEL_INFO, "Current version (v%d.%d) stored (previous: v%d.%d)", version_info.major, version_info.minor, s_last_launch.major, s_last_launch.minor);
         }
     } else {
         APP_LOG(APP_LOG_LEVEL_DEBUG, "Version (v%d.%d) unchanged since last launch.", version_info.major, version_info.minor);
@@ -52,16 +55,7 @@ bool version_is_updated() {
 }
 
 VersionInfo version_get_last_launch() {
-    VersionInfo version_info;
-    int status = persist_read_data(PERSIST_KEY_VERSION, &version_info, sizeof(VersionInfo));
-    if (status < 0) {
-        APP_LOG(APP_LOG_LEVEL_WARNING, "Failed to read version info: %d", status);
-        return (VersionInfo) {
-            .major = 0,
-            .minor = 0,
-        };
-    }
-    return version_info;
+    return s_last_launch;
 }
 
 VersionInfo version_get_current() {
@@ -85,4 +79,17 @@ int version_info_compare(VersionInfo a, VersionInfo b) {
         return 1;
     }
     return 0;
+}
+
+VersionInfo prv_read_last_launch() {
+    VersionInfo version_info;
+    int status = persist_read_data(PERSIST_KEY_VERSION, &version_info, sizeof(VersionInfo));
+    if (status < 0) {
+        APP_LOG(APP_LOG_LEVEL_WARNING, "Failed to read version info: %d", status);
+        return (VersionInfo) {
+            .major = 0,
+            .minor = 0,
+        };
+    }
+    return version_info;
 }

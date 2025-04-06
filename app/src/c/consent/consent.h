@@ -21,5 +21,6 @@
 
 bool must_present_consent();
 void consent_window_push();
+void consent_migrate();
 
 #endif //APP_CONSENT_H

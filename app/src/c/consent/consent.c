@@ -17,10 +17,12 @@
 #include "consent.h"
 #include "../util/persist_keys.h"
 #include "../util/style.h"
+#include "../version/version.h"
 #include "../root_window.h"
 
 #include <pebble.h>
 #include <pebble-events/pebble-events.h>
+
 
 #define STAGE_LLM_WARNING 0
 #define STAGE_GEMINI_CONSENT 1
@@ -51,6 +53,7 @@ static void prv_present_consent_menu(Window* window);
 static void prv_consent_menu_select_callback(ActionMenu *action_menu, const ActionMenuItem *action, void *context);
 static void prv_action_menu_close(ActionMenu* action_menu, const ActionMenuItem* item, void* context);
 static void prv_app_message_handler(DictionaryIterator *iter, void *context);
+static void prv_mark_consents_complete();
 
 void consent_window_push() {
   Window* window = window_create();
@@ -66,7 +69,24 @@ void consent_window_push() {
 }
 
 bool must_present_consent() {
-  return !persist_exists(PERSIST_KEY_LOCATION_ENABLED);
+  return persist_read_int(PERSIST_KEY_CONSENTS_COMPLETED) < 1;
+}
+
+void consent_migrate() {
+  if (version_is_updated() && !version_is_first_launch()) {
+    // If we're updating from version 1.1 or older, consent agreement was implied by LOCATION_ENABLED being set
+    // (either true or false).
+    if (version_info_compare(version_get_last_launch(), (VersionInfo) {1, 1}) <= 0) {
+      APP_LOG(APP_LOG_LEVEL_INFO, "Performing consent migration from version 1.1.");
+      // If the location enabled state is set, that's equivalent to consent agreement version 1.
+      if (persist_exists(PERSIST_KEY_LOCATION_ENABLED)) {
+        APP_LOG(APP_LOG_LEVEL_INFO, "Marking consent as 1.");;
+        persist_write_int(PERSIST_KEY_CONSENTS_COMPLETED, 1);
+      } else {
+        APP_LOG(APP_LOG_LEVEL_INFO, "Not marking consent.");;
+      }
+    }
+  }
 }
 
 static void prv_window_load(Window *window) {
@@ -242,6 +262,7 @@ static void prv_app_message_handler(DictionaryIterator *iter, void *context) {
   events_app_message_unsubscribe(data->app_message_handle);
   bool location_enabled = tuple->value->int16;
   persist_write_bool(PERSIST_KEY_LOCATION_ENABLED, location_enabled);
+  prv_mark_consents_complete();
   RootWindow *root_window = root_window_create();
   action_menu_set_result_window(data->action_menu, root_window_get_window(root_window));
   action_menu_close(data->action_menu, true);
@@ -250,4 +271,8 @@ static void prv_app_message_handler(DictionaryIterator *iter, void *context) {
 
 static void prv_action_menu_close(ActionMenu* action_menu, const ActionMenuItem* item, void* context) {
   action_menu_hierarchy_destroy(action_menu_get_root_level(action_menu), NULL, NULL);
+}
+
+static void prv_mark_consents_complete() {
+  persist_write_int(PERSIST_KEY_CONSENTS_COMPLETED, 1);
 }
