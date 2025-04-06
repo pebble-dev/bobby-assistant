@@ -5,9 +5,6 @@ AI processing is provided by Google's Gemini under the terms at https://ai.googl
 ## Weather
 Weather data provided by The Weather Channel.
 
-## POIs
-© 2025 Mapbox and its suppliers. All rights reserved. Use of this data is subject to the Mapbox Terms of Service. (https://www.mapbox.com/about/maps/)
-
 ## Wikipedia
 Some grounding information is fetched from Wikipedia during request processing. Wikipedia content is available under the Creative Commons Attribution-ShareAlike License.
 
