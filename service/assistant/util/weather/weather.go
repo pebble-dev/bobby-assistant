@@ -34,6 +34,26 @@ func mapUnit(unit string) (string, error) {
 	return "", fmt.Errorf("unit must be one of 'imperial', 'metric', or 'uk hybrid'; not %q", unit)
 }
 
+func mapWindSpeedUnit(unit string) string {
+	switch unit {
+	case "e", "h":
+		return "mph"
+	case "m":
+		return "km/h"
+	}
+	return ""
+}
+
+func mapTemperatureUnit(unit string) string {
+	switch unit {
+	case "e":
+		return "°F"
+	case "m", "h":
+		return "°C"
+	}
+	return ""
+}
+
 func GetDailyForecast(ctx context.Context, lat, lon float64, units string) (*Forecast, error) {
 	units, err := mapUnit(units)
 	if err != nil {
@@ -52,6 +72,8 @@ func GetDailyForecast(ctx context.Context, lat, lon float64, units string) (*For
 	if err := json.NewDecoder(resp.Body).Decode(&forecast); err != nil {
 		return nil, fmt.Errorf("error decoding response: %w", err)
 	}
+	forecast.WindSpeedUnit = mapWindSpeedUnit(units)
+	forecast.TemperatureUnit = mapTemperatureUnit(units)
 	return &forecast, nil
 }
 
@@ -73,6 +95,8 @@ func GetCurrentConditions(ctx context.Context, lat, lon float64, units string) (
 	if err := json.NewDecoder(resp.Body).Decode(&conditions); err != nil {
 		return nil, fmt.Errorf("error decoding response: %w", err)
 	}
+	conditions.WindSpeedUnit = mapWindSpeedUnit(units)
+	conditions.TemperatureUnit = mapTemperatureUnit(units)
 	return &conditions, nil
 }
 
@@ -94,6 +118,7 @@ func GetHourlyForecast(ctx context.Context, lat, lon float64, units string) (*Ho
 	if err := json.NewDecoder(resp.Body).Decode(&hourly); err != nil {
 		return nil, fmt.Errorf("error decoding response: %w", err)
 	}
+	hourly.TemperatureUnit = mapTemperatureUnit(units)
 	return &hourly, nil
 }
 
@@ -112,6 +137,8 @@ type Forecast struct {
 	Qpf                       []float32         `json:"qpf"`
 	QpfSnow                   []float32         `json:"qpfSnow"`
 	DayParts                  []ForecastDayPart `json:"daypart"`
+	WindSpeedUnit             string            `json:"windSpeedUnit"`
+	TemperatureUnit           string            `json:"temperatureUnit"`
 }
 
 type ForecastDayPart struct {
@@ -160,20 +187,23 @@ type CurrentConditions struct {
 	TemperatureMax24Hour  int     `json:"temperatureMax24Hour"`
 	TemperatureMin24Hour  int     `json:"temperatureMin24Hour"`
 	TemperatureWindChill  int     `json:"temperatureWindChill"`
+	TemperatureUnit       string  `json:"temperatureUnit"`
 	UVIndex               int     `json:"uvIndex"`
 	Visibility            float32 `json:"visibility"`
 	WindDirectionCardinal string  `json:"windDirectionCardinal"`
 	WindSpeed             int     `json:"windSpeed"`
+	WindSpeedUnit         string  `json:"windSpeedUnit"`
 	WindGust              int     `json:"windGust"`
 	Description           string  `json:"wxPhraseLong"`
 	IconCode              int     `json:"iconCode"`
 }
 
 type HourlyForecast struct {
-	WxPhraseLong   []string `json:"wxPhraseLong"`
-	Temperature    []int    `json:"temperature"`
-	PrecipChance   []int    `json:"precipChance"`
-	PrecipType     []string `json:"precipType"`
-	ValidTimeLocal []string `json:"validTimeLocal"`
-	UVIndex        []int    `json:"uvIndex"`
+	WxPhraseLong    []string `json:"wxPhraseLong"`
+	Temperature     []int    `json:"temperature"`
+	PrecipChance    []int    `json:"precipChance"`
+	PrecipType      []string `json:"precipType"`
+	ValidTimeLocal  []string `json:"validTimeLocal"`
+	UVIndex         []int    `json:"uvIndex"`
+	TemperatureUnit string   `json:"temperatureUnit"`
 }
