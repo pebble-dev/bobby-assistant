@@ -173,14 +173,16 @@ func searchPoi(ctx context.Context, quotaTracker *quota.Tracker, args interface{
 			Name:               place.DisplayName.Text,
 			Address:            place.ShortFormattedAddress,
 			Categories:         place.Types,
-			OpeningHours:       place.CurrentOpeningHours.WeekdayDescriptions,
-			CurrentlyOpen:      place.CurrentOpeningHours.OpenNow,
 			PhoneNumber:        place.NationalPhoneNumber,
 			PriceLevel:         place.PriceLevel,
 			StarRating:         place.Rating,
 			RatingCount:        place.UserRatingCount,
 			DistanceMiles:      distMiles,
 			DistanceKilometers: distKm,
+		}
+		if place.CurrentOpeningHours != nil {
+			poi.OpeningHours = place.CurrentOpeningHours.WeekdayDescriptions
+			poi.CurrentlyOpen = place.CurrentOpeningHours.OpenNow
 		}
 		pois = append(pois, poi)
 		if len(place.Attributions) > 0 {
