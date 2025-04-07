@@ -96,14 +96,6 @@ func searchPoiThought(args interface{}) string {
 	return fmt.Sprintf("Looking for %s nearby...", poiQuery.Query)
 }
 
-func chargeQuota(ctx context.Context, quotaTracker *quota.Tracker) {
-	// Try charging a global quota of 1,000 calls first.
-	// Charge the user for the function call.
-	if err := quotaTracker.ChargeCredits(ctx, quota.PoiSearchCredits); err != nil {
-		log.Printf("Failed to charge credits: %v", err)
-	}
-}
-
 func searchPoi(ctx context.Context, quotaTracker *quota.Tracker, args interface{}) interface{} {
 	ctx, span := beeline.StartSpan(ctx, "search_poi")
 	defer span.Send()
