@@ -25,7 +25,7 @@ var valueRegexp = regexp.MustCompile(`(?m)^\s*".+?"\s*:\s*(.+?),?\s*$`)
 // FixupBrokenJson takes a string that is supposed to be JSON, but erroneously contains expressions where there
 // should be numbers, and evaluates those expressions.
 func FixupBrokenJson(j string) string {
-	var throwaway interface{}
+	var throwaway any
 	if err := json.Unmarshal([]byte(j), &throwaway); err == nil {
 		return j
 	}

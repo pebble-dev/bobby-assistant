@@ -29,9 +29,9 @@ import (
 	"nhooyr.io/websocket"
 )
 
-type ToolFunction func(context.Context, *quota.Tracker, interface{}) interface{}
-type CallbackFunction func(context.Context, *quota.Tracker, interface{}, chan<- map[string]interface{}, <-chan map[string]interface{}) interface{}
-type ThoughtFunction func(interface{}) string
+type ToolFunction func(context.Context, *quota.Tracker, any) any
+type CallbackFunction func(context.Context, *quota.Tracker, any, chan<- map[string]any, <-chan map[string]any) any
+type ThoughtFunction func(any) string
 
 const MaxResponseSize = 20000
 
@@ -50,7 +50,7 @@ type Registration struct {
 	RedactOutputInChatHistory bool
 	// An instance of the object used to hold the function's parameters. This is what will be passed to
 	// either Fn or Cb, and it will also be processed to pass to the model - including the comments.
-	InputType interface{}
+	InputType any
 	// A capability the device must report for this function to be provided.
 	Capability string
 	// A capability the device must *not* report for this function to be provided.
@@ -97,7 +97,7 @@ func CallFunction(ctx context.Context, qt *quota.Tracker, fn, args string) (stri
 	if _, ok := functionMap[fn]; !ok || functionMap[fn].Fn == nil {
 		return "", fmt.Errorf("function %q not found", fn)
 	}
-	var result interface{}
+	var result any
 	in := reflect.New(reflect.TypeOf(functionMap[fn].InputType)).Interface()
 	if err := json.Unmarshal([]byte(FixupBrokenJson(args)), in); err != nil {
 		result = Error{"Invalid JSON: " + err.Error()}
@@ -123,12 +123,12 @@ func CallAction(ctx context.Context, qt *quota.Tracker, fn, args string, ws *web
 		return "", fmt.Errorf("function %q not found", fn)
 	}
 	a := reflect.New(reflect.TypeOf(functionMap[fn].InputType)).Interface()
-	var result interface{}
+	var result any
 	if err := json.Unmarshal([]byte(FixupBrokenJson(args)), &a); err != nil {
 		result = Error{"Invalid JSON: " + err.Error()}
 	} else {
-		reqChan := make(chan map[string]interface{})
-		respChan := make(chan map[string]interface{})
+		reqChan := make(chan map[string]any)
+		respChan := make(chan map[string]any)
 		defer close(reqChan)
 		defer close(respChan)
 		ctxTimeout, cancel := context.WithTimeout(ctx, 10*time.Second)
@@ -138,7 +138,7 @@ func CallAction(ctx context.Context, qt *quota.Tracker, fn, args string, ws *web
 				s, err := json.Marshal(req)
 				if err != nil {
 					log.Printf("unable to marshal request: %v", err)
-					respChan <- map[string]interface{}{
+					respChan <- map[string]any{
 						"status": "error",
 						"error":  "unable to marshal request: " + err.Error(),
 					}
@@ -147,7 +147,7 @@ func CallAction(ctx context.Context, qt *quota.Tracker, fn, args string, ws *web
 				log.Println("Sending request to watch...")
 				if err := ws.Write(ctxTimeout, websocket.MessageText, append([]byte("a"), s...)); err != nil {
 					log.Printf("unable to write request: %v", err)
-					respChan <- map[string]interface{}{
+					respChan <- map[string]any{
 						"status": "error",
 						"error":  "unable to write request: " + err.Error(),
 					}
@@ -158,7 +158,7 @@ func CallAction(ctx context.Context, qt *quota.Tracker, fn, args string, ws *web
 				log.Printf("response read: %v", string(respBytes))
 				if err != nil {
 					log.Printf("unable to read response: %v", err)
-					respChan <- map[string]interface{}{
+					respChan <- map[string]any{
 						"status": "error",
 						"error":  "unable to read response: " + err.Error(),
 					}
@@ -166,16 +166,16 @@ func CallAction(ctx context.Context, qt *quota.Tracker, fn, args string, ws *web
 				}
 				if messageType != websocket.MessageText {
 					log.Printf("unexpected message type: %v", messageType)
-					respChan <- map[string]interface{}{
+					respChan <- map[string]any{
 						"status": "error",
 						"error":  "unable to read response: " + err.Error(),
 					}
 					continue
 				}
-				var resp map[string]interface{}
+				var resp map[string]any
 				if err := json.Unmarshal(respBytes, &resp); err != nil {
 					log.Printf("unable to unmarshal response: %v", err)
-					respChan <- map[string]interface{}{
+					respChan <- map[string]any{
 						"status": "error",
 						"error":  "unable to unmarshal response: " + err.Error(),
 					}

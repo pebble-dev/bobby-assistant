@@ -65,11 +65,11 @@ func init() {
 	})
 }
 
-func luaThought(args interface{}) string {
+func luaThought(args any) string {
 	return "Getting a calculator"
 }
 
-func luaImplementation(ctx context.Context, quotaTracker *quota.Tracker, args interface{}) interface{} {
+func luaImplementation(ctx context.Context, quotaTracker *quota.Tracker, args any) any {
 	ctx, span := beeline.StartSpan(ctx, "run_lua")
 	defer span.Send()
 	arg := args.(*LuaInput)
@@ -93,16 +93,16 @@ func luaImplementation(ctx context.Context, quotaTracker *quota.Tracker, args in
 	return map[string]any{"result": convertValueToJsonCompatible(result)}
 }
 
-func convertValueToJsonCompatible(v interface{}) interface{} {
+func convertValueToJsonCompatible(v any) any {
 	switch v := v.(type) {
-	case map[interface{}]interface{}:
-		ret := make(map[string]interface{})
+	case map[any]any:
+		ret := make(map[string]any)
 		for k, v := range v {
 			ret[fmt.Sprint(k)] = convertValueToJsonCompatible(v)
 		}
 		return ret
-	case []interface{}:
-		ret := make([]interface{}, len(v))
+	case []any:
+		ret := make([]any, len(v))
 		for i, v := range v {
 			ret[i] = convertValueToJsonCompatible(v)
 		}
@@ -112,7 +112,7 @@ func convertValueToJsonCompatible(v interface{}) interface{} {
 	}
 }
 
-func runLua(ctx context.Context, timezone, script string) (interface{}, error) {
+func runLua(ctx context.Context, timezone, script string) (any, error) {
 	log.Println("Running script:", script)
 	ctx, cancelFunc := context.WithTimeout(ctx, 100*time.Millisecond)
 	defer cancelFunc()
@@ -148,7 +148,7 @@ func runLua(ctx context.Context, timezone, script string) (interface{}, error) {
 					}
 					location = time.FixedZone(tzName, tzOffset*60)
 				}
-				return map[string]interface{}{
+				return map[string]any{
 					"result":     ret,
 					"asDateTime": time.Unix(int64(r), 0).In(location).Format(time.RFC1123),
 				}, nil
@@ -156,7 +156,7 @@ func runLua(ctx context.Context, timezone, script string) (interface{}, error) {
 		}
 		return ret, nil
 	}
-	var rets []interface{}
+	var rets []any
 	for i := 1; i <= l.GetTop(); i++ {
 		rets = append(rets, toGoValue(l.Get(i-l.GetTop()-1)))
 	}
@@ -178,7 +178,7 @@ func evalExpression(expression string) string {
 	return fmt.Sprint(toGoValue(l.Get(-1)))
 }
 
-func toGoValue(lv lua.LValue) interface{} {
+func toGoValue(lv lua.LValue) any {
 	switch v := lv.(type) {
 	case *lua.LNilType:
 		return nil
@@ -195,14 +195,14 @@ func toGoValue(lv lua.LValue) interface{} {
 	case *lua.LTable:
 		maxn := v.MaxN()
 		if maxn == 0 { // table
-			ret := make(map[interface{}]interface{})
+			ret := make(map[any]any)
 			v.ForEach(func(key, value lua.LValue) {
 				keystr := fmt.Sprint(toGoValue(key))
 				ret[keystr] = toGoValue(value)
 			})
 			return ret
 		} else { // array
-			ret := make([]interface{}, 0, maxn)
+			ret := make([]any, 0, maxn)
 			for i := 1; i <= maxn; i++ {
 				ret = append(ret, toGoValue(v.RawGetInt(i)))
 			}

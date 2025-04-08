@@ -71,7 +71,7 @@ func init() {
 	})
 }
 
-func weatherThought(i interface{}) string {
+func weatherThought(i any) string {
 	args := i.(*WeatherInput)
 	weatherType := "weather"
 	switch args.Kind {
@@ -89,7 +89,7 @@ func weatherThought(i interface{}) string {
 	return fmt.Sprintf("Checking the %s in %s...", weatherType, placeName)
 }
 
-func getWeather(ctx context.Context, quotaTracker *quota.Tracker, args interface{}) interface{} {
+func getWeather(ctx context.Context, quotaTracker *quota.Tracker, args any) any {
 	ctx, span := beeline.StartSpan(ctx, "get_weather")
 	defer span.Send()
 	arg := args.(*WeatherInput)
@@ -126,18 +126,18 @@ func getWeather(ctx context.Context, quotaTracker *quota.Tracker, args interface
 	return Error{"invalid kind"}
 }
 
-func processDailyForecast(ctx context.Context, lat, lon float64, units string) interface{} {
+func processDailyForecast(ctx context.Context, lat, lon float64, units string) any {
 	forecast, err := weather.GetDailyForecast(ctx, lat, lon, units)
 	if err != nil {
 		beeline.AddField(ctx, "error", err)
 		return Error{"Could not get forecast: " + err.Error()}
 	}
-	response := map[string]interface{}{}
+	response := map[string]any{}
 	for i, day := range forecast.DayOfWeek {
 		if i == 0 {
 			day += " (Today)"
 		}
-		response[day] = map[string]interface{}{
+		response[day] = map[string]any{
 			"high":      forecast.CalendarDayTemperatureMax[i],
 			"low":       forecast.CalendarDayTemperatureMin[i],
 			"narrative": forecast.Narrative[i],
@@ -155,19 +155,19 @@ func processDailyForecast(ctx context.Context, lat, lon float64, units string) i
 	return response
 }
 
-func processHourlyForecast(ctx context.Context, lat, lon float64, units string) interface{} {
+func processHourlyForecast(ctx context.Context, lat, lon float64, units string) any {
 	hourly, err := weather.GetHourlyForecast(ctx, lat, lon, units)
 	if err != nil {
 		beeline.AddField(ctx, "error", err)
 		return Error{"Could not get forecast: " + err.Error()}
 	}
-	var response []map[string]interface{}
+	var response []map[string]any
 	for i, t := range hourly.ValidTimeLocal {
 		if i >= 24 {
 			break
 		}
 
-		entry := map[string]interface{}{
+		entry := map[string]any{
 			"time":        t[11:16],
 			"temperature": hourly.Temperature[i],
 			"uv_index":    hourly.UVIndex[i],
@@ -184,7 +184,7 @@ func processHourlyForecast(ctx context.Context, lat, lon float64, units string) 
 	return map[string]any{"response": response, "temperatureUnit": hourly.TemperatureUnit}
 }
 
-func processCurrentWeather(ctx context.Context, lat, lon float64, units string) interface{} {
+func processCurrentWeather(ctx context.Context, lat, lon float64, units string) any {
 	observations, err := weather.GetCurrentConditions(ctx, lat, lon, units)
 	if err != nil {
 		beeline.AddField(ctx, "error", err)

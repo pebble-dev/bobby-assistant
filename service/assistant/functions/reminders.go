@@ -111,7 +111,7 @@ func init() {
 	})
 }
 
-func setReminder(ctx context.Context, quotaTracker *quota.Tracker, args interface{}, requestChan chan<- map[string]interface{}, responseChan <-chan map[string]interface{}) interface{} {
+func setReminder(ctx context.Context, quotaTracker *quota.Tracker, args any, requestChan chan<- map[string]any, responseChan <-chan map[string]any) any {
 	ctx, span := beeline.StartSpan(ctx, "set_reminder")
 	defer span.Send()
 	if !query.SupportsAction(ctx, "set_reminder") {
@@ -128,7 +128,7 @@ func setReminder(ctx context.Context, quotaTracker *quota.Tracker, args interfac
 		arg.Time = time.Now().UTC().Add(time.Duration(arg.Delay) * time.Minute).Format(time.RFC3339)
 	}
 
-	req := map[string]interface{}{
+	req := map[string]any{
 		"time":   arg.Time,
 		"what":   arg.What,
 		"action": "set_reminder",
@@ -140,14 +140,14 @@ func setReminder(ctx context.Context, quotaTracker *quota.Tracker, args interfac
 	return resp
 }
 
-func getReminders(ctx context.Context, quotaTracker *quota.Tracker, args interface{}, requestChan chan<- map[string]interface{}, responseChan <-chan map[string]interface{}) interface{} {
+func getReminders(ctx context.Context, quotaTracker *quota.Tracker, args any, requestChan chan<- map[string]any, responseChan <-chan map[string]any) any {
 	ctx, span := beeline.StartSpan(ctx, "get_reminders")
 	defer span.Send()
 	if !query.SupportsAction(ctx, "get_reminders") {
 		return Error{Error: "You need to update the app on your watch to get reminders."}
 	}
 
-	req := map[string]interface{}{
+	req := map[string]any{
 		"action": "get_reminders",
 	}
 	log.Println("Asking watch to get reminders...")
@@ -157,7 +157,7 @@ func getReminders(ctx context.Context, quotaTracker *quota.Tracker, args interfa
 	return resp
 }
 
-func deleteReminder(ctx context.Context, quotaTracker *quota.Tracker, args interface{}, requestChan chan<- map[string]interface{}, responseChan <-chan map[string]interface{}) interface{} {
+func deleteReminder(ctx context.Context, quotaTracker *quota.Tracker, args any, requestChan chan<- map[string]any, responseChan <-chan map[string]any) any {
 	ctx, span := beeline.StartSpan(ctx, "delete_reminder")
 	defer span.Send()
 	if !query.SupportsAction(ctx, "delete_reminder") {
@@ -165,7 +165,7 @@ func deleteReminder(ctx context.Context, quotaTracker *quota.Tracker, args inter
 	}
 	arg := args.(*DeleteReminderInput)
 
-	req := map[string]interface{}{
+	req := map[string]any{
 		"action": "delete_reminder",
 		"id":     arg.ID,
 	}
@@ -176,14 +176,14 @@ func deleteReminder(ctx context.Context, quotaTracker *quota.Tracker, args inter
 	return resp
 }
 
-func reminderThought(args interface{}) string {
+func reminderThought(args any) string {
 	return "Setting a reminder"
 }
 
-func getRemindersThought(args interface{}) string {
+func getRemindersThought(args any) string {
 	return "Getting your reminders"
 }
 
-func deleteReminderThought(args interface{}) string {
+func deleteReminderThought(args any) string {
 	return "Deleting a reminder"
 }

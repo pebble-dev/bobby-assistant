@@ -52,7 +52,7 @@ func cleanUrl(u string) string {
 	return parsedUrl.String()
 }
 
-func CleanHoneycomb(data map[string]interface{}) {
+func CleanHoneycomb(data map[string]any) {
 	// HTTP requests contain a bunch of PII. We don't want to send that to Honeycomb.
 	if query, ok := data["request.query"]; ok {
 		if queryStr, ok := query.(string); ok {

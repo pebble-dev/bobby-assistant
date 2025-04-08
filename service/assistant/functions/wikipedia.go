@@ -81,7 +81,7 @@ func init() {
 	})
 }
 
-func queryWikiThought(i interface{}) string {
+func queryWikiThought(i any) string {
 	args := i.(*WikiRequest)
 	if args.Query == "" {
 		return "Looking it up..."
@@ -89,7 +89,7 @@ func queryWikiThought(i interface{}) string {
 	return fmt.Sprintf("Looking up %q...", args.Query)
 }
 
-func queryWiki(ctx context.Context, quotaTracker *quota.Tracker, args interface{}) interface{} {
+func queryWiki(ctx context.Context, quotaTracker *quota.Tracker, args any) any {
 	req := args.(*WikiRequest)
 	if _, ok := urlMap[req.Wiki]; !ok {
 		return Error{Error: "Unknown wiki: " + req.Wiki}

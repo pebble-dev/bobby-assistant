@@ -87,7 +87,7 @@ func init() {
 	})
 }
 
-func searchPoiThought(args interface{}) string {
+func searchPoiThought(args any) string {
 	poiQuery := args.(*POIQuery)
 	if poiQuery.Location != "" {
 		location, _, _ := strings.Cut(poiQuery.Location, ",")
@@ -96,7 +96,7 @@ func searchPoiThought(args interface{}) string {
 	return fmt.Sprintf("Looking for %s nearby...", poiQuery.Query)
 }
 
-func searchPoi(ctx context.Context, quotaTracker *quota.Tracker, args interface{}) interface{} {
+func searchPoi(ctx context.Context, quotaTracker *quota.Tracker, args any) any {
 	ctx, span := beeline.StartSpan(ctx, "search_poi")
 	defer span.Send()
 	poiQuery := args.(*POIQuery)

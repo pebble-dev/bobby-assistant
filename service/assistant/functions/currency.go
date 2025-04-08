@@ -71,7 +71,7 @@ func init() {
 	})
 }
 
-func convertCurrency(ctx context.Context, qt *quota.Tracker, input interface{}) interface{} {
+func convertCurrency(ctx context.Context, qt *quota.Tracker, input any) any {
 	ctx, span := beeline.StartSpan(ctx, "convert_currency")
 	defer span.Send()
 	ccr := input.(*CurrencyConversionRequest)
@@ -106,7 +106,7 @@ func convertCurrency(ctx context.Context, qt *quota.Tracker, input interface{}) 
 	}
 }
 
-func convertCurrencyThought(i interface{}) string {
+func convertCurrencyThought(i any) string {
 	args := i.(*CurrencyConversionRequest)
 	return fmt.Sprintf("Checking the %s/%s rate...", args.From, args.To)
 }

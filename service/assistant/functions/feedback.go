@@ -57,13 +57,13 @@ func init() {
 	})
 }
 
-func sendFeedbackImpl(ctx context.Context, quotaTracker *quota.Tracker, i interface{}, requestChan chan<- map[string]interface{}, responseChan <-chan map[string]interface{}) interface{} {
+func sendFeedbackImpl(ctx context.Context, quotaTracker *quota.Tracker, i any, requestChan chan<- map[string]any, responseChan <-chan map[string]any) any {
 	args := i.(*FeedbackInput)
 	if !args.IncludeThread && args.Feedback == "" {
 		return Error{Error: "You need either set include_thread = true or include some feedback from the user."}
 	}
 	log.Printf("Asking phone to send feedback...")
-	request := map[string]interface{}{
+	request := map[string]any{
 		"action":   "send_feedback",
 		"feedback": args.Feedback,
 	}
@@ -77,7 +77,7 @@ func sendFeedbackImpl(ctx context.Context, quotaTracker *quota.Tracker, i interf
 	return response
 }
 
-func sendFeedbackThought(i interface{}) string {
+func sendFeedbackThought(i any) string {
 	args := i.(*FeedbackInput)
 	if args.IncludeThread && args.Feedback != "" {
 		return "Sending conversation with feedback..."

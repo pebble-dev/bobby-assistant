@@ -51,7 +51,7 @@ func init() {
 	})
 }
 
-func getTimeThought(args interface{}) string {
+func getTimeThought(args any) string {
 	arg := args.(*GetTimeInput)
 	if arg.Timezone != "" {
 		s := strings.Split(arg.Timezone, "/")
@@ -61,7 +61,7 @@ func getTimeThought(args interface{}) string {
 	return "Checking the time"
 }
 
-func getTimeElsewhere(ctx context.Context, quotaTracker *quota.Tracker, args interface{}) interface{} {
+func getTimeElsewhere(ctx context.Context, quotaTracker *quota.Tracker, args any) any {
 	ctx, span := beeline.StartSpan(ctx, "get_time_elsewhere")
 	defer span.Send()
 	arg := args.(*GetTimeInput)

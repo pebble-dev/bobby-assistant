@@ -48,12 +48,12 @@ func init() {
 	})
 }
 
-func getLocationThought(args interface{}) string {
+func getLocationThought(args any) string {
 	arg := args.(*GetLocationInput)
 	return fmt.Sprintf("Locating %q", arg.PlaceName)
 }
 
-func getLocationImpl(ctx context.Context, quotaTracker *quota.Tracker, args interface{}) interface{} {
+func getLocationImpl(ctx context.Context, quotaTracker *quota.Tracker, args any) any {
 	ctx, span := beeline.StartSpan(ctx, "get_location")
 	defer span.Send()
 	arg := args.(*GetLocationInput)

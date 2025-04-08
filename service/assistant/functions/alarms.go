@@ -209,7 +209,7 @@ func init() {
 	})
 }
 
-func alarmImpl(ctx context.Context, quotaTracker *quota.Tracker, args interface{}, requests chan<- map[string]interface{}, responses <-chan map[string]interface{}) interface{} {
+func alarmImpl(ctx context.Context, quotaTracker *quota.Tracker, args any, requests chan<- map[string]any, responses <-chan map[string]any) any {
 	ctx, span := beeline.StartSpan(ctx, "set_alarm")
 	defer span.Send()
 	if !query.SupportsAction(ctx, "set_alarm") {
@@ -217,7 +217,7 @@ func alarmImpl(ctx context.Context, quotaTracker *quota.Tracker, args interface{
 	}
 	input := args.(*AlarmInput)
 	log.Println("Asking watch to set an alarm...")
-	requests <- map[string]interface{}{
+	requests <- map[string]any{
 		"time":    input.Time,
 		"isTimer": false,
 		"name":    input.Name,
@@ -229,7 +229,7 @@ func alarmImpl(ctx context.Context, quotaTracker *quota.Tracker, args interface{
 	return resp
 }
 
-func timerImpl(ctx context.Context, quotaTracker *quota.Tracker, args interface{}, requests chan<- map[string]interface{}, responses <-chan map[string]interface{}) interface{} {
+func timerImpl(ctx context.Context, quotaTracker *quota.Tracker, args any, requests chan<- map[string]any, responses <-chan map[string]any) any {
 	ctx, span := beeline.StartSpan(ctx, "set_timer")
 	defer span.Send()
 	if !query.SupportsAction(ctx, "set_alarm") {
@@ -241,7 +241,7 @@ func timerImpl(ctx context.Context, quotaTracker *quota.Tracker, args interface{
 	if duration == 0 {
 		return Error{Error: "You need to pass the timer duration in seconds to duration_seconds (e.g. duration_seconds=300 for a 5 minute timer)."}
 	}
-	requests <- map[string]interface{}{
+	requests <- map[string]any{
 		"duration": duration,
 		"isTimer":  true,
 		"name":     input.Name,
@@ -253,7 +253,7 @@ func timerImpl(ctx context.Context, quotaTracker *quota.Tracker, args interface{
 	return resp
 }
 
-func alarmThought(i interface{}) string {
+func alarmThought(i any) string {
 	args := i.(*AlarmInput)
 	if args.Time == "" {
 		return "Contemplating time"
@@ -262,7 +262,7 @@ func alarmThought(i interface{}) string {
 	}
 }
 
-func timerThought(i interface{}) string {
+func timerThought(i any) string {
 	args := i.(*TimerInput)
 	if args.Duration == 0 {
 		return "Contemplating time"
@@ -271,7 +271,7 @@ func timerThought(i interface{}) string {
 	}
 }
 
-func deleteAlarmImpl(ctx context.Context, quotaTracker *quota.Tracker, args interface{}, requests chan<- map[string]interface{}, responses <-chan map[string]interface{}) interface{} {
+func deleteAlarmImpl(ctx context.Context, quotaTracker *quota.Tracker, args any, requests chan<- map[string]any, responses <-chan map[string]any) any {
 	ctx, span := beeline.StartSpan(ctx, "delete_alarm")
 	defer span.Send()
 	if !query.SupportsAction(ctx, "set_alarm") {
@@ -279,7 +279,7 @@ func deleteAlarmImpl(ctx context.Context, quotaTracker *quota.Tracker, args inte
 	}
 	input := args.(*DeleteAlarmInput)
 	log.Printf("Asking watch to delete an alarm set for %s...\n", input.Time)
-	requests <- map[string]interface{}{
+	requests <- map[string]any{
 		"time":    input.Time,
 		"isTimer": false,
 		"action":  "set_alarm",
@@ -290,7 +290,7 @@ func deleteAlarmImpl(ctx context.Context, quotaTracker *quota.Tracker, args inte
 	return resp
 }
 
-func deleteTimerImpl(ctx context.Context, quotaTracker *quota.Tracker, args interface{}, requests chan<- map[string]interface{}, responses <-chan map[string]interface{}) interface{} {
+func deleteTimerImpl(ctx context.Context, quotaTracker *quota.Tracker, args any, requests chan<- map[string]any, responses <-chan map[string]any) any {
 	ctx, span := beeline.StartSpan(ctx, "delete_timer")
 	defer span.Send()
 	if !query.SupportsAction(ctx, "set_alarm") {
@@ -298,7 +298,7 @@ func deleteTimerImpl(ctx context.Context, quotaTracker *quota.Tracker, args inte
 	}
 	input := args.(*DeleteTimerInput)
 	log.Printf("Asking watch to delete a timer set for %s...\n", input.Time)
-	requests <- map[string]interface{}{
+	requests <- map[string]any{
 		"time":    input.Time,
 		"isTimer": true,
 		"action":  "set_alarm",
@@ -309,22 +309,22 @@ func deleteTimerImpl(ctx context.Context, quotaTracker *quota.Tracker, args inte
 	return resp
 }
 
-func deleteAlarmThought(i interface{}) string {
+func deleteAlarmThought(i any) string {
 	return "Deleting an alarm"
 }
 
-func deleteTimerThought(i interface{}) string {
+func deleteTimerThought(i any) string {
 	return "Deleting a timer"
 }
 
-func getAlarmImpl(ctx context.Context, quotaTracker *quota.Tracker, args interface{}, requests chan<- map[string]interface{}, responses <-chan map[string]interface{}) interface{} {
+func getAlarmImpl(ctx context.Context, quotaTracker *quota.Tracker, args any, requests chan<- map[string]any, responses <-chan map[string]any) any {
 	ctx, span := beeline.StartSpan(ctx, "get_alarm")
 	defer span.Send()
 	if !query.SupportsAction(ctx, "get_alarm") {
 		return Error{Error: "You need to update the app on your watch to get alarms."}
 	}
 	log.Println("Asking watch to get alarms...")
-	requests <- map[string]interface{}{
+	requests <- map[string]any{
 		"isTimer": false,
 		"action":  "get_alarm",
 	}
@@ -334,14 +334,14 @@ func getAlarmImpl(ctx context.Context, quotaTracker *quota.Tracker, args interfa
 	return resp
 }
 
-func getTimerImpl(ctx context.Context, quotaTracker *quota.Tracker, args interface{}, requests chan<- map[string]interface{}, responses <-chan map[string]interface{}) interface{} {
+func getTimerImpl(ctx context.Context, quotaTracker *quota.Tracker, args any, requests chan<- map[string]any, responses <-chan map[string]any) any {
 	ctx, span := beeline.StartSpan(ctx, "get_timer")
 	defer span.Send()
 	if !query.SupportsAction(ctx, "get_alarm") {
 		return Error{Error: "You need to update the app on your watch to get timers."}
 	}
 	log.Println("Asking watch to get alarms...")
-	requests <- map[string]interface{}{
+	requests <- map[string]any{
 		"isTimer": true,
 		"action":  "get_alarm",
 	}
@@ -351,10 +351,10 @@ func getTimerImpl(ctx context.Context, quotaTracker *quota.Tracker, args interfa
 	return resp
 }
 
-func getAlarmThought(i interface{}) string {
+func getAlarmThought(i any) string {
 	return "Checking your alarms"
 }
 
-func getTimerThought(i interface{}) string {
+func getTimerThought(i any) string {
 	return "Checking your timers"
 }

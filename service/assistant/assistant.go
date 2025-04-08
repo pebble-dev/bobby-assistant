@@ -64,7 +64,7 @@ func (s *Service) handleQuota(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !userInfo.HasSubscription {
-		response, err := json.Marshal(map[string]interface{}{
+		response, err := json.Marshal(map[string]any{
 			"used":            0,
 			"remaining":       0,
 			"hasSubscription": false,
