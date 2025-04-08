@@ -113,6 +113,10 @@ func searchPoi(ctx context.Context, quotaTracker *quota.Tracker, args interface{
 			Lat: coords.Lat,
 		}
 	}
+	if location == nil {
+		span.AddField("error", "no location provided")
+		return Error{Error: "Either the user must enable location in settings, or an explicit location parameter must be provided"}
+	}
 
 	placeService, err := places.NewService(ctx)
 	if err != nil {
@@ -158,9 +162,13 @@ func searchPoi(ctx context.Context, quotaTracker *quota.Tracker, args interface{
 	var pois []POI
 	var attributions map[string]any
 	for _, place := range results.Places {
-		distMiles, distKm := haversine.Distance(
-			haversine.Coord{location.Lat, location.Lon},
-			haversine.Coord{place.Location.Latitude, place.Location.Longitude})
+		var distMiles, distKm float64
+		userLocation := query.LocationFromContext(ctx)
+		if userLocation != nil && place.Location != nil {
+			distMiles, distKm = haversine.Distance(
+				haversine.Coord{userLocation.Lat, userLocation.Lon},
+				haversine.Coord{place.Location.Latitude, place.Location.Longitude})
+		}
 		poi := POI{
 			Name:               place.DisplayName.Text,
 			Address:            place.ShortFormattedAddress,
