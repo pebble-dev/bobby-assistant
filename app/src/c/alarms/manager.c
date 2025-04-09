@@ -59,25 +59,25 @@ void alarm_manager_init() {
 
 int alarm_manager_add_alarm(time_t when, bool is_timer, char* name, bool conversational) {
   if (s_manager.pending_alarm_count >= MAX_ALARMS) {
-    APP_LOG(APP_LOG_LEVEL_WARNING, "Not scheduling alarm because MAX_ALARMS (%d) was already reached.", MAX_ALARMS);
+    //APP_LOG(APP_LOG_LEVEL_WARNING, "Not scheduling alarm because MAX_ALARMS (%d) was already reached.", MAX_ALARMS);
     return E_OUT_OF_RESOURCES;
   }
   WakeupId id = wakeup_schedule(when, when, true);
-  APP_LOG(APP_LOG_LEVEL_INFO, "wakeup_schedule(%d, %d, true) -> %d", when, when, id);
+  //APP_LOG(APP_LOG_LEVEL_INFO, "wakeup_schedule(%d, %d, true) -> %d", when, when, id);
   if (id == E_RANGE) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Scheduling alarm failed: E_RANGE (there's another event already scheduled then)");
+    //APP_LOG(APP_LOG_LEVEL_ERROR, "Scheduling alarm failed: E_RANGE (there's another event already scheduled then)");
     return id;
   }
   if (id == E_INVALID_ARGUMENT) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Scheduling alarm failed: E_INVALID_ARGUMENT (the time is in the past)");
+    //APP_LOG(APP_LOG_LEVEL_ERROR, "Scheduling alarm failed: E_INVALID_ARGUMENT (the time is in the past)");
     return id;
   }
   if (id == E_OUT_OF_RESOURCES) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Scheduling alarm failed: E_OUT_OF_RESOURCES (already eight alarms scheduled)");
+    //APP_LOG(APP_LOG_LEVEL_ERROR, "Scheduling alarm failed: E_OUT_OF_RESOURCES (already eight alarms scheduled)");
     return id;
   }
   if (id < 0) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Scheduling alarm failed: %d (Pebble internal error)");
+    //APP_LOG(APP_LOG_LEVEL_ERROR, "Scheduling alarm failed: %d (Pebble internal error)");
     return id;
   }
   Alarm* alarm = bmalloc(sizeof(Alarm));
@@ -187,7 +187,7 @@ static void prv_load_alarms() {
   int alarm_count = alarm_count_one < alarm_count_two ? alarm_count_one : alarm_count_two;
   
   if (alarm_count == 0) {
-    APP_LOG(APP_LOG_LEVEL_INFO, "No alarms known. Deleting all alarms to ensure consistency.");
+    //APP_LOG(APP_LOG_LEVEL_INFO, "No alarms known. Deleting all alarms to ensure consistency.");
     wakeup_cancel_all();
     return;
   }
@@ -214,7 +214,7 @@ static void prv_load_alarms() {
   int j = 0;
   for (int i = 0; i < alarm_count; ++i) {
     if (!wakeup_query(wakeup_ids[i], NULL) && (!launched_for_wakeup || launch_id != wakeup_ids[i])) {
-      APP_LOG(APP_LOG_LEVEL_WARNING, "Alarm %d (scheduled for %d) no longer exists; dropping.", wakeup_ids[i], times[i]);
+      //APP_LOG(APP_LOG_LEVEL_WARNING, "Alarm %d (scheduled for %d) no longer exists; dropping.", wakeup_ids[i], times[i]);
       did_drop_entries = true;
       continue;
     }
@@ -236,14 +236,14 @@ static void prv_load_alarms() {
   s_manager.pending_alarm_count = j;
   
   if (did_drop_entries) {
-    APP_LOG(APP_LOG_LEVEL_INFO, "Updating saved data after dropping entries.");
+    //APP_LOG(APP_LOG_LEVEL_INFO, "Updating saved data after dropping entries.");
     prv_save_alarms();
   }
 }
 
 static void prv_save_alarms() {
   if (s_manager.pending_alarm_count == 0) {
-    APP_LOG(APP_LOG_LEVEL_INFO, "No alarms to save. Deleting everything.");
+    //APP_LOG(APP_LOG_LEVEL_INFO, "No alarms to save. Deleting everything.");
     persist_delete(PERSIST_KEY_ALARM_COUNT_ONE);
     persist_delete(PERSIST_KEY_ALARM_TIMES);
     persist_delete(PERSIST_KEY_ALARM_WAKEUP_IDS);
@@ -276,7 +276,7 @@ static void prv_save_alarms() {
   persist_write_data(PERSIST_KEY_ALARM_IS_TIMERS, &is_timers, sizeof(is_timers));
   persist_write_data(PERSIST_KEY_ALARM_NAMES, &names, sizeof(names));
   persist_write_int(PERSIST_KEY_ALARM_COUNT_TWO, s_manager.pending_alarm_count);
-  APP_LOG(APP_LOG_LEVEL_INFO, "Wrote %d alarms.", s_manager.pending_alarm_count);
+  //APP_LOG(APP_LOG_LEVEL_INFO, "Wrote %d alarms.", s_manager.pending_alarm_count);
 }
 
 static void prv_remove_alarm(int to_remove) {
@@ -331,21 +331,21 @@ static void prv_remove_alarm(int to_remove) {
 
 bool alarm_manager_maybe_alarm() {
   if (launch_reason() != APP_LAUNCH_WAKEUP) {
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "Not launched by APP_LAUNCH_WAKEUP");
+    //APP_LOG(APP_LOG_LEVEL_DEBUG, "Not launched by APP_LAUNCH_WAKEUP");
     return false;
   }
-  APP_LOG(APP_LOG_LEVEL_INFO, "Launched by APP_LAUNCH_WAKEUP");
+  //APP_LOG(APP_LOG_LEVEL_INFO, "Launched by APP_LAUNCH_WAKEUP");
   WakeupId id;
   int32_t cookie;
   if (!wakeup_get_launch_event(&id, &cookie)) {
     return false;
   }
-  APP_LOG(APP_LOG_LEVEL_INFO, "WakeupId: %d, cookie: %d", id, cookie);
+  //APP_LOG(APP_LOG_LEVEL_INFO, "WakeupId: %d, cookie: %d", id, cookie);
   for (int i = 0; i < s_manager.pending_alarm_count; ++i) {
     Alarm* alarm = &s_manager.pending_alarms[i];
-    APP_LOG(APP_LOG_LEVEL_INFO, "comparing %d == %d", alarm->wakeup_id, id);
+    //APP_LOG(APP_LOG_LEVEL_INFO, "comparing %d == %d", alarm->wakeup_id, id);
     if (alarm->wakeup_id == id) {
-      APP_LOG(APP_LOG_LEVEL_INFO, "alarm found! alarming...");
+      //APP_LOG(APP_LOG_LEVEL_INFO, "alarm found! alarming...");
       alarm_window_push(alarm->scheduled_time, alarm->is_timer, alarm->name);
       prv_remove_alarm(i);
       return true;
@@ -389,18 +389,18 @@ static void prv_handle_set_alarm_request(DictionaryIterator *iterator, void *con
   StatusCode result = alarm_manager_add_alarm(alarm_time, is_timer, name, true);
   prv_send_alarm_response(result);
   if (result == S_SUCCESS) {
-    APP_LOG(APP_LOG_LEVEL_INFO, "Set alarm for %d (is timer: %d)", alarm_time, is_timer);
+    //APP_LOG(APP_LOG_LEVEL_INFO, "Set alarm for %d (is timer: %d)", alarm_time, is_timer);
   } else {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Setting alarm for %d failed: %d", alarm_time, result);
+    //APP_LOG(APP_LOG_LEVEL_ERROR, "Setting alarm for %d failed: %d", alarm_time, result);
   }
 }
 
 static void prv_handle_get_alarm_request(int16_t is_timer, void* context) {
   DictionaryIterator *iter;
-  APP_LOG(APP_LOG_LEVEL_INFO, "Retrieving alarms or possibly timers (%d).", is_timer);
+  //APP_LOG(APP_LOG_LEVEL_INFO, "Retrieving alarms or possibly timers (%d).", is_timer);
   AppMessageResult result = app_message_outbox_begin(&iter);
   if (result != APP_MSG_OK) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Opening dict to respond failed: %d.", result);
+    //APP_LOG(APP_LOG_LEVEL_ERROR, "Opening dict to respond failed: %d.", result);
     return;
   }
   int write_index = 0;
@@ -416,10 +416,10 @@ static void prv_handle_get_alarm_request(int16_t is_timer, void* context) {
   dict_write_int32(iter, MESSAGE_KEY_CURRENT_TIME, time(NULL));
   result = app_message_outbox_send();
   if (result != APP_MSG_OK) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Sending alarm list to phone failed: %d.", result);
+    //APP_LOG(APP_LOG_LEVEL_ERROR, "Sending alarm list to phone failed: %d.", result);
     return;
   }
-  APP_LOG(APP_LOG_LEVEL_INFO, "Sent alarm list.");
+  //APP_LOG(APP_LOG_LEVEL_INFO, "Sent alarm list.");
 }
 
 static void prv_handle_cancel_alarm_request(DictionaryIterator* iterator, void* context) {
@@ -469,25 +469,25 @@ static void prv_send_alarm_response(StatusCode response) {
   DictionaryIterator *iter;
   AppMessageResult result = app_message_outbox_begin(&iter);
   if (result != APP_MSG_OK) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Returning status code %d to phone failed in open: %d.", response, result);
+    //APP_LOG(APP_LOG_LEVEL_ERROR, "Returning status code %d to phone failed in open: %d.", response, result);
     return;
   }
   dict_write_int32(iter, MESSAGE_KEY_SET_ALARM_RESULT, response);
   result = app_message_outbox_send();
   if (result != APP_MSG_OK) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Returning status code %d to phone failed in send: %d.", response, result);
+    //APP_LOG(APP_LOG_LEVEL_ERROR, "Returning status code %d to phone failed in send: %d.", response, result);
     return;
   }
-  APP_LOG(APP_LOG_LEVEL_INFO, "Sent alarm response %d", response);
+  //APP_LOG(APP_LOG_LEVEL_INFO, "Sent alarm response %d", response);
 }
 
 static void prv_wakeup_handler(WakeupId wakeup_id, int32_t cookie) {
-  APP_LOG(APP_LOG_LEVEL_INFO, "it's the wakeup handler! (%d, %d)", wakeup_id, cookie);
+  //APP_LOG(APP_LOG_LEVEL_INFO, "it's the wakeup handler! (%d, %d)", wakeup_id, cookie);
   for (int i = 0; i < s_manager.pending_alarm_count; ++i) {
     Alarm* alarm = &s_manager.pending_alarms[i];
-    APP_LOG(APP_LOG_LEVEL_INFO, "comparing %d == %d", alarm->wakeup_id, wakeup_id);
+    //APP_LOG(APP_LOG_LEVEL_INFO, "comparing %d == %d", alarm->wakeup_id, wakeup_id);
     if (alarm->wakeup_id == wakeup_id) {
-      APP_LOG(APP_LOG_LEVEL_INFO, "alarm found! alarming...");
+      //APP_LOG(APP_LOG_LEVEL_INFO, "alarm found! alarming...");
       alarm_window_push(alarm->scheduled_time, alarm->is_timer, alarm->name);
       prv_remove_alarm(i);
       break;

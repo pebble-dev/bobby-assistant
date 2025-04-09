@@ -181,9 +181,9 @@ static void prv_append_to_response(ConversationResponse *response, const char* f
   while (response->len + len >= response->allocated) {
     response->allocated *= 2;
     char* new_resp = bmalloc(response->allocated);
-    APP_LOG(APP_LOG_LEVEL_INFO, "Expanding buffer to %d bytes. New buffer: %p. Old buffer: %p.", response->allocated, new_resp, response->response);
+    //APP_LOG(APP_LOG_LEVEL_INFO, "Expanding buffer to %d bytes. New buffer: %p. Old buffer: %p.", response->allocated, new_resp, response->response);
     strcpy(new_resp, response->response);
-    APP_LOG(APP_LOG_LEVEL_INFO, "Copied %d bytes.", strlen(response->response) + 1);
+    //APP_LOG(APP_LOG_LEVEL_INFO, "Copied %d bytes.", strlen(response->response) + 1);
     free(response->response);
     response->response = new_resp;
   }
@@ -219,7 +219,7 @@ bool conversation_add_response_fragment(Conversation* conversation, const char* 
 void conversation_complete_response(Conversation *conversation) {
   ConversationResponse* response = prv_find_last_open_response(conversation);
   if (response == NULL) {
-    APP_LOG(APP_LOG_LEVEL_WARNING, "Trying to complete a response, but couldn't find any.");
+    //APP_LOG(APP_LOG_LEVEL_WARNING, "Trying to complete a response, but couldn't find any.");
     return;
   }
   response->complete = true;
@@ -266,7 +266,7 @@ void conversation_delete_first_entry(Conversation* conversation) {
 
 ConversationEntry* conversation_entry_at_index(Conversation* conversation, int index) {
   if (index >= conversation->entry_count) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Caller asked for entry %d, but only %d exist.", index, conversation->entry_count);
+    //APP_LOG(APP_LOG_LEVEL_ERROR, "Caller asked for entry %d, but only %d exist.", index, conversation->entry_count);
     return NULL;
   }
   return &conversation->entries[index];
@@ -274,7 +274,7 @@ ConversationEntry* conversation_entry_at_index(Conversation* conversation, int i
 
 ConversationEntry* conversation_peek(Conversation* conversation) {
   if (conversation->entry_count == conversation->deleted_entries) {
-    APP_LOG(APP_LOG_LEVEL_WARNING, "Tried to peek at conversation, but no entries yet.");
+    //APP_LOG(APP_LOG_LEVEL_WARNING, "Tried to peek at conversation, but no entries yet.");
     return NULL;
   }
   return &conversation->entries[conversation->entry_count-1];
@@ -310,7 +310,7 @@ const char* prv_type_to_string(EntryType type) {
 
 ConversationPrompt* conversation_entry_get_prompt(ConversationEntry* entry) {
   if (entry->type != EntryTypePrompt) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Asked for prompt %p, but it's actually a %s.", entry, prv_type_to_string(entry->type));
+    //APP_LOG(APP_LOG_LEVEL_ERROR, "Asked for prompt %p, but it's actually a %s.", entry, prv_type_to_string(entry->type));
     return NULL;
   }
   return entry->content.prompt;
@@ -318,7 +318,7 @@ ConversationPrompt* conversation_entry_get_prompt(ConversationEntry* entry) {
 
 ConversationResponse* conversation_entry_get_response(ConversationEntry* entry) {
   if (entry->type != EntryTypeResponse) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Asked for response %p, but it's actually a %s.", entry, prv_type_to_string(entry->type));
+    //APP_LOG(APP_LOG_LEVEL_ERROR, "Asked for response %p, but it's actually a %s.", entry, prv_type_to_string(entry->type));
     return NULL;
   }
   return entry->content.response;
@@ -326,7 +326,7 @@ ConversationResponse* conversation_entry_get_response(ConversationEntry* entry) 
 
 ConversationThought* conversation_entry_get_thought(ConversationEntry* entry) {
   if (entry->type != EntryTypeThought) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Asked for thought %p, but it's actually a %s.", entry, prv_type_to_string(entry->type));
+    //APP_LOG(APP_LOG_LEVEL_ERROR, "Asked for thought %p, but it's actually a %s.", entry, prv_type_to_string(entry->type));
     return NULL;
   }
   return entry->content.thought;
@@ -334,7 +334,7 @@ ConversationThought* conversation_entry_get_thought(ConversationEntry* entry) {
 
 ConversationError* conversation_entry_get_error(ConversationEntry* entry) {
   if (entry->type != EntryTypeError) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Asked for error %p, but it's actually a %s.", entry, prv_type_to_string(entry->type));
+    //APP_LOG(APP_LOG_LEVEL_ERROR, "Asked for error %p, but it's actually a %s.", entry, prv_type_to_string(entry->type));
     return NULL;
   }
   return entry->content.error;
@@ -342,7 +342,7 @@ ConversationError* conversation_entry_get_error(ConversationEntry* entry) {
 
 ConversationAction* conversation_entry_get_action(ConversationEntry* action) {
   if (action->type != EntryTypeAction) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Asked for action %p, but it's actually a %s.", action, prv_type_to_string(action->type));
+    //APP_LOG(APP_LOG_LEVEL_ERROR, "Asked for action %p, but it's actually a %s.", action, prv_type_to_string(action->type));
     return NULL;
   }
   return action->content.action;
@@ -350,7 +350,7 @@ ConversationAction* conversation_entry_get_action(ConversationEntry* action) {
 
 ConversationWidget* conversation_entry_get_widget(ConversationEntry* widget) {
   if (widget->type != EntryTypeWidget) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Asked for widget %p, but it's actually a %s.", widget, prv_type_to_string(widget->type));
+    //APP_LOG(APP_LOG_LEVEL_ERROR, "Asked for widget %p, but it's actually a %s.", widget, prv_type_to_string(widget->type));
     return NULL;
   }
   return widget->content.widget;
@@ -361,7 +361,7 @@ EntryType conversation_entry_get_type(ConversationEntry* entry) {
 }
 
 void conversation_set_thread_id(Conversation* conversation, const char* thread_id) {
-  APP_LOG(APP_LOG_LEVEL_INFO, "Thread ID updated: %s", thread_id);
+  //APP_LOG(APP_LOG_LEVEL_INFO, "Thread ID updated: %s", thread_id);
   strncpy(conversation->thread_id, thread_id, 37);
 }
 
