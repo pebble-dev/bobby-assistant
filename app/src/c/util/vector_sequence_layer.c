@@ -17,6 +17,8 @@
 #include "vector_sequence_layer.h"
 #include <pebble.h>
 
+#include "memory/sdk.h"
+
 typedef struct {
   GDrawCommandSequence *sequence;
   AppTimer *timer;
@@ -29,7 +31,7 @@ static void prv_layer_update(Layer *layer, GContext *ctx);
 static void prv_timer_callback(void *context);
 
 VectorSequenceLayer* vector_sequence_layer_create(GRect frame) {
-  Layer *layer = layer_create_with_data(frame, sizeof(VectorSequenceLayerData));
+  Layer *layer = blayer_create_with_data(frame, sizeof(VectorSequenceLayerData));
   VectorSequenceLayerData *vector_sequence_layer_data = layer_get_data(layer);
   vector_sequence_layer_data->sequence = NULL;
   vector_sequence_layer_data->background_color = GColorClear;

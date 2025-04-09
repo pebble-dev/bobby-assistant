@@ -178,6 +178,7 @@ ConversationEntry* conversation_entry_at_index(Conversation* conversation, int i
 ConversationEntry* conversation_peek(Conversation* conversation);
 ConversationEntry* conversation_get_last_of_type(Conversation* conversation, EntryType type);
 EntryType conversation_entry_get_type(ConversationEntry* entry);
+void conversation_delete_first_entry(Conversation* conversation);
 
 ConversationPrompt* conversation_entry_get_prompt(ConversationEntry* entry);
 ConversationResponse* conversation_entry_get_response(ConversationEntry* response);

@@ -16,8 +16,11 @@
 
 
 #include "formatted_text_layer.h"
+#include "memory/malloc.h"
 
 #include <pebble.h>
+
+#include "memory/sdk.h"
 
 typedef enum {
   FragmentTypeTitle,
@@ -51,7 +54,7 @@ static void prv_fragment(FormattedTextLayerData* data);
 static void prv_layout(FormattedTextLayer* layer);
 
 FormattedTextLayer* formatted_text_layer_create(GRect frame) {
-  Layer *layer = layer_create_with_data(frame, sizeof(FormattedTextLayerData));
+  Layer *layer = blayer_create_with_data(frame, sizeof(FormattedTextLayerData));
   FormattedTextLayerData *data = layer_get_data(layer);
   memset(data, 0, sizeof(FormattedTextLayerData));
   data->title_font = fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD);
@@ -111,7 +114,7 @@ static void prv_layer_update(Layer *layer, GContext *ctx) {
     data->body_font,
   };
   graphics_context_set_text_color(ctx, GColorBlack);
-  char *buffer = malloc(data->largest_fragment_length + 1);
+  char *buffer = bmalloc(data->largest_fragment_length + 1);
   for (size_t i = 0; i < data->fragment_count; ++i) {
     TextFragment *fragment = &data->fragments[i];
     if (fragment->text_length == 0) {
@@ -143,7 +146,7 @@ static void prv_fragment(FormattedTextLayerData *data) {
   }
   int max_fragment_count = prv_segment_upper_bound(data->text);
   data->largest_fragment_length = 0;
-  data->fragments = malloc(max_fragment_count * sizeof(TextFragment));
+  data->fragments = bmalloc(max_fragment_count * sizeof(TextFragment));
   size_t text_length = strlen(data->text);
   const char* ptr = data->text;
   TextFragment* last_fragment = &data->fragments[data->fragment_count++];
@@ -201,7 +204,7 @@ static void prv_layout(FormattedTextLayer* layer) {
   GRect bounds = layer_get_bounds(layer);
   GRect sizing_frame = GRect(0, 0, bounds.size.w, 10000);
 
-  char *buffer = malloc(data->largest_fragment_length + 1);
+  char *buffer = bmalloc(data->largest_fragment_length + 1);
 
   GFont font_lookup[3] = {
     data->title_font,

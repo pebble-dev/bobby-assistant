@@ -26,12 +26,15 @@
 #include <pebble.h>
 #include <pebble-events/pebble-events.h>
 
+#include "util/memory/pressure.h"
+
 
 #define QUICK_LAUNCH_TIMEOUT_MS 60000
 
 static RootWindow* s_root_window = NULL;
 
 static void prv_init(void) {
+  memory_pressure_init();
   version_init();
   consent_migrate();
   settings_init();

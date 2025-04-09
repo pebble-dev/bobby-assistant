@@ -15,6 +15,7 @@
  */
 
 #include "number.h"
+#include "../../../util/memory/sdk.h"
 
 typedef struct {
   ConversationEntry *entry;
@@ -29,7 +30,7 @@ static void prv_choose_font(Layer *layer);
 bool prv_is_sufficiently_numeric(const char* text);
 
 NumberWidget* number_widget_create(GRect rect, ConversationEntry* entry) {
-  Layer *number_layer = layer_create_with_data(GRect(rect.origin.x, rect.origin.y, rect.size.w, 60), sizeof(NumberWidgetData));
+  Layer *number_layer = blayer_create_with_data(GRect(rect.origin.x, rect.origin.y, rect.size.w, 60), sizeof(NumberWidgetData));
   NumberWidgetData *data = layer_get_data(number_layer);
   data->entry = entry;
   layer_set_update_proc(number_layer, prv_layer_update);

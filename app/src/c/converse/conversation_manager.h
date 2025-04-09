@@ -22,12 +22,14 @@
 
 typedef struct ConversationManager ConversationManager;
 typedef void (*ConversationManagerUpdateHandler)(bool entry_added, void* context);
+typedef void (*ConversationManagerEntryDeletedHandler)(int index, void* context);
 
 void conversation_manager_init();
 ConversationManager* conversation_manager_create();
 ConversationManager* conversation_manager_get_current();
 void conversation_manager_destroy(ConversationManager* manager);
 void conversation_manager_set_handler(ConversationManager* manager, ConversationManagerUpdateHandler handler, void* context);
+void conversation_manager_set_deletion_handler(ConversationManager* manager, ConversationManagerEntryDeletedHandler handler);
 void conversation_manager_add_input(ConversationManager* manager, const char* input);
 void conversation_manager_add_action(ConversationManager* manager, ConversationAction* action);
 void conversation_manager_add_widget(ConversationManager* manager, ConversationWidget* widget);

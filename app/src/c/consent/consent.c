@@ -17,6 +17,8 @@
 #include "consent.h"
 #include "../util/persist_keys.h"
 #include "../util/style.h"
+#include "../util/memory/malloc.h"
+#include "../util/memory/sdk.h"
 #include "../version/version.h"
 #include "../root_window.h"
 
@@ -57,8 +59,8 @@ static void prv_app_message_handler(DictionaryIterator *iter, void *context);
 static void prv_mark_consents_complete();
 
 void consent_window_push() {
-  Window* window = window_create();
-  ConsentWindowData* data = malloc(sizeof(ConsentWindowData));
+  Window* window = bwindow_create();
+  ConsentWindowData* data = bmalloc(sizeof(ConsentWindowData));
   memset(data, 0, sizeof(ConsentWindowData));
   window_set_user_data(window, data);
   window_set_window_handlers(window, (WindowHandlers) {
@@ -94,19 +96,19 @@ static void prv_window_load(Window *window) {
   ConsentWindowData *data = window_get_user_data(window);
   Layer *root_layer = window_get_root_layer(window);
   GRect window_bounds = layer_get_frame(root_layer);
-  data->scroll_layer = scroll_layer_create(window_bounds);
+  data->scroll_layer = bscroll_layer_create(window_bounds);
   scroll_layer_set_click_config_onto_window(data->scroll_layer, window);
-  data->title_layer = text_layer_create(GRect(0, 0, window_bounds.size.w, 30));
+  data->title_layer = btext_layer_create(GRect(0, 0, window_bounds.size.w, 30));
   text_layer_set_text_alignment(data->title_layer, GTextAlignmentCenter);
   text_layer_set_font(data->title_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
-  data->text_layer = text_layer_create(GRect(10, 30, window_bounds.size.w - 20, window_bounds.size.h - 30));
+  data->text_layer = btext_layer_create(GRect(10, 30, window_bounds.size.w - 20, window_bounds.size.h - 30));
   text_layer_set_font(data->text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24));
-  data->select_indicator_bitmap = gbitmap_create_with_resource(RESOURCE_ID_BUTTON_INDICATOR);
-  data->select_indicator_layer = bitmap_layer_create(
+  data->select_indicator_bitmap = bgbitmap_create_with_resource(RESOURCE_ID_BUTTON_INDICATOR);
+  data->select_indicator_layer = bbitmap_layer_create(
     GRect(window_bounds.size.w - 5, window_bounds.size.h / 2 - 10, 5, 20));
   bitmap_layer_set_bitmap(data->select_indicator_layer, data->select_indicator_bitmap);
   bitmap_layer_set_compositing_mode(data->select_indicator_layer, GCompOpSet);
-  data->content_indicator_layer = layer_create(
+  data->content_indicator_layer = blayer_create(
     GRect(0, window_bounds.size.h - STATUS_BAR_LAYER_HEIGHT, window_bounds.size.w, STATUS_BAR_LAYER_HEIGHT));
   scroll_layer_set_shadow_hidden(data->scroll_layer, true);
   ContentIndicator *indicator = scroll_layer_get_content_indicator(data->scroll_layer);
@@ -177,7 +179,7 @@ static void prv_set_stage(Window* window, int stage) {
   }
   if (res_handle != NULL) {
     size_t res_size = resource_size(res_handle);
-    data->current_text = malloc(res_size + 1);
+    data->current_text = bmalloc(res_size + 1);
     resource_load(res_handle, (uint8_t*)data->current_text, res_size);
     data->current_text[res_size] = '\0';
   }
@@ -226,7 +228,7 @@ static void prv_select_click_handler(ClickRecognizerRef recognizer, void *contex
 
 static void prv_present_consent_menu(Window* window) {
   ConsentWindowData* data = window_get_user_data(window);
-  ActionMenuLevel* root_level = action_menu_level_create(2);
+  ActionMenuLevel* root_level = baction_menu_level_create(2);
   action_menu_level_add_action(root_level, "Allow", prv_consent_menu_select_callback, (void *)true);
   action_menu_level_add_action(root_level, "Deny", prv_consent_menu_select_callback, (void *)false);
   ActionMenuConfig config = (ActionMenuConfig) {

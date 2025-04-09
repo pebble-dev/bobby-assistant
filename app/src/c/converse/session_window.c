@@ -22,6 +22,8 @@
 #include "../util/thinking_layer.h"
 #include "../util/style.h"
 #include "../util/action_menu_crimes.h"
+#include "../util/memory/malloc.h"
+#include "../util/memory/sdk.h"
 #include "../vibes/haptic_feedback.h"
 
 #include <pebble.h>
@@ -43,6 +45,7 @@ struct SessionWindow {
   BitmapLayer* button_layer;
   int segment_space;
   int segment_count;
+  int segments_deleted;
   bool dictation_pending;
   int content_height;
   int last_prompt_end_offset;
@@ -60,6 +63,7 @@ static void prv_window_unload(Window *window);
 static void prv_destroy(SessionWindow *sw);
 static void prv_dictation_status_callback(DictationSession *session, DictationSessionStatus status, char *transcription, void *context);
 static void prv_conversation_manager_handler(bool entry_added, void* context);
+static void prv_conversation_entry_deleted_handler(int index, void* context);
 static void prv_click_config_provider(void *context);
 static void prv_select_clicked(ClickRecognizerRef recognizer, void *context);
 static void prv_select_long_pressed(ClickRecognizerRef recognizer, void *context);
@@ -74,14 +78,14 @@ static void prv_action_menu_input(ActionMenu *action_menu, const ActionMenuItem 
 static void prv_action_menu_report_thread(ActionMenu *action_menu, const ActionMenuItem *action, void *context);
 
 void session_window_push(int timeout, char *starting_prompt) {
-  Window *window = window_create();
-  SessionWindow *sw = malloc(sizeof(SessionWindow));
+  Window *window = bwindow_create();
+  SessionWindow *sw = bmalloc(sizeof(SessionWindow));
   memset(sw, 0, sizeof(SessionWindow));
   window_set_user_data(window, sw);
   sw->window = window;
   sw->timeout = timeout;
   if (starting_prompt != NULL) {
-    sw->starting_prompt = malloc(strlen(starting_prompt) + 1);
+    sw->starting_prompt = bmalloc(strlen(starting_prompt) + 1);
     strncpy(sw->starting_prompt, starting_prompt, strlen(starting_prompt) + 1);
   }
   window_set_window_handlers(window, (WindowHandlers) {
@@ -126,21 +130,23 @@ static void prv_window_load(Window *window) {
   APP_LOG(APP_LOG_LEVEL_INFO, "created SessionWindow %p.", sw);
   sw->manager = conversation_manager_create();
   conversation_manager_set_handler(sw->manager, prv_conversation_manager_handler, sw);
+  conversation_manager_set_deletion_handler(sw->manager, prv_conversation_entry_deleted_handler);
   sw->dictation = dictation_session_create(0, prv_dictation_status_callback, sw);
   dictation_session_enable_confirmation(sw->dictation, false);
 
   sw->segment_space = 3;
   sw->segment_count = 0;
-  sw->segment_layers = malloc(sizeof(SegmentLayer*) * sw->segment_space);
+  sw->segments_deleted = 0;
+  sw->segment_layers = bmalloc(sizeof(SegmentLayer*) * sw->segment_space);
 
-  sw->status_layer = status_bar_layer_create();
+  sw->status_layer = bstatus_bar_layer_create();
   bobby_status_bar_config(sw->status_layer);
   layer_add_child(root_layer, (Layer *)sw->status_layer);
 
   sw->content_height = 0;
   sw->last_prompt_end_offset = 0;
-  sw->scroll_indicator_down = layer_create(GRect(0, window_size.h - STATUS_BAR_LAYER_HEIGHT, window_size.w, STATUS_BAR_LAYER_HEIGHT));
-  sw->scroll_layer = scroll_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT, window_size.w, window_size.h - STATUS_BAR_LAYER_HEIGHT));
+  sw->scroll_indicator_down = blayer_create(GRect(0, window_size.h - STATUS_BAR_LAYER_HEIGHT, window_size.w, STATUS_BAR_LAYER_HEIGHT));
+  sw->scroll_layer = bscroll_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT, window_size.w, window_size.h - STATUS_BAR_LAYER_HEIGHT));
   scroll_layer_set_shadow_hidden(sw->scroll_layer, true);
   ContentIndicator* indicator = scroll_layer_get_content_indicator(sw->scroll_layer);
   const ContentIndicatorConfig up_config = (ContentIndicatorConfig) {
@@ -172,8 +178,8 @@ static void prv_window_load(Window *window) {
   scroll_layer_set_click_config_onto_window(sw->scroll_layer, window);
 
   // This must be added after the scroll layer, to always appear on top.
-  sw->button_bitmap = gbitmap_create_with_resource(RESOURCE_ID_BUTTON_INDICATOR);
-  sw->button_layer = bitmap_layer_create(GRect(window_size.w - 5, window_size.h / 2 - 10, 5, 20));
+  sw->button_bitmap = bgbitmap_create_with_resource(RESOURCE_ID_BUTTON_INDICATOR);
+  sw->button_layer = bbitmap_layer_create(GRect(window_size.w - 5, window_size.h / 2 - 10, 5, 20));
   bitmap_layer_set_bitmap(sw->button_layer, sw->button_bitmap);
   bitmap_layer_set_compositing_mode(sw->button_layer, GCompOpSet);
   layer_add_child(root_layer, (Layer *)sw->button_layer);
@@ -194,6 +200,7 @@ static void prv_window_appear(Window *window) {
   }
   if (sw->dictation_pending) {
     sw->dictation_pending = false;
+    free(bmalloc(500));
     dictation_session_start(sw->dictation);
   }
 }
@@ -287,7 +294,7 @@ static void prv_conversation_manager_handler(bool entry_added, void* context) {
   SessionWindow* sw = context;
   GSize holder_size = scroll_layer_get_content_size(sw->scroll_layer);
   if (!entry_added) {
-    if (sw->segment_count > 0) {
+    if (sw->segment_count > sw->segments_deleted) {
       SegmentLayer *layer = sw->segment_layers[sw->segment_count-1];
       int old_height = layer_get_frame(layer).size.h;
       segment_layer_update(layer);
@@ -301,7 +308,7 @@ static void prv_conversation_manager_handler(bool entry_added, void* context) {
   }
   // If we have a new entry, we might just want to replace the old segment layer - we don't
   // keep old Thought segments around.
-  if (sw->segment_count > 0) {
+  if (sw->segment_count > sw->segments_deleted) {
     SegmentLayer* last_layer = sw->segment_layers[sw->segment_count-1];
     EntryType type = conversation_entry_get_type(segment_layer_get_entry(last_layer));
     if (type == EntryTypeThought) {
@@ -323,7 +330,7 @@ static void prv_conversation_manager_handler(bool entry_added, void* context) {
   }
   if (sw->segment_count == sw->segment_space) {
     // make room for a new segment
-    SegmentLayer** new_block = malloc(sizeof(SegmentLayer*) * ++sw->segment_space);
+    SegmentLayer** new_block = bmalloc(sizeof(SegmentLayer*) * ++sw->segment_space);
     memcpy(new_block, sw->segment_layers, sizeof(SegmentLayer*) * sw->segment_count);
     free(sw->segment_layers);
     sw->segment_layers = new_block;
@@ -366,6 +373,37 @@ static void prv_conversation_manager_handler(bool entry_added, void* context) {
 //  scroll_layer_set_content_offset(sw->scroll_layer, GPoint(0, layer_get_frame(layer).origin.y), true);
 }
 
+static void prv_conversation_entry_deleted_handler(int index, void* context) {
+  if (index != 0) {
+    APP_LOG(APP_LOG_LEVEL_ERROR, "Invalid index %d", index);
+    return;
+  }
+  SessionWindow* sw = context;
+  // We need to go through every segment that's left and shift it up by the height of the deleted segment
+  SegmentLayer *to_delete = sw->segment_layers[sw->segments_deleted];
+  int16_t removed_height = layer_get_frame(to_delete).size.h;
+  for (int i = sw->segments_deleted + 1; i < sw->segment_count; ++i) {
+    SegmentLayer *layer = sw->segment_layers[i];
+    GRect frame = layer_get_frame(layer);
+    frame.origin.y -= removed_height;
+    layer_set_frame(layer, frame);
+  }
+  // We need to adjust the height of everything to compensate for the missing segment.
+  sw->content_height -= removed_height;
+  GPoint current_offset = scroll_layer_get_content_offset(sw->scroll_layer);
+  GPoint new_offset = GPoint(current_offset.x, current_offset.y - removed_height);
+  scroll_layer_set_content_offset(sw->scroll_layer, new_offset, false);
+  GSize current_size = scroll_layer_get_content_size(sw->scroll_layer);
+  GSize new_size = GSize(current_size.w, current_size.h - removed_height);
+  scroll_layer_set_content_size(sw->scroll_layer, new_size);
+  // We need to remove our first segment.
+  layer_remove_from_parent(to_delete);
+  segment_layer_destroy(sw->segment_layers[sw->segments_deleted]);
+  sw->segment_layers[sw->segments_deleted] = NULL;
+  sw->segments_deleted++;
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "Removed top segment; adjusted upward by %d pixels.", removed_height);
+}
+
 static void prv_click_config_provider(void *context) {
   window_single_click_subscribe(BUTTON_ID_SELECT, prv_select_clicked);
   window_long_click_subscribe(BUTTON_ID_SELECT, 0, prv_select_long_pressed, NULL);
@@ -374,6 +412,7 @@ static void prv_click_config_provider(void *context) {
 static void prv_select_clicked(ClickRecognizerRef recognizer, void *context) {
   SessionWindow* sw = context;
   if (conversation_is_idle(conversation_manager_get_conversation(sw->manager))) {
+    free(bmalloc(500));
     dictation_session_start(sw->dictation);
   }
 }
@@ -392,7 +431,7 @@ static void prv_select_long_pressed(ClickRecognizerRef recognizer, void *context
   if (!conversation_is_idle(conversation_manager_get_conversation(sw->manager))) {
     return;
   }
-  ActionMenuLevel *action_menu = action_menu_level_create(5);
+  ActionMenuLevel *action_menu = baction_menu_level_create(5);
   action_menu_level_add_action(action_menu, "\"Yes.\"", prv_action_menu_input, "Yes.");
   action_menu_level_add_action(action_menu, "\"No.\"", prv_action_menu_input, "No.");
   Conversation *conversation = conversation_manager_get_conversation(sw->manager);
@@ -403,7 +442,7 @@ static void prv_select_long_pressed(ClickRecognizerRef recognizer, void *context
     ConversationEntry *last_prompt = conversation_get_last_of_type(conversation, EntryTypePrompt);
     if (last_prompt != NULL) {
       ConversationPrompt *prompt = conversation_entry_get_prompt(last_prompt);
-      sw->last_prompt_label = malloc(strlen(prompt->prompt) + 3);
+      sw->last_prompt_label = bmalloc(strlen(prompt->prompt) + 3);
       snprintf(sw->last_prompt_label, strlen(prompt->prompt) + 3, "\"%s\"", prompt->prompt);
       action_menu_level_add_action(action_menu, sw->last_prompt_label, prv_action_menu_input, prompt->prompt);
       separator_index++;
@@ -429,6 +468,7 @@ static void prv_select_long_pressed(ClickRecognizerRef recognizer, void *context
 
 static void prv_action_menu_query(ActionMenu *action_menu, const ActionMenuItem *action, void *context) {
   SessionWindow* sw = context;
+  free(bmalloc(500));
   dictation_session_start(sw->dictation);
 }
 

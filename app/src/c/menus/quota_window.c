@@ -18,6 +18,8 @@
 #include "usage_layer.h"
 #include "../util/vector_sequence_layer.h"
 #include "../util/style.h"
+#include "../util/memory/malloc.h"
+#include "../util/memory/sdk.h"
 
 #include <pebble.h>
 #include <pebble-events/pebble-events.h>
@@ -39,8 +41,8 @@ static void prv_fetch_quota(Window* window);
 static void prv_app_message_received(DictionaryIterator* iter, void* context);
 
 void push_quota_window() {
-  QuotaWindowData* data = malloc(sizeof(QuotaWindowData));
-  Window* window = window_create();
+  QuotaWindowData* data = bmalloc(sizeof(QuotaWindowData));
+  Window* window = bwindow_create();
   window_set_user_data(window, data);
   window_set_window_handlers(window, (WindowHandlers) {
     .load = prv_window_load,
@@ -53,14 +55,14 @@ static void prv_window_load(Window* window) {
   QuotaWindowData* data = window_get_user_data(window);
   Layer* root_layer = window_get_root_layer(window);
   GRect bounds = layer_get_bounds(root_layer);
-  data->status_bar = status_bar_layer_create();
+  data->status_bar = bstatus_bar_layer_create();
   bobby_status_bar_config(data->status_bar);
-  data->scroll_layer = scroll_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT, bounds.size.w, bounds.size.h - STATUS_BAR_LAYER_HEIGHT));
+  data->scroll_layer = bscroll_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT, bounds.size.w, bounds.size.h - STATUS_BAR_LAYER_HEIGHT));
   scroll_layer_set_content_size(data->scroll_layer, GSize(bounds.size.w, 300));
   scroll_layer_set_click_config_onto_window(data->scroll_layer, window);
   scroll_layer_set_shadow_hidden(data->scroll_layer, true);
   data->usage_layer = usage_layer_create(GRect(10, 5, bounds.size.w - 20, 20));
-  data->explanation_layer = text_layer_create(GRect(10, 25, bounds.size.w - 20, 275));
+  data->explanation_layer = btext_layer_create(GRect(10, 25, bounds.size.w - 20, 275));
   text_layer_set_font(data->explanation_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24));
   scroll_layer_add_child(data->scroll_layer, (Layer *)data->explanation_layer);
   scroll_layer_add_child(data->scroll_layer, (Layer *)data->usage_layer);

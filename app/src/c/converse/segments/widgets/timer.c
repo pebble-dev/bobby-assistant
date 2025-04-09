@@ -17,6 +17,7 @@
 #include "timer.h"
 #include "../../conversation.h"
 #include "../../../util/style.h"
+#include "../../../util/memory/sdk.h"
 #include <pebble.h>
 #include <pebble-events/pebble-events.h>
 
@@ -32,11 +33,11 @@ static void prv_handle_tick(struct tm *tick_time, TimeUnits units_changed, void 
 static void prv_update_text_buffer(TimerWidgetData* data);
 
 TimerWidget* timer_widget_create(GRect rect, ConversationEntry* entry) {
-  Layer *layer = layer_create_with_data(GRect(rect.origin.x, rect.origin.y, rect.size.w, 53), sizeof(TimerWidgetData));
+  Layer *layer = blayer_create_with_data(GRect(rect.origin.x, rect.origin.y, rect.size.w, 53), sizeof(TimerWidgetData));
   TimerWidgetData* data = layer_get_data(layer);
 
   data->entry = entry;
-  data->icon = gdraw_command_image_create_with_resource(RESOURCE_ID_TIMER_ICON);
+  data->icon = bgdraw_command_image_create_with_resource(RESOURCE_ID_TIMER_ICON);
   prv_update_text_buffer(data);
   layer_set_update_proc(layer, prv_layer_update);
 

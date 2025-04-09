@@ -17,6 +17,7 @@
 #include "weather_multi_day.h"
 #include <pebble.h>
 #include "weather_util.h"
+#include "../../../util/memory/sdk.h"
 
 typedef struct {
   ConversationEntry *entry;
@@ -28,13 +29,13 @@ typedef struct {
 static void prv_layer_update(Layer *layer, GContext *ctx);
 
 WeatherMultiDayWidget* weather_multi_day_widget_create(GRect rect, ConversationEntry* entry) {
-  Layer *layer = layer_create_with_data(GRect(rect.origin.x, rect.origin.y, rect.size.w, 110), sizeof(WeatherMultiDayWidgetData));
+  Layer *layer = blayer_create_with_data(GRect(rect.origin.x, rect.origin.y, rect.size.w, 110), sizeof(WeatherMultiDayWidgetData));
   WeatherMultiDayWidgetData *data = layer_get_data(layer);
   ConversationWidgetWeatherMultiDay *w = &conversation_entry_get_widget(entry)->widget.weather_multi_day;
 
   data->entry = entry;
   for (int i = 0; i < 3; i++) {
-    data->icons[i] = gdraw_command_image_create_with_resource(weather_widget_get_small_resource_for_condition(w->days[i].condition));
+    data->icons[i] = bgdraw_command_image_create_with_resource(weather_widget_get_small_resource_for_condition(w->days[i].condition));
     snprintf(data->rendered_highs[i], sizeof(data->rendered_highs[i]), "%d°", w->days[i].high);
     snprintf(data->rendered_lows[i], sizeof(data->rendered_lows[i]), "%d°", w->days[i].low);
   }

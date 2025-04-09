@@ -20,7 +20,8 @@
 
 #include "../util/style.h"
 #include "../util/formatted_text_layer.h"
-#include "../util/vector_layer.h"
+#include "../util/memory/malloc.h"
+#include "../util/memory/sdk.h"
 #include "../version/version.h"
 
 typedef struct {
@@ -36,8 +37,8 @@ static void prv_window_load(Window* window);
 static void prv_window_unload(Window* window);
 
 void about_window_push() {
-  Window *window = window_create();
-  AboutWindowData *data = malloc(sizeof(AboutWindowData));
+  Window *window = bwindow_create();
+  AboutWindowData *data = bmalloc(sizeof(AboutWindowData));
   memset(data, 0, sizeof(AboutWindowData));
   window_set_user_data(window, data);
   window_set_window_handlers(window, (WindowHandlers) {
@@ -54,21 +55,21 @@ static void prv_window_load(Window* window) {
 
   ResHandle res_handle = resource_get_handle(RESOURCE_ID_ABOUT_TEXT);
   size_t res_size = resource_size(res_handle);
-  char *about_text = malloc(res_size + 1);
+  char *about_text = bmalloc(res_size + 1);
   resource_load(res_handle, (uint8_t*)about_text, res_size);
   about_text[res_size] = '\0';
-  data->about_text = malloc(res_size + 7);
+  data->about_text = bmalloc(res_size + 7);
   VersionInfo version = version_get_current();
   snprintf(data->about_text, res_size + 7, about_text, version.major, version.minor);
   data->about_text[res_size+6] = '\0';
 
   window_set_background_color(window, BRANDED_BACKGROUND_COLOUR);
 
-  data->status_bar = status_bar_layer_create();
+  data->status_bar = bstatus_bar_layer_create();
   bobby_status_bar_result_pane_config(data->status_bar);
   layer_add_child(root_layer, status_bar_layer_get_layer(data->status_bar));
 
-  data->scroll_layer = scroll_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT, window_bounds.size.w, window_bounds.size.h - STATUS_BAR_LAYER_HEIGHT));
+  data->scroll_layer = bscroll_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT, window_bounds.size.w, window_bounds.size.h - STATUS_BAR_LAYER_HEIGHT));
   scroll_layer_set_shadow_hidden(data->scroll_layer, true);
   scroll_layer_set_click_config_onto_window(data->scroll_layer, window);
   layer_add_child(root_layer, scroll_layer_get_layer(data->scroll_layer));
@@ -78,7 +79,7 @@ static void prv_window_load(Window* window) {
   formatted_text_layer_set_text(data->text_layer, data->about_text);
   GSize text_size = formatted_text_layer_get_content_size(data->text_layer);
 
-  data->bobby_image = gbitmap_create_with_resource(RESOURCE_ID_FENCE_PONY_BITMAP);
+  data->bobby_image = bgbitmap_create_with_resource(RESOURCE_ID_FENCE_PONY_BITMAP);
   GSize image_size = gbitmap_get_bounds(data->bobby_image).size;
   image_size.h += 40; // add back the space at the top
   data->bitmap_layer = bitmap_layer_create(GRect((window_bounds.size.w - image_size.w) / 2, text_size.h, image_size.w, image_size.h));

@@ -18,6 +18,8 @@
 #include "util/perimeter.h"
 #include <pebble.h>
 
+#include "util/memory/sdk.h"
+
 typedef struct {
   GPerimeter perimeter;
   Layer *layer;
@@ -35,13 +37,13 @@ static GRangeHorizontal prv_perimeter_callback(const GPerimeter *perimeter, cons
 
 
 TalkingHorseLayer *talking_horse_layer_create(GRect frame) {
-  Layer *layer = layer_create_with_data(frame, sizeof(TalkingHorseLayerData));
+  Layer *layer = blayer_create_with_data(frame, sizeof(TalkingHorseLayerData));
   TalkingHorseLayerData *data = layer_get_data(layer);
   data->perimeter = (GPerimeter) { .callback = prv_perimeter_callback };
   data->layer = layer;
   data->text = NULL;
   data->text_size = GSizeZero;
-  data->pony = gdraw_command_image_create_with_resource(RESOURCE_ID_ROOT_SCREEN_PONY);
+  data->pony = bgdraw_command_image_create_with_resource(RESOURCE_ID_ROOT_SCREEN_PONY);
   data->text_attributes = prv_create_text_attributes(layer);
   layer_set_update_proc(layer, prv_update_layer);
   return layer;

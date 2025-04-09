@@ -18,6 +18,8 @@
 #include "../util/style.h"
 #include "../util/vector_sequence_layer.h"
 #include "../util/result_window.h"
+#include "../util/memory/malloc.h"
+#include "../util/memory/sdk.h"
 #include "../settings/settings.h"
 #include "../vibes/sad_vibe_score.h"
 
@@ -59,15 +61,15 @@ static uint32_t prv_resource_id_for_setting(VibePatternSetting setting);
 static SadVibeScore *prv_load_vibe_score(bool is_timer);
 
 void alarm_window_push(time_t alarm_time, bool is_timer, char *name) {
-  Window* window = window_create();
-  AlarmWindowData *data = malloc(sizeof(AlarmWindowData));
+  Window* window = bwindow_create();
+  AlarmWindowData *data = bmalloc(sizeof(AlarmWindowData));
   data->time = alarm_time;
   data->is_timer = is_timer;
   data->timer = NULL;
   data->name = NULL;
   if (name) {
     size_t len = strlen(name);
-    data->name = malloc(len + 1);
+    data->name = bmalloc(len + 1);
     strncpy(data->name, name, len + 1);
   }
   window_set_user_data(window, data);
@@ -84,7 +86,7 @@ static void prv_window_load(Window *window) {
   AlarmWindowData* data = window_get_user_data(window);
   Layer* root_layer = window_get_root_layer(window);
   GRect rect = layer_get_bounds(root_layer);
-  data->title_layer = text_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT, rect.size.w - ACTION_BAR_WIDTH, 70));
+  data->title_layer = btext_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT, rect.size.w - ACTION_BAR_WIDTH, 70));
   if (data->name) {
     text_layer_set_text(data->title_layer, data->name);
   } else {
@@ -96,7 +98,7 @@ static void prv_window_load(Window *window) {
   layer_add_child(root_layer, (Layer *)data->title_layer);
   GSize title_size = text_layer_get_content_size(data->title_layer);
   int16_t remaining_height = rect.size.h - STATUS_BAR_LAYER_HEIGHT - title_size.h - 49;
-  data->time_layer = text_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT + title_size.h + remaining_height / 2 - 22 / 2, rect.size.w - ACTION_BAR_WIDTH, 32));
+  data->time_layer = btext_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT + title_size.h + remaining_height / 2 - 22 / 2, rect.size.w - ACTION_BAR_WIDTH, 32));
   text_layer_set_font(data->time_layer, fonts_get_system_font(FONT_KEY_LECO_32_BOLD_NUMBERS));
   text_layer_set_text_alignment(data->time_layer, GTextAlignmentCenter);
   text_layer_set_background_color(data->time_layer, GColorClear);
@@ -106,16 +108,16 @@ static void prv_window_load(Window *window) {
   prv_tick_callback(localtime(&now), SECOND_UNIT, window);
   window_set_background_color(window, COLOR_FALLBACK(ACCENT_COLOUR, GColorWhite));
   if (data->is_timer) {
-    data->status_bar = status_bar_layer_create();
+    data->status_bar = bstatus_bar_layer_create();
     layer_set_frame(status_bar_layer_get_layer(data->status_bar), GRect(0, 0, rect.size.w - ACTION_BAR_WIDTH, STATUS_BAR_LAYER_HEIGHT));
     bobby_status_bar_result_pane_config(data->status_bar);
     layer_add_child(root_layer, (Layer *)data->status_bar);
   } else {
     data->status_bar = NULL;
   }
-  data->icon_snooze = gbitmap_create_with_resource(RESOURCE_ID_ACTION_BAR_SNOOZE);
-  data->icon_x = gbitmap_create_with_resource(RESOURCE_ID_ACTION_BAR_X);
-  data->action_bar = action_bar_layer_create();
+  data->icon_snooze = bgbitmap_create_with_resource(RESOURCE_ID_ACTION_BAR_SNOOZE);
+  data->icon_x = bgbitmap_create_with_resource(RESOURCE_ID_ACTION_BAR_X);
+  data->action_bar = baction_bar_layer_create();
   action_bar_layer_set_icon(data->action_bar, BUTTON_ID_UP, data->icon_snooze);
   action_bar_layer_set_icon(data->action_bar, BUTTON_ID_DOWN, data->icon_x);
   action_bar_layer_set_context(data->action_bar, window);
@@ -224,10 +226,10 @@ static void prv_handle_snooze(ClickRecognizerRef recognizer, void *context) {
   }
   if (result == S_SUCCESS) {
     const char* text = data->is_timer ? "Snoozed for 1 minute" : "Snoozed for 10 minutes";
-    result_window_push("Snoozed", text, gdraw_command_image_create_with_resource(RESOURCE_ID_SLEEPING_PONY), BRANDED_BACKGROUND_COLOUR);
+    result_window_push("Snoozed", text, bgdraw_command_image_create_with_resource(RESOURCE_ID_SLEEPING_PONY), BRANDED_BACKGROUND_COLOUR);
   } else {
     const char* text = data->is_timer ? "Failed to snooze. Timer dismissed." : "Failed to snooze. Alarm dismissed.";
-    result_window_push("Failed", text, gdraw_command_image_create_with_resource(RESOURCE_ID_FAILED_PONY), GColorSunsetOrange);
+    result_window_push("Failed", text, bgdraw_command_image_create_with_resource(RESOURCE_ID_FAILED_PONY), GColorSunsetOrange);
   }
   window_stack_remove(window, false);
 }

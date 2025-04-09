@@ -19,6 +19,8 @@
 #include "../util/style.h"
 #include "../util/time.h"
 #include "../util/vector_layer.h"
+#include "../util/memory/malloc.h"
+#include "../util/memory/sdk.h"
 
 #include <pebble.h>
 #include <pebble-events/pebble-events.h>
@@ -46,11 +48,11 @@ static void prv_action_menu_close(ActionMenu* action_menu, const ActionMenuItem*
 static void prv_show_empty(Window *window);
 
 void alarm_menu_window_push(bool for_timers) {
-  AlarmMenuWindowData *data = malloc(sizeof(AlarmMenuWindowData));
+  AlarmMenuWindowData *data = bmalloc(sizeof(AlarmMenuWindowData));
   memset(data, 0, sizeof(*data));
   data->for_timers = for_timers;
 
-  Window *window = window_create();
+  Window *window = bwindow_create();
   window_set_user_data(window, data);
   window_set_window_handlers(window, (WindowHandlers) {
     .load = prv_window_load,
@@ -65,7 +67,7 @@ static void prv_window_load(Window* window) {
   AlarmMenuWindowData* data = window_get_user_data(window);
   Layer* root_layer = window_get_root_layer(window);
   GRect window_bounds = layer_get_frame(root_layer);
-  data->menu_layer = menu_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT, window_bounds.size.w, window_bounds.size.h - STATUS_BAR_LAYER_HEIGHT));
+  data->menu_layer = bmenu_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT, window_bounds.size.w, window_bounds.size.h - STATUS_BAR_LAYER_HEIGHT));
   menu_layer_set_highlight_colors(data->menu_layer, SELECTION_HIGHLIGHT_COLOUR, gcolor_legible_over(SELECTION_HIGHLIGHT_COLOUR));
   menu_layer_set_callbacks(data->menu_layer, window, (MenuLayerCallbacks) {
     .get_num_rows = prv_get_num_rows,
@@ -74,8 +76,8 @@ static void prv_window_load(Window* window) {
   });
   data->sleeping_horse_image = NULL;
   data->sleeping_horse_layer = NULL;
-  data->status_bar = status_bar_layer_create();
-  data->empty_text_layer = text_layer_create(GRect(10, 20, window_bounds.size.w - 20, 80));
+  data->status_bar = bstatus_bar_layer_create();
+  data->empty_text_layer = btext_layer_create(GRect(10, 20, window_bounds.size.w - 20, 80));
   text_layer_set_text_color(data->empty_text_layer, gcolor_legible_over(ACCENT_COLOUR));
   text_layer_set_background_color(data->empty_text_layer, GColorClear);
   text_layer_set_font(data->empty_text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
@@ -101,7 +103,7 @@ static void prv_show_empty(Window *window) {
   layer_remove_from_parent(menu_layer_get_layer(data->menu_layer));
   window_set_click_config_provider(window, NULL);
 
-  data->sleeping_horse_image = gdraw_command_image_create_with_resource(RESOURCE_ID_SLEEPING_PONY);
+  data->sleeping_horse_image = bgdraw_command_image_create_with_resource(RESOURCE_ID_SLEEPING_PONY);
   data->sleeping_horse_layer = vector_layer_create(GRect(window_bounds.size.w / 2 - 25, window_bounds.size.h - 55, 50, 50));
   vector_layer_set_vector(data->sleeping_horse_layer, data->sleeping_horse_image);
   window_set_background_color(window, BRANDED_BACKGROUND_COLOUR);
@@ -210,7 +212,7 @@ static void prv_draw_row(GContext* ctx, const Layer* cell_layer, MenuIndex* cell
 }
 
 static void prv_select_click(struct MenuLayer* menu_layer, MenuIndex* cell_index, void* context) {
-  ActionMenuLevel *root_level = action_menu_level_create(1);
+  ActionMenuLevel *root_level = baction_menu_level_create(1);
   action_menu_level_add_action(root_level, "Delete", prv_cancel_alarm, NULL);
   ActionMenuConfig config = (ActionMenuConfig) {
     .root_level = root_level,

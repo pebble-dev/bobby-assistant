@@ -17,6 +17,8 @@
 #include "vector_layer.h"
 #include <pebble.h>
 
+#include "memory/sdk.h"
+
 typedef struct {
   GDrawCommandImage *vector;
   GColor background_color;
@@ -25,7 +27,7 @@ typedef struct {
 static void prv_layer_update(Layer *layer, GContext *ctx);
 
 VectorLayer* vector_layer_create(GRect frame) {
-  Layer *layer = layer_create_with_data(frame, sizeof(VectorLayerData));
+  Layer *layer = blayer_create_with_data(frame, sizeof(VectorLayerData));
   VectorLayerData *vector_layer_data = layer_get_data(layer);
   vector_layer_data->vector = NULL;
   vector_layer_data->background_color = GColorClear;

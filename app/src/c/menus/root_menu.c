@@ -22,6 +22,8 @@
 #include "reminders_menu.h"
 #include "feedback_window.h"
 #include "../util/style.h"
+#include "../util/memory/malloc.h"
+#include "../util/memory/sdk.h"
 #include <pebble.h>
 
 
@@ -46,8 +48,8 @@ typedef struct {
 } RootMenuWindowData;
 
 void root_menu_window_push() {
-  Window* window = window_create();
-  RootMenuWindowData* data = malloc(sizeof(RootMenuWindowData));
+  Window* window = bwindow_create();
+  RootMenuWindowData* data = bmalloc(sizeof(RootMenuWindowData));
   window_set_user_data(window, data);
   window_set_window_handlers(window, (WindowHandlers) {
     .load = prv_window_load,
@@ -64,37 +66,37 @@ static void prv_window_load(Window* window) {
     s_menu_items[0] = (SimpleMenuItem) {
       .title = "Alarms",
       .callback = prv_push_alarm_screen,
-      .icon = gbitmap_create_with_resource(RESOURCE_ID_MENU_ICON_ALARMS),
+      .icon = bgbitmap_create_with_resource(RESOURCE_ID_MENU_ICON_ALARMS),
     };
     s_menu_items[1] = (SimpleMenuItem) {
       .title = "Timers",
       .callback = prv_push_timer_screen,
-      .icon = gbitmap_create_with_resource(RESOURCE_ID_MENU_ICON_TIMERS),
+      .icon = bgbitmap_create_with_resource(RESOURCE_ID_MENU_ICON_TIMERS),
     };
     s_menu_items[2] = (SimpleMenuItem) {
       .title = "Reminders",
       .callback = prv_push_reminders_screen,
-      .icon = gbitmap_create_with_resource(RESOURCE_ID_MENU_ICON_REMINDERS),
+      .icon = bgbitmap_create_with_resource(RESOURCE_ID_MENU_ICON_REMINDERS),
     };
     s_menu_items[3] = (SimpleMenuItem) {
       .title = "Quota",
       .callback = prv_push_quota_screen,
-      .icon = gbitmap_create_with_resource(RESOURCE_ID_MENU_ICON_QUOTA),
+      .icon = bgbitmap_create_with_resource(RESOURCE_ID_MENU_ICON_QUOTA),
     };
     s_menu_items[4] = (SimpleMenuItem) {
       .title = "Feedback",
       .callback = prv_push_feedback_screen,
-      .icon = gbitmap_create_with_resource(RESOURCE_ID_MENU_ICON_FEEDBACK),
+      .icon = bgbitmap_create_with_resource(RESOURCE_ID_MENU_ICON_FEEDBACK),
     };
     s_menu_items[5] = (SimpleMenuItem) {
       .title = "About",
       .callback = prv_push_about_screen,
-      .icon = gbitmap_create_with_resource(RESOURCE_ID_MENU_ICON_ABOUT),
+      .icon = bgbitmap_create_with_resource(RESOURCE_ID_MENU_ICON_ABOUT),
     };
     s_menu_items[6] = (SimpleMenuItem) {
       .title = "Legal",
       .callback = prv_push_legal_screen,
-      .icon = gbitmap_create_with_resource(RESOURCE_ID_MENU_ICON_LEGAL),
+      .icon = bgbitmap_create_with_resource(RESOURCE_ID_MENU_ICON_LEGAL),
     };
     s_menu_section.num_items = 7;
     s_menu_section.items = s_menu_items;
@@ -103,10 +105,10 @@ static void prv_window_load(Window* window) {
   RootMenuWindowData* data = window_get_user_data(window);
   Layer* root_layer = window_get_root_layer(window);
   GRect window_bounds = layer_get_frame(root_layer);
-  data->status_bar = status_bar_layer_create();
+  data->status_bar = bstatus_bar_layer_create();
   bobby_status_bar_config(data->status_bar);
   layer_add_child(root_layer, status_bar_layer_get_layer(data->status_bar));
-  data->menu_layer = simple_menu_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT, window_bounds.size.w, window_bounds.size.h - STATUS_BAR_LAYER_HEIGHT), window, &s_menu_section, 1, window);
+  data->menu_layer = bsimple_menu_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT, window_bounds.size.w, window_bounds.size.h - STATUS_BAR_LAYER_HEIGHT), window, &s_menu_section, 1, window);
   menu_layer_set_highlight_colors(simple_menu_layer_get_menu_layer(data->menu_layer), SELECTION_HIGHLIGHT_COLOUR, gcolor_legible_over(SELECTION_HIGHLIGHT_COLOUR));
   layer_add_child(root_layer, simple_menu_layer_get_layer(data->menu_layer));
   APP_LOG(APP_LOG_LEVEL_DEBUG_VERBOSE, "Root menu window loaded");

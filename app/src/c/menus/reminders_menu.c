@@ -19,6 +19,8 @@
 #include "../util/vector_sequence_layer.h"
 #include "../util/vector_layer.h"
 #include "../util/time.h"
+#include "../util/memory/malloc.h"
+#include "../util/memory/sdk.h"
 #include <pebble.h>
 #include <pebble-events/pebble-events.h>
 
@@ -56,8 +58,8 @@ static void prv_show_empty(Window *window);
 static void prv_action_menu_did_close(ActionMenu *action_menu, const ActionMenuItem *menu_item, void *context);
 
 void reminders_menu_push() {
-  Window *window = window_create();
-  RemindersMenuData *data = malloc(sizeof(RemindersMenuData));
+  Window *window = bwindow_create();
+  RemindersMenuData *data = bmalloc(sizeof(RemindersMenuData));
   memset(data, 0, sizeof(RemindersMenuData));
   data->window = window;
   window_set_user_data(window, data);
@@ -83,7 +85,7 @@ static void prv_show_empty(Window *window) {
 
   // Create empty state text if not exists
   if (!data->empty_text_layer) {
-    data->empty_text_layer = text_layer_create(GRect(10, 20, bounds.size.w - 20, 80));
+    data->empty_text_layer = btext_layer_create(GRect(10, 20, bounds.size.w - 20, 80));
     text_layer_set_text_color(data->empty_text_layer, gcolor_legible_over(ACCENT_COLOUR));
     text_layer_set_background_color(data->empty_text_layer, GColorClear);
     text_layer_set_font(data->empty_text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
@@ -93,7 +95,7 @@ static void prv_show_empty(Window *window) {
 
   // Create sleeping horse if not exists
   if (!data->sleeping_horse_image) {
-    data->sleeping_horse_image = gdraw_command_image_create_with_resource(RESOURCE_ID_SLEEPING_PONY);
+    data->sleeping_horse_image = bgdraw_command_image_create_with_resource(RESOURCE_ID_SLEEPING_PONY);
     data->sleeping_horse_layer = vector_layer_create(GRect(bounds.size.w / 2 - 25, bounds.size.h - 55, 50, 50));
     vector_layer_set_vector(data->sleeping_horse_layer, data->sleeping_horse_image);
   }
@@ -111,12 +113,12 @@ static void prv_window_load(Window *window) {
 
   window_set_background_color(window, BRANDED_BACKGROUND_COLOUR);
 
-  data->status_bar = status_bar_layer_create();
+  data->status_bar = bstatus_bar_layer_create();
   bobby_status_bar_result_pane_config(data->status_bar);
   layer_add_child(root_layer, status_bar_layer_get_layer(data->status_bar));
 
   // Create menu layer but don't add it yet
-  data->menu_layer = menu_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT, 
+  data->menu_layer = bmenu_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT,
     bounds.size.w, bounds.size.h - STATUS_BAR_LAYER_HEIGHT));
   menu_layer_set_callbacks(data->menu_layer, window, (MenuLayerCallbacks) {
     .get_num_rows = prv_get_num_rows,
@@ -191,7 +193,7 @@ static void prv_app_message_received(DictionaryIterator *iter, void *context) {
       prv_show_empty(window);
       return;
     }
-    data->reminders = malloc(sizeof(Reminder) * data->reminders_capacity);
+    data->reminders = bmalloc(sizeof(Reminder) * data->reminders_capacity);
     data->num_reminders = 0;
     return;
   }
@@ -203,12 +205,12 @@ static void prv_app_message_received(DictionaryIterator *iter, void *context) {
   if (text_tuple && id_tuple && time_tuple && data->num_reminders < data->reminders_capacity) {
     // Allocate and copy the text
     size_t text_len = strlen(text_tuple->value->cstring) + 1;
-    data->reminders[data->num_reminders].text = malloc(text_len);
+    data->reminders[data->num_reminders].text = bmalloc(text_len);
     strncpy(data->reminders[data->num_reminders].text, text_tuple->value->cstring, text_len);
 
     // Allocate and copy the id
     size_t id_len = strlen(id_tuple->value->cstring) + 1;
-    data->reminders[data->num_reminders].id = malloc(id_len);
+    data->reminders[data->num_reminders].id = bmalloc(id_len);
     strncpy(data->reminders[data->num_reminders].id, id_tuple->value->cstring, id_len);
     
     // Copy the time
@@ -265,7 +267,7 @@ static void prv_select_click(MenuLayer *menu_layer, MenuIndex *cell_index, void 
   Reminder *reminder = &data->reminders[cell_index->row];
   
   // Show action menu for deletion
-  ActionMenuLevel *root_level = action_menu_level_create(1);
+  ActionMenuLevel *root_level = baction_menu_level_create(1);
   action_menu_level_add_action(root_level, "Delete", prv_delete_reminder_callback, reminder);
   
   ActionMenuConfig config = (ActionMenuConfig) {

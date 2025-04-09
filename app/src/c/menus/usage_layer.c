@@ -15,6 +15,7 @@
  */
 
 #include "usage_layer.h"
+#include "../util/memory/sdk.h"
 
 #include <pebble.h>
 
@@ -25,7 +26,7 @@ typedef struct {
 static void prv_layer_update(Layer* layer, GContext* ctx);
 
 UsageLayer* usage_layer_create(GRect frame) {
-  UsageLayer* layer = layer_create_with_data(frame, sizeof(UsageLayerData));
+  UsageLayer* layer = blayer_create_with_data(frame, sizeof(UsageLayerData));
   UsageLayerData* data = layer_get_data(layer);
   layer_set_update_proc(layer, prv_layer_update);
   data->percentage = 0;

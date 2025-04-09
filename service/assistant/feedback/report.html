@@ -48,6 +48,23 @@
 <p class="report-text">{{.ReportText}}</p>
 {{end}}
 <hr>
+{{if .ContextStorage}}
+<div class="context-storage">
+    <h2>Context Storage</h2>
+    <table>
+        <tr>
+            <th>Key</th>
+            <th>Value</th>
+        </tr>
+        {{range $key, $value := .ContextStorage}}
+            <tr>
+                <td><code>{{$key}}</code></td>
+                <td><pre class="arg-context-storage-{{$key}}">{{$value}}</pre></td>
+            </tr>
+        {{end}}
+    </table>
+</div>
+{{end}}
 <div class="thread">
 {{range .ThreadContent}}
     {{if eq .Role "user"}}

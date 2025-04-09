@@ -16,6 +16,7 @@
 
 
 #include "sad_vibe_score.h"
+#include "../util/memory/malloc.h"
 
 #include <pebble.h>
 
@@ -33,9 +34,9 @@ static void prv_vibe_timer_callback(void* context);
 
 SadVibeScore* sad_vibe_score_create_with_resource(uint32_t resource_id) {
   ResHandle res_handle = resource_get_handle(resource_id);
-  SadVibeScore* score = malloc(sizeof(SadVibeScore));
+  SadVibeScore* score = bmalloc(sizeof(SadVibeScore));
   resource_load_byte_range(res_handle, 0, (uint8_t*)score, 10);
-  score->notes = malloc(score->note_count * sizeof(uint32_t));
+  score->notes = bmalloc(score->note_count * sizeof(uint32_t));
   resource_load_byte_range(res_handle, 10, (uint8_t*)score->notes, score->note_count * sizeof(uint32_t));
   return score;
 }

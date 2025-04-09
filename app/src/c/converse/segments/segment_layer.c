@@ -24,6 +24,7 @@
 #include "widgets/number.h"
 #include "widgets/timer.h"
 #include "widgets/map.h"
+#include "../../util/memory/sdk.h"
 
 #include <pebble.h>
 
@@ -66,13 +67,13 @@ typedef struct {
 static SegmentType prv_get_segment_type(ConversationEntry* entry);
 
 SegmentLayer* segment_layer_create(GRect rect, ConversationEntry* entry, bool assistant_label) {
-  Layer* layer = layer_create_with_data(rect, sizeof(SegmentLayerData));
+  Layer* layer = blayer_create_with_data(rect, sizeof(SegmentLayerData));
   SegmentLayerData* data = layer_get_data(layer);
   data->entry = entry;
   data->type = prv_get_segment_type(entry);
   GRect child_frame = GRect(0, 0, rect.size.w, rect.size.h);
   if (assistant_label) {
-    data->assistant_label_layer = text_layer_create(GRect(5, 0, rect.size.w, NAME_HEIGHT));
+    data->assistant_label_layer = btext_layer_create(GRect(5, 0, rect.size.w, NAME_HEIGHT));
     layer_add_child(layer, text_layer_get_layer(data->assistant_label_layer));
     text_layer_set_text(data->assistant_label_layer, "Bobby");
     child_frame = GRect(0, NAME_HEIGHT, rect.size.w, rect.size.h - NAME_HEIGHT);

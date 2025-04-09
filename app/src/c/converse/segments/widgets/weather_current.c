@@ -16,6 +16,7 @@
 
 #include "weather_current.h"
 #include "weather_util.h"
+#include "../../../util/memory/sdk.h"
 #include <pebble.h>
 
 typedef struct {
@@ -29,12 +30,12 @@ typedef struct {
 static void prv_layer_update(Layer *layer, GContext *ctx);
 
 WeatherCurrentWidget* weather_current_widget_create(GRect rect, ConversationEntry* entry) {
-  Layer *layer = layer_create_with_data(GRect(rect.origin.x, rect.origin.y, rect.size.w, 85), sizeof(WeatherCurrentWidgetData));
+  Layer *layer = blayer_create_with_data(GRect(rect.origin.x, rect.origin.y, rect.size.w, 85), sizeof(WeatherCurrentWidgetData));
   WeatherCurrentWidgetData *data = layer_get_data(layer);
   ConversationWidgetWeatherCurrent *w = &conversation_entry_get_widget(entry)->widget.weather_current;
 
   data->entry = entry;
-  data->icon = gdraw_command_image_create_with_resource(weather_widget_get_medium_resource_for_condition(w->condition));
+  data->icon = bgdraw_command_image_create_with_resource(weather_widget_get_medium_resource_for_condition(w->condition));
   layer_set_update_proc(layer, prv_layer_update);
 
   snprintf(data->temp_string, sizeof(data->temp_string), "%d°", w->temperature);

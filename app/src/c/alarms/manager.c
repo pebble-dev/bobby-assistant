@@ -17,6 +17,7 @@
 #include "manager.h"
 #include "../converse/conversation_manager.h"
 #include "../util/persist_keys.h"
+#include "../util/memory/malloc.h"
 
 #include "alarm_window.h"
 
@@ -79,7 +80,7 @@ int alarm_manager_add_alarm(time_t when, bool is_timer, char* name, bool convers
     APP_LOG(APP_LOG_LEVEL_ERROR, "Scheduling alarm failed: %d (Pebble internal error)");
     return id;
   }
-  Alarm* alarm = malloc(sizeof(Alarm));
+  Alarm* alarm = bmalloc(sizeof(Alarm));
   alarm->scheduled_time = when;
   alarm->is_timer = is_timer;
   alarm->wakeup_id = id;
@@ -88,7 +89,7 @@ int alarm_manager_add_alarm(time_t when, bool is_timer, char* name, bool convers
   if (name) {
     name_len = strlen(name);
     if (name_len > 0) {
-      alarm->name = malloc(name_len + 1);
+      alarm->name = bmalloc(name_len + 1);
       strncpy(alarm->name, name, name_len + 1);
     }
   }
@@ -107,7 +108,7 @@ int alarm_manager_add_alarm(time_t when, bool is_timer, char* name, bool convers
         }
       };
       if (alarm->name) {
-        widget.widget.timer.name = malloc(name_len + 1);
+        widget.widget.timer.name = bmalloc(name_len + 1);
         strncpy(widget.widget.timer.name, alarm->name, name_len + 1);
       }
       conversation_manager_add_widget(conversation_manager, &widget);
@@ -124,7 +125,7 @@ int alarm_manager_add_alarm(time_t when, bool is_timer, char* name, bool convers
         }
       };
       if (name) {
-        action.action.set_alarm.name = malloc(name_len + 1);
+        action.action.set_alarm.name = bmalloc(name_len + 1);
         strncpy(action.action.set_alarm.name, name, name_len + 1);
       }
       conversation_manager_add_action(conversation_manager, &action);
@@ -136,7 +137,7 @@ int alarm_manager_add_alarm(time_t when, bool is_timer, char* name, bool convers
     s_manager.pending_alarms = alarm;
   } else {
     // Insert the new alarm in order, so the expiry time is always ascending.
-    Alarm *new_alarms = malloc(sizeof(Alarm) * s_manager.pending_alarm_count);
+    Alarm *new_alarms = bmalloc(sizeof(Alarm) * s_manager.pending_alarm_count);
     int i = 0;
     for (; i < s_manager.pending_alarm_count - 1; ++i) {
       if (s_manager.pending_alarms[i].scheduled_time < alarm->scheduled_time) {
@@ -201,7 +202,7 @@ static void prv_load_alarms() {
   persist_read_data(PERSIST_KEY_ALARM_IS_TIMERS, &is_timers, sizeof(is_timers));
   persist_read_data(PERSIST_KEY_ALARM_NAMES, &names, sizeof(names));
   
-  s_manager.pending_alarms = malloc(sizeof(Alarm) * alarm_count);
+  s_manager.pending_alarms = bmalloc(sizeof(Alarm) * alarm_count);
   s_manager.pending_alarm_count = alarm_count;
   
   bool did_drop_entries = false;
@@ -228,7 +229,7 @@ static void prv_load_alarms() {
     if (name_len == 0) {
       alarm->name = NULL;
     } else {
-      alarm->name = malloc(name_len + 1);
+      alarm->name = bmalloc(name_len + 1);
       strncpy(alarm->name, names[i], name_len + 1);
     }
   }
@@ -299,7 +300,7 @@ static void prv_remove_alarm(int to_remove) {
     };
     if (alarm->name) {
       size_t name_len = strlen(alarm->name);
-      action.action.set_alarm.name = malloc(name_len + 1);
+      action.action.set_alarm.name = bmalloc(name_len + 1);
       strncpy(action.action.set_alarm.name, alarm->name, name_len + 1);
     }
     conversation_manager_add_action(conversation_manager, &action);
@@ -315,7 +316,7 @@ static void prv_remove_alarm(int to_remove) {
     s_manager.pending_alarm_count = 0;
     return;
   }
-  Alarm* new_alarms = malloc(sizeof(Alarm) * (s_manager.pending_alarm_count - 1));
+  Alarm* new_alarms = bmalloc(sizeof(Alarm) * (s_manager.pending_alarm_count - 1));
   for (int i = 0, j = 0; i < s_manager.pending_alarm_count; ++i) {
     if (i == to_remove) {
       continue;

@@ -15,6 +15,7 @@
  */
 
 #include "message_layer.h"
+#include "../../util/memory/sdk.h"
 
 #include <pebble.h>
 
@@ -34,10 +35,10 @@ static char *prv_get_content_text(MessageLayer *layer);
 static int prv_get_content_height(MessageLayer* layer);
 
 MessageLayer* message_layer_create(GRect rect, ConversationEntry* entry) {
-    Layer* layer = layer_create_with_data(rect, sizeof(MessageLayerData));
+    Layer* layer = blayer_create_with_data(rect, sizeof(MessageLayerData));
     MessageLayerData* data = layer_get_data(layer);
     data->entry = entry;
-    data->speaker_layer = text_layer_create(GRect(5, 0, rect.size.w, NAME_HEIGHT));
+    data->speaker_layer = btext_layer_create(GRect(5, 0, rect.size.w, NAME_HEIGHT));
     size_t content_origin_y = -5;
     EntryType type = conversation_entry_get_type(entry);
     if (type == EntryTypePrompt) {
@@ -48,7 +49,7 @@ MessageLayer* message_layer_create(GRect rect, ConversationEntry* entry) {
     data->last_newline_offset = 0;
     data->content_height = 24;
     data->content_height = prv_get_content_height(layer);
-    data->content_layer = text_layer_create(GRect(5, content_origin_y, rect.size.w - 10, data->content_height));
+    data->content_layer = btext_layer_create(GRect(5, content_origin_y, rect.size.w - 10, data->content_height));
     text_layer_set_text(data->content_layer, prv_get_content_text(layer));
     text_layer_set_font(data->content_layer, fonts_get_system_font(CONTENT_FONT));
     data->content_height = text_layer_get_content_size(data->content_layer).h;

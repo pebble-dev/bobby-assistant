@@ -18,6 +18,8 @@
 #include <pebble-events/pebble-events.h>
 #include <@smallstoneapps/linked-list/linked-list.h>
 
+#include "../util/memory/malloc.h"
+#include "../util/memory/pressure.h"
 #include "image_manager.h"
 
 typedef struct {
@@ -40,15 +42,17 @@ static bool prv_foreach_destroy(void *object, void *context);
 static void prv_handle_new_image(int image_id, size_t size, DictionaryIterator *iterator);
 static void prv_handle_image_chunk(int image_id, size_t offset, DictionaryIterator *iterator);
 static void prv_handle_image_complete(int image_id);
+static bool prv_handle_memory_pressure(void *context);
 
 static EventHandle *s_appmessage_handle;
-static LinkedRoot *image_list;
-static ManagedImage *cached_image_ref = NULL;
+static LinkedRoot *s_image_list;
+static ManagedImage *s_cached_image_ref = NULL;
 
 void image_manager_init() {
-  image_list = linked_list_create_root();
+  s_image_list = linked_list_create_root();
   events_app_message_request_inbox_size(1024);
   s_appmessage_handle = events_app_message_register_inbox_received(prv_inbox_received, NULL);
+  memory_pressure_register_callback(prv_handle_memory_pressure, 0, NULL);
 }
 
 void image_manager_deinit() {
@@ -93,29 +97,29 @@ void image_manager_destroy_image(int image_id) {
   if (image_idx < 0) {
     return;
   }
-  ManagedImage *image = linked_list_get(image_list, image_idx);
+  ManagedImage *image = linked_list_get(s_image_list, image_idx);
   prv_destroy_image(image);
-  linked_list_remove(image_list, image_idx);
+  linked_list_remove(s_image_list, image_idx);
 }
 
 void image_manager_destroy_all_images() {
-  linked_list_foreach(image_list, prv_foreach_destroy, NULL);
-  linked_list_clear(image_list);
+  linked_list_foreach(s_image_list, prv_foreach_destroy, NULL);
+  linked_list_clear(s_image_list);
 }
 
 static ManagedImage *prv_find_image(int image_id) {
-  if (cached_image_ref != NULL && cached_image_ref->image_id == image_id) {
-    return cached_image_ref;
+  if (s_cached_image_ref != NULL && s_cached_image_ref->image_id == image_id) {
+    return s_cached_image_ref;
   }
   int16_t idx = prv_find_image_index(image_id);
   if (idx >= 0) {
-    return linked_list_get(image_list, idx);
+    return linked_list_get(s_image_list, idx);
   }
   return NULL;
 }
 
 static int16_t prv_find_image_index(int image_id) {
-  return linked_list_find_compare(image_list, &image_id, prv_image_id_compare);
+  return linked_list_find_compare(s_image_list, &image_id, prv_image_id_compare);
 }
 
 static bool prv_image_id_compare(void *image_id, void *object) {
@@ -136,6 +140,10 @@ static void prv_destroy_image(ManagedImage *image) {
     free(image->data);
     image->data = NULL;
   }
+  if (s_cached_image_ref == image) {
+    s_cached_image_ref = NULL;
+  }
+  free(image);
 }
 
 static bool prv_foreach_destroy(void *object, void *context) {
@@ -174,7 +182,7 @@ static void prv_handle_new_image(int image_id, size_t size, DictionaryIterator *
   tuple = dict_find(iterator, MESSAGE_KEY_IMAGE_HEIGHT);
   int16_t height = tuple->value->int32;
   APP_LOG(APP_LOG_LEVEL_DEBUG, "New image: %d, size: %d, width: %d, height: %d", image_id, size, width, height);
-  ManagedImage *image = malloc(sizeof(ManagedImage));
+  ManagedImage *image = bmalloc(sizeof(ManagedImage));
   if (!image) {
     APP_LOG(APP_LOG_LEVEL_ERROR, "Failed to allocate memory for image");
     return;
@@ -182,11 +190,11 @@ static void prv_handle_new_image(int image_id, size_t size, DictionaryIterator *
   image->image_id = image_id;
   image->status = ImageStatusCreated;
   image->callback = NULL;
-  image->data = malloc(size);
+  image->data = bmalloc(size);
   image->size = size;
   image->bitmap = NULL;
   image->image_size = GSize(width, height);
-  linked_list_append(image_list, image);
+  linked_list_append(s_image_list, image);
 }
 
 static void prv_handle_image_chunk(int image_id, size_t offset, DictionaryIterator *iterator) {
@@ -235,4 +243,16 @@ static void prv_handle_image_complete(int image_id) {
   if (image->callback) {
     image->callback(image->image_id, ImageStatusCompleted, image->context);
   }
+}
+
+
+static bool prv_handle_memory_pressure(void *context) {
+  if (linked_list_count(s_image_list) == 0) {
+    return false;
+  }
+  APP_LOG(APP_LOG_LEVEL_WARNING, "Memory pressure! Destroying the oldest image.");
+  ManagedImage *image = linked_list_get(s_image_list, 0);
+  prv_destroy_image(image);
+  linked_list_remove(s_image_list, 0);
+  return true;
 }

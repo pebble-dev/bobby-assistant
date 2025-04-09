@@ -23,6 +23,8 @@
 #include "menus/root_menu.h"
 #include "util/style.h"
 #include "util/time.h"
+#include "util/memory/malloc.h"
+#include "util/memory/sdk.h"
 #include "version/version.h"
 #include "vibes/haptic_feedback.h"
 
@@ -58,8 +60,8 @@ static void prv_suggestion_clicked(ActionMenu *action_menu, const ActionMenuItem
 static void prv_app_message_handler(DictionaryIterator *iter, void *context);
 
 RootWindow* root_window_create() {
-  RootWindow* window = malloc(sizeof(RootWindow));
-  window->window = window_create();
+  RootWindow* window = bmalloc(sizeof(RootWindow));
+  window->window = bwindow_create();
   window_set_window_handlers(window->window, (WindowHandlers) {
     .load = prv_window_load,
     .appear = prv_window_appear,
@@ -67,16 +69,16 @@ RootWindow* root_window_create() {
   });
   GRect bounds = layer_get_bounds(window_get_root_layer(window->window));
   window_set_background_color(window->window, COLOR_FALLBACK(ACCENT_COLOUR, GColorWhite));
-  window->question_icon = gbitmap_create_with_resource(RESOURCE_ID_QUESTION_ICON);
-  window->dictation_icon = gbitmap_create_with_resource(RESOURCE_ID_DICTATION_ICON);
-  window->more_icon = gbitmap_create_with_resource(RESOURCE_ID_MORE_ICON);
-  window->action_bar = action_bar_layer_create();
+  window->question_icon = bgbitmap_create_with_resource(RESOURCE_ID_QUESTION_ICON);
+  window->dictation_icon = bgbitmap_create_with_resource(RESOURCE_ID_DICTATION_ICON);
+  window->more_icon = bgbitmap_create_with_resource(RESOURCE_ID_MORE_ICON);
+  window->action_bar = baction_bar_layer_create();
   action_bar_layer_set_context(window->action_bar, window);
   action_bar_layer_set_icon(window->action_bar, BUTTON_ID_UP, window->question_icon);
   action_bar_layer_set_icon(window->action_bar, BUTTON_ID_SELECT, window->dictation_icon);
   action_bar_layer_set_icon(window->action_bar, BUTTON_ID_DOWN, window->more_icon);
   window_set_user_data(window->window, window);
-  window->time_layer = text_layer_create(GRect(0, 5, 144 - ACTION_BAR_WIDTH, 40));
+  window->time_layer = btext_layer_create(GRect(0, 5, 144 - ACTION_BAR_WIDTH, 40));
   window->event_handle = NULL;
   text_layer_set_text_alignment(window->time_layer, GTextAlignmentCenter);
   text_layer_set_font(window->time_layer, fonts_get_system_font(FONT_KEY_LECO_36_BOLD_NUMBERS));
@@ -94,7 +96,7 @@ RootWindow* root_window_create() {
   VersionInfo version_info = version_get_current();
   snprintf(window->version_string, sizeof(window->version_string), "v%d.%d", version_info.major, version_info.minor);
   window->version_string[sizeof(window->version_string) - 1] = '\0';
-  window->version_layer = text_layer_create(GRect(0, bounds.size.h - 18, bounds.size.w - ACTION_BAR_WIDTH - 4, 18));
+  window->version_layer = btext_layer_create(GRect(0, bounds.size.h - 18, bounds.size.w - ACTION_BAR_WIDTH - 4, 18));
   text_layer_set_font(window->version_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
   text_layer_set_text_alignment(window->version_layer, GTextAlignmentRight);
   text_layer_set_background_color(window->version_layer, GColorClear);
@@ -196,7 +198,7 @@ static void prv_up_clicked(ClickRecognizerRef recognizer, void *context) {
   // talking_horse_layer_set_text(rw->talking_horse_layer, "I'm doing thanks! How help?");
   char **suggestions;
   int count = prv_load_suggestions(&suggestions);
-  ActionMenuLevel *level = action_menu_level_create(count);
+  ActionMenuLevel *level = baction_menu_level_create(count);
   for (int i = 0; i < count; ++i) {
     action_menu_level_add_action(level, suggestions[i], prv_suggestion_clicked, rw);
   }
@@ -239,7 +241,7 @@ static void prv_more_clicked(ClickRecognizerRef recognizer, void* context) {
 static int prv_load_suggestions(char*** suggestions) {
   ResHandle handle = resource_get_handle(RESOURCE_ID_SAMPLE_PROMPTS);
   size_t size = resource_size(handle);
-  char* buffer = malloc(size);
+  char* buffer = bmalloc(size);
   resource_load(handle, (uint8_t*)buffer, size);
   int count = 1;
   for (size_t i = 0; i < size; ++i) {
@@ -247,7 +249,7 @@ static int prv_load_suggestions(char*** suggestions) {
       ++count;
     }
   }
-  *suggestions = malloc(sizeof(char*) * count);
+  *suggestions = bmalloc(sizeof(char*) * count);
   for (int i = 0; i < count; ++i) {
     (*suggestions)[i] = buffer;
     buffer = strchr(buffer, '\n');

@@ -16,6 +16,7 @@
 
 #include <pebble.h>
 #include "../../../image_manager/image_manager.h"
+#include "../../../util/memory/sdk.h"
 
 #include "map.h"
 
@@ -34,7 +35,7 @@ static inline int prv_get_image_id(MapWidgetData *data) {
 MapWidget* map_widget_create(GRect rect, ConversationEntry* entry) {
   int image_id = conversation_entry_get_widget(entry)->widget.map.image_id;
   GSize image_size = image_manager_get_size(image_id);
-  Layer *layer = layer_create_with_data(GRect(rect.origin.x, rect.origin.y, rect.size.w, image_size.h + 2), sizeof(MapWidgetData));
+  Layer *layer = blayer_create_with_data(GRect(rect.origin.x, rect.origin.y, rect.size.w, image_size.h + 2), sizeof(MapWidgetData));
   MapWidgetData* data = layer_get_data(layer);
   data->entry = entry;
   data->bitmap = NULL;

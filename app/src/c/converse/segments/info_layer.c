@@ -15,6 +15,8 @@
  */
 
 #include "info_layer.h"
+#include "../../util/memory/malloc.h"
+#include "../../util/memory/sdk.h"
 #include <pebble.h>
 
 #define CONTENT_FONT FONT_KEY_GOTHIC_24
@@ -40,14 +42,14 @@ static uint32_t prv_get_icon_resource(ConversationEntry* entry);
 static GColor prv_get_stripe_color(ConversationEntry* entry);
 
 InfoLayer* info_layer_create(GRect rect, ConversationEntry* entry) {
-    Layer* layer = layer_create_with_data(rect, sizeof(InfoLayerData));
+    Layer* layer = blayer_create_with_data(rect, sizeof(InfoLayerData));
     InfoLayerData* data = layer_get_data(layer);
     data->entry = entry;
     data->icon = NULL;
     data->content_text = NULL;
     data->content_height = 24;
     data->content_height = prv_get_content_height(layer);
-    data->content_layer = text_layer_create(GRect(STRIPE_WIDTH + TEXT_PADDING_LEFT, 1, rect.size.w - UNAVAILABLE_WIDTH, data->content_height));
+    data->content_layer = btext_layer_create(GRect(STRIPE_WIDTH + TEXT_PADDING_LEFT, 1, rect.size.w - UNAVAILABLE_WIDTH, data->content_height));
     text_layer_set_text(data->content_layer, prv_get_content_text(layer));
     text_layer_set_font(data->content_layer, fonts_get_system_font(CONTENT_FONT));
     text_layer_set_background_color(data->content_layer, GColorClear);
@@ -91,7 +93,7 @@ void info_layer_update(InfoLayer* layer) {
     if (data->icon) {
       gdraw_command_image_destroy(data->icon);
     }
-    data->icon = gdraw_command_image_create_with_resource(new_resource);
+    data->icon = bgdraw_command_image_create_with_resource(new_resource);
     data->icon_resource = new_resource;
   }
 }
@@ -164,7 +166,7 @@ static void prv_format_time(time_t when, char* buffer, size_t size) {
 }
 
 static char* prv_generate_action_text(ConversationAction* action) {
-  char* buffer = malloc(50);
+  char* buffer = bmalloc(50);
   switch (action->type) {
     case ConversationActionTypeSetAlarm: {
       if (action->action.set_alarm.is_timer) {

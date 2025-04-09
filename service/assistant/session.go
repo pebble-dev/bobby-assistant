@@ -96,7 +96,9 @@ func (ps *PromptSession) Run(ctx context.Context) {
 	})
 
 	if ps.originalThreadId != "" {
-		oldMessages, err := ps.restoreThread(ctx, ps.originalThreadId)
+		var threadContext *persistence.ThreadContext
+		ctx, threadContext, err = ps.restoreContext(ctx, ps.originalThreadId)
+		oldMessages := ps.restoreThread(threadContext)
 		if err != nil {
 			log.Printf("error restoring thread: %v\n", err)
 			_ = ps.conn.Close(websocket.StatusInternalError, "Error restoring thread.")
@@ -105,6 +107,7 @@ func (ps *PromptSession) Run(ctx context.Context) {
 			messages = append(oldMessages, messages...)
 		}
 	}
+	query.ThreadContextFromContext(ctx).ThreadId = ps.threadId
 	user, err := quota.GetUserInfo(ctx, ps.userToken)
 	if err != nil {
 		log.Printf("get user info failed: %v\n", err)
@@ -408,29 +411,28 @@ func (ps *PromptSession) storeThread(ctx context.Context, messages []*genai.Cont
 			}
 		}
 	}
-	j, err := json.Marshal(toStore)
-	if err != nil {
-		span.AddField("error", err)
-		return err
-	}
-	ps.redis.Set(ctx, "thread:"+ps.threadId.String(), j, 10*time.Minute)
-	return nil
+	threadContext := query.ThreadContextFromContext(ctx)
+	threadContext.Messages = toStore
+	return persistence.StoreThread(ctx, ps.redis, threadContext)
 }
 
-func (ps *PromptSession) restoreThread(ctx context.Context, oldThreadId string) ([]*genai.Content, error) {
-	ctx, span := beeline.StartSpan(ctx, "restore_thread")
-	defer span.Send()
-	messages, err := persistence.LoadThread(ctx, ps.redis, oldThreadId)
+func (ps *PromptSession) restoreContext(ctx context.Context, oldThreadId string) (context.Context, *persistence.ThreadContext, error) {
+	threadContext, err := persistence.LoadThread(ctx, ps.redis, oldThreadId)
 	if err != nil {
-		span.AddField("error", err)
-		return nil, err
+		return ctx, nil, err
 	}
+	ctx = query.ContextWithThread(ctx, threadContext)
+
+	return ctx, threadContext, nil
+}
+
+func (ps *PromptSession) restoreThread(threadContext *persistence.ThreadContext) []*genai.Content {
 	var result []*genai.Content
-	for _, m := range messages {
+	for _, m := range threadContext.Messages {
 		result = append(result, &genai.Content{
 			Parts: []*genai.Part{{Text: m.Content, FunctionCall: m.FunctionCall, FunctionResponse: m.FunctionResponse}},
 			Role:  m.Role,
 		})
 	}
-	return result, nil
+	return result
 }

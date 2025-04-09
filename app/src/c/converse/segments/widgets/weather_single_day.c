@@ -16,6 +16,7 @@
 
 #include "weather_single_day.h"
 #include "weather_util.h"
+#include "../../../util/memory/sdk.h"
 #include <pebble.h>
 
 typedef struct {
@@ -28,12 +29,12 @@ static void prv_layer_update(Layer *layer, GContext *ctx);
 
 WeatherSingleDayWidget* weather_single_day_widget_create(GRect rect, ConversationEntry* entry) {
   // Our contract is that we will actually disregard the provided height and resize ourselves as necessary.
-  Layer *layer = layer_create_with_data(GRect(rect.origin.x, rect.origin.y, rect.size.w, 90), sizeof(WeatherSingleDayWidgetData));
+  Layer *layer = blayer_create_with_data(GRect(rect.origin.x, rect.origin.y, rect.size.w, 90), sizeof(WeatherSingleDayWidgetData));
   WeatherSingleDayWidgetData *data = layer_get_data(layer);
   ConversationWidgetWeatherSingleDay *w = &conversation_entry_get_widget(entry)->widget.weather_single_day;
 
   data->entry = entry;
-  data->icon = gdraw_command_image_create_with_resource(weather_widget_get_medium_resource_for_condition(w->condition));
+  data->icon = bgdraw_command_image_create_with_resource(weather_widget_get_medium_resource_for_condition(w->condition));
   layer_set_update_proc(layer, prv_layer_update);
 
   snprintf(data->temp_summary, sizeof(data->temp_summary)-1, "H: %d°\nL: %d°", w->high, w->low);

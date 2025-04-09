@@ -80,4 +80,9 @@ add_executable(tiny_assistant_app
         src/c/util/action_menu_crimes.c
         src/c/image_manager/image_manager.c
         src/c/converse/segments/widgets/map.c
+        src/c/util/memory/malloc.c
+        src/c/util/memory/malloc.h
+        src/c/util/memory/pressure.c
+        src/c/util/memory/sdk.c
+        src/c/util/memory/sdk.h
 )

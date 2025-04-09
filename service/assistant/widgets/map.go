@@ -1,17 +1,3 @@
-// Copyright 2025 Google LLC
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package widgets
 
 import (
@@ -42,7 +28,7 @@ var mapClient *gmaps.Client
 
 func init() {
 	var err error
-	mapClient, err = gmaps.NewClient(gmaps.WithAPIKeyAndSignature("todo", "todo"))
+	mapClient, err = gmaps.NewClient(gmaps.WithAPIKeyAndSignature("AIzaSyBqOaNKiSWwtpTYFwLs9lwnKDqZs7WITOI", "KTUTcHaSV6OFb8RZ3LYmoqEZbtA="))
 	if err != nil {
 		panic(err)
 	}
@@ -130,7 +116,7 @@ func generateMap(ctx context.Context, markers map[string]util.Coords, userLocati
 		Size:    "144x100",
 		Format:  "png8",
 		MapType: "roadmap",
-		MapId:   "todo",
+		MapId:   "c36800aa7c671dbd",
 		Markers: mapMarkers,
 	}
 	return mapClient.StaticMap(ctx, &request)

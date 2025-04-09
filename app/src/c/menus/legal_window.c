@@ -18,6 +18,8 @@
 #include <pebble.h>
 #include "../util/style.h"
 #include "../util/formatted_text_layer.h"
+#include "../util/memory/malloc.h"
+#include "../util/memory/sdk.h"
 
 typedef struct {
  char *legal_text;
@@ -30,8 +32,8 @@ static void prv_window_load(Window* window);
 static void prv_window_unload(Window* window);
 
 void legal_window_push() {
- Window *window = window_create();
- CreditsWindowData *data = malloc(sizeof(CreditsWindowData));
+ Window *window = bwindow_create();
+ CreditsWindowData *data = bmalloc(sizeof(CreditsWindowData));
  memset(data, 0, sizeof(CreditsWindowData));
  window_set_user_data(window, data);
  window_set_window_handlers(window, (WindowHandlers) {
@@ -45,15 +47,15 @@ static void prv_window_load(Window* window) {
  CreditsWindowData *data = window_get_user_data(window);
  ResHandle res_handle = resource_get_handle(RESOURCE_ID_LEGAL_TEXT);
  size_t res_size = resource_size(res_handle);
- data->legal_text = malloc(res_size + 1);
+ data->legal_text = bmalloc(res_size + 1);
  resource_load(res_handle, (uint8_t*)data->legal_text, res_size);
  data->legal_text[res_size] = '\0';
  Layer *root_layer = window_get_root_layer(window);
  GRect window_bounds = layer_get_bounds(root_layer);
- data->status_bar = status_bar_layer_create();
+ data->status_bar = bstatus_bar_layer_create();
  bobby_status_bar_config(data->status_bar);
  layer_add_child(root_layer, status_bar_layer_get_layer(data->status_bar));
- data->scroll_layer = scroll_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT, window_bounds.size.w, window_bounds.size.h - STATUS_BAR_LAYER_HEIGHT));
+ data->scroll_layer = bscroll_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT, window_bounds.size.w, window_bounds.size.h - STATUS_BAR_LAYER_HEIGHT));
  scroll_layer_set_shadow_hidden(data->scroll_layer, true);
  scroll_layer_set_click_config_onto_window(data->scroll_layer, window);
  layer_add_child(root_layer, scroll_layer_get_layer(data->scroll_layer));

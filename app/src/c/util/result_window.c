@@ -17,7 +17,10 @@
 #include "result_window.h"
 #include "vector_layer.h"
 #include "style.h"
+#include "../util/memory/malloc.h"
 #include <pebble.h>
+
+#include "memory/sdk.h"
 
 typedef struct {
   StatusBarLayer *status_bar;
@@ -39,17 +42,17 @@ static void prv_window_appear(Window* window);
 static void prv_timer_expired(void* context);
 
 void result_window_push(const char* title, const char* text, GDrawCommandImage *image, GColor background_color) {
-  Window* window = window_create();
-  ResultWindowData* data = malloc(sizeof(ResultWindowData));
+  Window* window = bwindow_create();
+  ResultWindowData* data = bmalloc(sizeof(ResultWindowData));
   // Only bother setting the background colour if we're on a colour device.
 #ifdef PBL_COLOR
   window_set_background_color(window, background_color);
   data->background_color = background_color;
 #endif
   data->image = image;
-  data->title_text = malloc(strlen(title) + 1);
+  data->title_text = bmalloc(strlen(title) + 1);
   strncpy(data->title_text, title, strlen(title) + 1);
-  data->text_text = malloc(strlen(text) + 1);
+  data->text_text = bmalloc(strlen(text) + 1);
   strncpy(data->text_text, text, strlen(text) + 1);
   window_set_user_data(window, data);
   window_set_window_handlers(window, (WindowHandlers) {
@@ -65,21 +68,21 @@ static void prv_window_load(Window* window) {
   Layer* root_layer = window_get_root_layer(window);
   GRect bounds = layer_get_bounds(root_layer);
 
-  data->status_bar = status_bar_layer_create();
+  data->status_bar = bstatus_bar_layer_create();
   bobby_status_bar_result_pane_config(data->status_bar);
 #ifdef PBL_COLOR
   status_bar_layer_set_colors(data->status_bar, data->background_color, GColorBlack);
 #endif
   layer_add_child(root_layer, status_bar_layer_get_layer(data->status_bar));
 
-  data->title_layer = text_layer_create(GRect(0, 15, bounds.size.w, 35));
+  data->title_layer = btext_layer_create(GRect(0, 15, bounds.size.w, 35));
   text_layer_set_background_color(data->title_layer, GColorClear);
   text_layer_set_font(data->title_layer, fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD));
   text_layer_set_text(data->title_layer, data->title_text);
   text_layer_set_text_alignment(data->title_layer, GTextAlignmentCenter);
   layer_add_child(root_layer, text_layer_get_layer(data->title_layer));
 
-  data->text_layer = text_layer_create(GRect(0, 50, bounds.size.w, bounds.size.h - 105));
+  data->text_layer = btext_layer_create(GRect(0, 50, bounds.size.w, bounds.size.h - 105));
   text_layer_set_background_color(data->text_layer, GColorClear);
   text_layer_set_text_alignment(data->text_layer, GTextAlignmentCenter);
   text_layer_set_font(data->text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));

@@ -18,6 +18,8 @@
 
 #include <pebble.h>
 
+#include "memory/sdk.h"
+
 //#define CIRCLE_MAX_RADIUS 15
 //#define CIRCLE_MIN_RADIUS 8
 
@@ -39,7 +41,7 @@ ThinkingLayer* thinking_layer_create(GRect rect) {
     };
   }
   
-  ThinkingLayer* layer = layer_create_with_data(rect, sizeof(ThinkingLayerData));
+  ThinkingLayer* layer = blayer_create_with_data(rect, sizeof(ThinkingLayerData));
   ThinkingLayerData* data = layer_get_data(layer);
   data->progress = 0;
   data->animation = animation_create();
