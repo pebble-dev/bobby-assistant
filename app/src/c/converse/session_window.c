@@ -22,6 +22,7 @@
 #include "../util/thinking_layer.h"
 #include "../util/style.h"
 #include "../util/action_menu_crimes.h"
+#include "../util/logging.h"
 #include "../util/memory/malloc.h"
 #include "../util/memory/sdk.h"
 #include "../vibes/haptic_feedback.h"
@@ -98,7 +99,7 @@ void session_window_push(int timeout, char *starting_prompt) {
 }
 
 static void prv_destroy(SessionWindow *sw) {
-  //APP_LOG(APP_LOG_LEVEL_INFO, "destroying SessionWindow %p.", sw);
+  BOBBY_LOG(APP_LOG_LEVEL_INFO, "destroying SessionWindow %p.", sw);
   prv_cancel_timeout(sw);
   dictation_session_destroy(sw->dictation);
   conversation_manager_destroy(sw->manager);
@@ -127,7 +128,7 @@ static void prv_window_load(Window *window) {
   GSize window_size = layer_get_frame(window_get_root_layer(window)).size;
   SessionWindow *sw = window_get_user_data(window);
   sw->dictation_pending = true;
-  //APP_LOG(APP_LOG_LEVEL_INFO, "created SessionWindow %p.", sw);
+  BOBBY_LOG(APP_LOG_LEVEL_INFO, "created SessionWindow %p.", sw);
   sw->manager = conversation_manager_create();
   conversation_manager_set_handler(sw->manager, prv_conversation_manager_handler, sw);
   conversation_manager_set_deletion_handler(sw->manager, prv_conversation_entry_deleted_handler);
@@ -325,7 +326,7 @@ static void prv_conversation_manager_handler(bool entry_added, void* context) {
   ConversationEntry* entry = conversation_peek(conversation);
   if (entry == NULL) {
     // ??????
-    //APP_LOG(APP_LOG_LEVEL_ERROR, "We were told a new entry was added, but no entries actually exist????");
+    BOBBY_LOG(APP_LOG_LEVEL_ERROR, "We were told a new entry was added, but no entries actually exist????");
     return;
   }
   if (sw->segment_count == sw->segment_space) {
@@ -375,7 +376,7 @@ static void prv_conversation_manager_handler(bool entry_added, void* context) {
 
 static void prv_conversation_entry_deleted_handler(int index, void* context) {
   if (index != 0) {
-    //APP_LOG(APP_LOG_LEVEL_ERROR, "Invalid index %d", index);
+    BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Invalid index %d", index);
     return;
   }
   SessionWindow* sw = context;
@@ -401,7 +402,7 @@ static void prv_conversation_entry_deleted_handler(int index, void* context) {
   segment_layer_destroy(sw->segment_layers[sw->segments_deleted]);
   sw->segment_layers[sw->segments_deleted] = NULL;
   sw->segments_deleted++;
-  //APP_LOG(APP_LOG_LEVEL_DEBUG, "Removed top segment; adjusted upward by %d pixels.", removed_height);
+  BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Removed top segment; adjusted upward by %d pixels.", removed_height);
 }
 
 static void prv_click_config_provider(void *context) {
@@ -497,7 +498,7 @@ static void prv_refresh_timeout(SessionWindow* sw) {
   if (sw->timeout_handle) {
     app_timer_cancel(sw->timeout_handle);
   }
-  //APP_LOG(APP_LOG_LEVEL_DEBUG, "Refreshed timeout");
+  BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Refreshed timeout");
   sw->timeout_handle = app_timer_register(sw->timeout, prv_timed_out, sw);
 }
 
@@ -505,11 +506,11 @@ static void prv_cancel_timeout(SessionWindow* sw) {
   if (sw->timeout_handle) {
     app_timer_cancel(sw->timeout_handle);
     sw->timeout_handle = NULL;
-  //APP_LOG(APP_LOG_LEVEL_DEBUG, "Canceled timeout");
+  BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Canceled timeout");
   }
 }
 
 static void prv_timed_out(void *ctx) {
-  //APP_LOG(APP_LOG_LEVEL_DEBUG, "Timed out");
+  BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Timed out");
   window_stack_pop(true);
 }

@@ -17,6 +17,7 @@
 #include "consent.h"
 #include "../util/persist_keys.h"
 #include "../util/style.h"
+#include "../util/logging.h"
 #include "../util/memory/malloc.h"
 #include "../util/memory/sdk.h"
 #include "../version/version.h"
@@ -80,13 +81,13 @@ void consent_migrate() {
     // If we're updating from version 1.1 or older, consent agreement was implied by LOCATION_ENABLED being set
     // (either true or false).
     if (version_info_compare(version_get_last_launch(), (VersionInfo) {1, 1}) <= 0) {
-      //APP_LOG(APP_LOG_LEVEL_INFO, "Performing consent migration from version 1.1.");
+      BOBBY_LOG(APP_LOG_LEVEL_INFO, "Performing consent migration from version 1.1.");
       // If the location enabled state is set, that's equivalent to consent agreement version 1.
       if (persist_exists(PERSIST_KEY_LOCATION_ENABLED)) {
-        //APP_LOG(APP_LOG_LEVEL_INFO, "Marking consent as 1.");;
+        BOBBY_LOG(APP_LOG_LEVEL_INFO, "Marking consent as 1.");;
         persist_write_int(PERSIST_KEY_CONSENTS_COMPLETED, 1);
       } else {
-        //APP_LOG(APP_LOG_LEVEL_INFO, "Not marking consent.");;
+        BOBBY_LOG(APP_LOG_LEVEL_INFO, "Not marking consent.");;
       }
     }
   }
@@ -174,7 +175,7 @@ static void prv_set_stage(Window* window, int stage) {
     data->title_text = "Location";
     break;
   default:
-    //APP_LOG(APP_LOG_LEVEL_ERROR, "Unknown consent stage: %d", stage);
+    BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Unknown consent stage: %d", stage);
     return;
   }
   if (res_handle != NULL) {
@@ -210,7 +211,7 @@ static void prv_select_click_handler(ClickRecognizerRef recognizer, void *contex
   Window* window = context;
   ConsentWindowData *data = window_get_user_data(window);
   if (!prv_did_scroll_to_bottom(window)) {
-    //APP_LOG(APP_LOG_LEVEL_DEBUG, "User clicked select but hasn't scrolled to bottom; ignoring.");
+    BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "User clicked select but hasn't scrolled to bottom; ignoring.");
     return;
   }
   switch (data->stage) {
@@ -261,7 +262,7 @@ static void prv_app_message_handler(DictionaryIterator *iter, void *context) {
   Window* window = context;
   ConsentWindowData* data = window_get_user_data(window);
   if (data->expected_app_response != STAGE_LOCATION_CONSENT) {
-    //APP_LOG(APP_LOG_LEVEL_WARNING, "Ignoring unexpected location consent response.");
+    BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Ignoring unexpected location consent response.");
     return;
   }
   Tuple *tuple = dict_find(iter, MESSAGE_KEY_LOCATION_ENABLED);
@@ -269,7 +270,7 @@ static void prv_app_message_handler(DictionaryIterator *iter, void *context) {
     return;
   }
   data->expected_app_response = 0;
-  //APP_LOG(APP_LOG_LEVEL_INFO, "Got location enabled reply, dismissing dialog.");
+  BOBBY_LOG(APP_LOG_LEVEL_INFO, "Got location enabled reply, dismissing dialog.");
   events_app_message_unsubscribe(data->app_message_handle);
   bool location_enabled = tuple->value->int16;
   persist_write_bool(PERSIST_KEY_LOCATION_ENABLED, location_enabled);

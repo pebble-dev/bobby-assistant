@@ -16,6 +16,7 @@
 
 #include "message_layer.h"
 #include "../../util/memory/sdk.h"
+#include "../../util/logging.h"
 
 #include <pebble.h>
 
@@ -131,7 +132,7 @@ static int prv_get_content_height(MessageLayer* layer) {
         for (int j = i - 1; j >= 0; --j) {
           if ((text+offset)[j] == ' ' || (text+offset)[j] == '-' || (text+offset)[j] == '\n') {
             i = j+1;
-//            //APP_LOG(APP_LOG_LEVEL_DEBUG, "New line starts \"%s\".", text+offset+i);
+//            BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "New line starts \"%s\".", text+offset+i);
             break;
           }
         }

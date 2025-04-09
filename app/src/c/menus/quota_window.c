@@ -20,6 +20,7 @@
 #include "../util/style.h"
 #include "../util/memory/malloc.h"
 #include "../util/memory/sdk.h"
+#include "../util/logging.h"
 
 #include <pebble.h>
 #include <pebble-events/pebble-events.h>
@@ -113,7 +114,7 @@ static void prv_app_message_received(DictionaryIterator* iter, void* context) {
   }
   int remaining = tuple->value->int32;
   uint64_t percentage = PERCENTAGE_MAX;
-  //APP_LOG(APP_LOG_LEVEL_INFO, "Quota: %d used, %d remaining", used, remaining);
+  BOBBY_LOG(APP_LOG_LEVEL_INFO, "Quota: %d used, %d remaining", used, remaining);
   if (used == 0 && remaining == 0) {
     strncpy(data->explanation, "You need a Rebble subscription to use Bobby. You can sign up at auth.rebble.io.", sizeof(data->explanation));
   } else {

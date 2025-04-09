@@ -16,6 +16,7 @@
 
 #include "sdk.h"
 #include "malloc.h"
+#include "../logging.h"
 
 #include <pebble.h>
 
@@ -99,11 +100,11 @@ GBitmap *bgbitmap_create_with_resource(uint32_t resource_id) {
       return ptr;
     }
     if (!memory_pressure_try_free()) {
-      //APP_LOG(APP_LOG_LEVEL_ERROR, "Failed to allocate memory: couldn't free enough heap.");
+      BOBBY_LOG(APP_LOG_LEVEL_ERROR, "Failed to allocate memory: couldn't free enough heap.");
       return NULL;
     }
     int new_heap_size = heap_bytes_free();
-    //APP_LOG(APP_LOG_LEVEL_INFO, "Freed %d bytes, heap size is now %d. Retrying gbitmap allocation.", heap_size - new_heap_size, new_heap_size);
+    BOBBY_LOG(APP_LOG_LEVEL_INFO, "Freed %d bytes, heap size is now %d. Retrying gbitmap allocation.", heap_size - new_heap_size, new_heap_size);
   }
   return NULL;
 }
@@ -120,11 +121,11 @@ GDrawCommandImage *bgdraw_command_image_create_with_resource(uint32_t resource_i
       return ptr;
     }
     if (!memory_pressure_try_free()) {
-      //APP_LOG(APP_LOG_LEVEL_ERROR, "Failed to allocate memory: couldn't free enough heap.");
+      BOBBY_LOG(APP_LOG_LEVEL_ERROR, "Failed to allocate memory: couldn't free enough heap.");
       return NULL;
     }
     int new_heap_size = heap_bytes_free();
-    //APP_LOG(APP_LOG_LEVEL_INFO, "Freed %d bytes, heap size is now %d. Retrying gdrawcommandimage allocation.", heap_size - new_heap_size, new_heap_size);
+    BOBBY_LOG(APP_LOG_LEVEL_INFO, "Freed %d bytes, heap size is now %d. Retrying gdrawcommandimage allocation.", heap_size - new_heap_size, new_heap_size);
   }
   return NULL;
 }
@@ -141,11 +142,11 @@ GDrawCommandImage *bgdraw_command_sequence_create_with_resource(uint32_t resourc
       return ptr;
     }
     if (!memory_pressure_try_free()) {
-      //APP_LOG(APP_LOG_LEVEL_ERROR, "Failed to allocate memory: couldn't free enough heap.");
+      BOBBY_LOG(APP_LOG_LEVEL_ERROR, "Failed to allocate memory: couldn't free enough heap.");
       return NULL;
     }
     int new_heap_size = heap_bytes_free();
-    //APP_LOG(APP_LOG_LEVEL_INFO, "Freed %d bytes, heap size is now %d. Retrying gdrawcommandsequence allocation.", heap_size - new_heap_size, new_heap_size);
+    BOBBY_LOG(APP_LOG_LEVEL_INFO, "Freed %d bytes, heap size is now %d. Retrying gdrawcommandsequence allocation.", heap_size - new_heap_size, new_heap_size);
   }
   return NULL;
 }

@@ -16,6 +16,7 @@
 
 #include "version.h"
 #include "../util/persist_keys.h"
+#include "../util/logging.h"
 
 #include <pebble.h>
 #include "pebble_process_info.h"
@@ -37,12 +38,12 @@ void version_init() {
         s_is_update = true;
         int status = persist_write_data(PERSIST_KEY_VERSION, &version_info, sizeof(VersionInfo));
         if (status < 0) {
-            //APP_LOG(APP_LOG_LEVEL_ERROR, "Failed to write version info: %d", status);
+            BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Failed to write version info: %d", status);
         } else {
-            //APP_LOG(APP_LOG_LEVEL_INFO, "Current version (v%d.%d) stored (previous: v%d.%d)", version_info.major, version_info.minor, s_last_launch.major, s_last_launch.minor);
+            BOBBY_LOG(APP_LOG_LEVEL_INFO, "Current version (v%d.%d) stored (previous: v%d.%d)", version_info.major, version_info.minor, s_last_launch.major, s_last_launch.minor);
         }
     } else {
-        //APP_LOG(APP_LOG_LEVEL_DEBUG, "Version (v%d.%d) unchanged since last launch.", version_info.major, version_info.minor);
+        BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Version (v%d.%d) unchanged since last launch.", version_info.major, version_info.minor);
     }
 }
 
@@ -85,7 +86,7 @@ VersionInfo prv_read_last_launch() {
     VersionInfo version_info;
     int status = persist_read_data(PERSIST_KEY_VERSION, &version_info, sizeof(VersionInfo));
     if (status < 0) {
-        //APP_LOG(APP_LOG_LEVEL_WARNING, "Failed to read version info: %d", status);
+        BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Failed to read version info: %d", status);
         return (VersionInfo) {
             .major = 0,
             .minor = 0,

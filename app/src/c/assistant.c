@@ -26,6 +26,7 @@
 #include <pebble.h>
 #include <pebble-events/pebble-events.h>
 
+#include "util/logging.h"
 #include "util/memory/pressure.h"
 
 
@@ -53,7 +54,7 @@ static void prv_deinit(void) {
 
 int main(void) {
   VersionInfo version_info = version_get_current();
-  //APP_LOG(APP_LOG_LEVEL_INFO, "Bobby %d.%d", version_info.major, version_info.minor);
+  BOBBY_LOG(APP_LOG_LEVEL_INFO, "Bobby %d.%d", version_info.major, version_info.minor);
   prv_init();
   
   if (alarm_manager_maybe_alarm()) {

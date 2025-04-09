@@ -15,6 +15,7 @@
  */
 
 #include "pressure.h"
+#include "../logging.h"
 #include <pebble.h>
 
 #include <@smallstoneapps/linked-list/linked-list.h>
@@ -49,7 +50,7 @@ void memory_pressure_register_callback(MemoryPressureHandler handler, int priori
   if (entry->priority > s_max_priority) {
     s_max_priority = entry->priority;
   }
-  //APP_LOG(APP_LOG_LEVEL_DEBUG, "memory_pressure_register_callback: %p, priority %d", handler, priority);
+  BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "memory_pressure_register_callback: %p, priority %d", handler, priority);
 }
 
 void memory_pressure_unregister_callback(MemoryPressureHandler handler) {
@@ -66,11 +67,11 @@ void memory_pressure_unregister_callback(MemoryPressureHandler handler) {
 }
 
 bool memory_pressure_try_free() {
-  //APP_LOG(APP_LOG_LEVEL_WARNING, "Memory emergency! Trying to free memory.");
+  BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Memory emergency! Trying to free memory.");
   int priority = 0;
   int count = linked_list_count(s_callback_list);
   if (count == 0) {
-    //APP_LOG(APP_LOG_LEVEL_ERROR, "No memory freeing callbacks registered");
+    BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "No memory freeing callbacks registered");
     return false;
   }
   for (int p = 0; p < s_max_priority; ++p) {
@@ -79,12 +80,12 @@ bool memory_pressure_try_free() {
       if (entry->priority != priority) {
         continue;
       }
-      //APP_LOG(APP_LOG_LEVEL_DEBUG, "Calling memory pressure callback %p with priority %d", entry->handler, entry->priority);
+      BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Calling memory pressure callback %p with priority %d", entry->handler, entry->priority);
       if (entry->handler(entry->context)) {
-        //APP_LOG(APP_LOG_LEVEL_DEBUG, "Freed some memory!");
+        BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Freed some memory!");
         return true;
       }
-      //APP_LOG(APP_LOG_LEVEL_DEBUG, "No joy.");
+      BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "No joy.");
     }
   }
   return false;

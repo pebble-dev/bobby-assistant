@@ -19,6 +19,7 @@
 #include "conversation.h"
 #include "../util/memory/malloc.h"
 #include "../util/memory/pressure.h"
+#include "../util/logging.h"
 
 #include <pebble-events/pebble-events.h>
 #include <pebble.h>
@@ -97,7 +98,7 @@ void conversation_manager_add_input(ConversationManager* manager, const char* in
   conversation_add_prompt(manager->conversation, input);
   prv_conversation_updated(manager, true);
   if (result != APP_MSG_OK) {
-    //APP_LOG(APP_LOG_LEVEL_ERROR, "Preparing outbox failed: %d.", result);
+    BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Preparing outbox failed: %d.", result);
     conversation_add_error(manager->conversation, "Sending to service failed.");
     prv_conversation_updated(manager, true);
     return;
@@ -105,12 +106,12 @@ void conversation_manager_add_input(ConversationManager* manager, const char* in
   dict_write_cstring(iter, MESSAGE_KEY_PROMPT, input);
   const char* thread_id = conversation_get_thread_id(manager->conversation);
   if (thread_id[0] != 0) {
-    //APP_LOG(APP_LOG_LEVEL_INFO, "Continuing previous conversation %s.", thread_id);
+    BOBBY_LOG(APP_LOG_LEVEL_INFO, "Continuing previous conversation %s.", thread_id);
     dict_write_cstring(iter, MESSAGE_KEY_THREAD_ID, thread_id);
   }
   result = app_message_outbox_send();
   if (result != APP_MSG_OK) {
-    //APP_LOG(APP_LOG_LEVEL_ERROR, "Sending message failed: %d.", result);
+    BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Sending message failed: %d.", result);
     conversation_add_error(manager->conversation, "Sending to service failed.");
     prv_conversation_updated(manager, true);
     return;
@@ -118,23 +119,23 @@ void conversation_manager_add_input(ConversationManager* manager, const char* in
 }
 
 void conversation_manager_add_action(ConversationManager* manager, ConversationAction* action) {
-  //APP_LOG(APP_LOG_LEVEL_DEBUG, "Adding action to conversation.");
+  BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Adding action to conversation.");
   conversation_add_action(manager->conversation, action);
   prv_conversation_updated(manager, true);
 }
 
 void conversation_manager_add_widget(ConversationManager* manager, ConversationWidget* widget) {
-  //APP_LOG(APP_LOG_LEVEL_DEBUG, "Adding widget to conversation.");
+  BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Adding widget to conversation.");
   conversation_add_widget(manager->conversation, widget);
   prv_conversation_updated(manager, true);
 }
 
 static void prv_handle_app_message_outbox_sent(DictionaryIterator *iterator, void *context) {
-  //APP_LOG(APP_LOG_LEVEL_INFO, "Sent message successfully.");
+  BOBBY_LOG(APP_LOG_LEVEL_INFO, "Sent message successfully.");
 }
 
 static void prv_handle_app_message_outbox_failed(DictionaryIterator *iterator, AppMessageResult reason, void *context) {
-  //APP_LOG(APP_LOG_LEVEL_ERROR, "Sending message failed: %d", reason);
+  BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Sending message failed: %d", reason);
   ConversationManager* manager = context;
   conversation_add_error(manager->conversation, "Sending to service failed.");
   prv_conversation_updated(manager, true);
@@ -147,7 +148,7 @@ static void prv_handle_app_message_inbox_received(DictionaryIterator *iter, void
       bool added_entry = conversation_add_response_fragment(manager->conversation, tuple->value->cstring);
       prv_conversation_updated(manager, added_entry);
     } else if (tuple->key == MESSAGE_KEY_FUNCTION) {
-      //APP_LOG(APP_LOG_LEVEL_INFO, "Received function: \"%s\".", tuple->value->cstring);
+      BOBBY_LOG(APP_LOG_LEVEL_INFO, "Received function: \"%s\".", tuple->value->cstring);
       conversation_complete_response(manager->conversation);
       prv_conversation_updated(manager, false);
       conversation_add_thought(manager->conversation, tuple->value->cstring);
@@ -382,7 +383,7 @@ static void prv_process_map_widget(int widget_type, DictionaryIterator *iter, Co
 }
 
 static void prv_handle_app_message_inbox_dropped(AppMessageResult reason, void *context) {
-  //APP_LOG(APP_LOG_LEVEL_ERROR, "Received message dropped: %d", reason);
+  BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Received message dropped: %d", reason);
   ConversationManager* manager = context;
   conversation_add_error(manager->conversation, "Response from service lost.");
   prv_conversation_updated(manager, true);
@@ -395,7 +396,7 @@ static void prv_conversation_updated(ConversationManager* manager, bool new_entr
 }
 
 static bool prv_handle_memory_pressure(void *context) {
-  //APP_LOG(APP_LOG_LEVEL_WARNING, "Memory pressure detected.");
+  BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Memory pressure detected.");
   ConversationManager* manager = context;
   if (!manager->conversation) {
     return false;
@@ -403,7 +404,7 @@ static bool prv_handle_memory_pressure(void *context) {
   if (conversation_length(manager->conversation) <= 2) {
     return false;
   }
-  //APP_LOG(APP_LOG_LEVEL_WARNING, "Deleting oldest entry from conversation.");
+  BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Deleting oldest entry from conversation.");
   if (manager->deletion_handler) {
     manager->deletion_handler(0, manager->context);
   }
