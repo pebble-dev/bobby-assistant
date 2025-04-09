@@ -51,18 +51,14 @@
 {{if .ContextStorage}}
 <div class="context-storage">
     <h2>Context Storage</h2>
-    <table>
-        <tr>
-            <th>Key</th>
-            <th>Value</th>
-        </tr>
-        {{range $key, $value := .ContextStorage}}
-            <tr>
-                <td><code>{{$key}}</code></td>
-                <td><pre class="arg-context-storage-{{$key}}">{{$value}}</pre></td>
-            </tr>
+    {{if .ContextStorage.POIs}}
+    <h3>POIs</h3>
+    <ol>
+        {{range .ContextStorage.POIs}}
+            <li><code>{{.}}</code></li>
         {{end}}
-    </table>
+    </ol>
+    {{end}}
 </div>
 {{end}}
 <div class="thread">

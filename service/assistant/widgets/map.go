@@ -5,8 +5,6 @@ import (
 	"context"
 	_ "embed"
 	"encoding/base64"
-	"fmt"
-	"github.com/pebble-dev/bobby-assistant/service/assistant/functions"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/query"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/util"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/util/pbi"
@@ -49,11 +47,7 @@ func mapWidget(ctx context.Context, markerString, includeLocationString string) 
 	includeLocation := strings.EqualFold(includeLocationString, "true")
 	markers := make(map[string]util.Coords)
 	threadContext := query.ThreadContextFromContext(ctx)
-	poiInfoAny, ok := threadContext.ContextStorage["poi_results"]
-	if !ok {
-		return nil, fmt.Errorf("no POI results found in context storage")
-	}
-	poiInfo := poiInfoAny.([]functions.POI)
+	poiInfo := threadContext.ContextStorage.POIs
 	markerString = strings.ReplaceAll(markerString, "\"", "")
 	for _, marker := range strings.Split(markerString, ",") {
 		parts := strings.Split(marker, ":")

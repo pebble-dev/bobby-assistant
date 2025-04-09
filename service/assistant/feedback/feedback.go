@@ -44,7 +44,7 @@ type ReportedThread struct {
 	ReportTime       time.Time                       `json:"report_time"`
 	ReportText       string                          `json:"report_text"`
 	ThreadContent    []persistence.SerializedMessage `json:"thread_content"`
-	ContextStorage   map[string]any                  `json:"thread_context"`
+	ContextStorage   persistence.StoredContext       `json:"thread_context"`
 }
 
 func HandleFeedback(rw http.ResponseWriter, r *http.Request) {
@@ -86,7 +86,7 @@ func HandleReport(rw http.ResponseWriter, r *http.Request) {
 		}
 	}
 	var messages []persistence.SerializedMessage
-	var contextStorage map[string]any
+	var contextStorage persistence.StoredContext
 	if threadContext != nil {
 		messages = threadContext.Messages
 		contextStorage = threadContext.ContextStorage

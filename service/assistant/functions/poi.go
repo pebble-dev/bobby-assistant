@@ -36,23 +36,8 @@ type POIQuery struct {
 	Units        string
 }
 
-type POI struct {
-	Name               string
-	Address            string
-	Categories         []string
-	OpeningHours       []string
-	CurrentlyOpen      bool
-	PhoneNumber        string
-	PriceLevel         string
-	StarRating         float64
-	RatingCount        int64
-	DistanceKilometers float64     `json:"DistanceKilometers,omitempty"`
-	DistanceMiles      float64     `json:"DistanceMiles,omitempty"`
-	Coordinates        util.Coords `json:"Coordinates,omitempty"`
-}
-
 type POIResponse struct {
-	Results []POI
+	Results []util.POI
 	Warning string `json:"CriticalRequirement,omitempty"`
 }
 
@@ -161,7 +146,7 @@ func searchPoi(ctx context.Context, quotaTracker *quota.Tracker, args any) any {
 
 	log.Printf("Found %d POIs", len(results.Places))
 
-	var pois []POI
+	var pois []util.POI
 	var attributions map[string]any
 	for _, place := range results.Places {
 		var distMiles, distKm float64
@@ -171,7 +156,7 @@ func searchPoi(ctx context.Context, quotaTracker *quota.Tracker, args any) any {
 				haversine.Coord{userLocation.Lat, userLocation.Lon},
 				haversine.Coord{place.Location.Latitude, place.Location.Longitude})
 		}
-		poi := POI{
+		poi := util.POI{
 			Name:               place.DisplayName.Text,
 			Address:            place.ShortFormattedAddress,
 			Categories:         place.Types,
@@ -199,7 +184,7 @@ func searchPoi(ctx context.Context, quotaTracker *quota.Tracker, args any) any {
 	}
 
 	threadContext := query.ThreadContextFromContext(ctx)
-	threadContext.ContextStorage["poi_results"] = pois
+	threadContext.ContextStorage.POIs = pois
 
 	var attributionList []string
 	for provider := range attributions {

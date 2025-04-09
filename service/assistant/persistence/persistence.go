@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"github.com/google/uuid"
 	"github.com/honeycombio/beeline-go"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/util"
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/genai"
 	"time"
@@ -31,16 +32,18 @@ type SerializedMessage struct {
 	FunctionResponse *genai.FunctionResponse `json:"functionResponse,omitempty"`
 }
 
+type StoredContext struct {
+	POIs []util.POI `json:"pois"`
+}
+
 type ThreadContext struct {
 	ThreadId       uuid.UUID           `json:"threadId"`
 	Messages       []SerializedMessage `json:"messages"`
-	ContextStorage map[string]any      `json:"contextStorage"`
+	ContextStorage StoredContext       `json:"contextStorage"`
 }
 
 func NewContext() *ThreadContext {
-	return &ThreadContext{
-		ContextStorage: map[string]any{},
-	}
+	return &ThreadContext{}
 }
 
 func LoadThread(ctx context.Context, r *redis.Client, id string) (*ThreadContext, error) {
