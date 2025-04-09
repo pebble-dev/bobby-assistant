@@ -78,4 +78,6 @@ add_executable(tiny_assistant_app
         src/c/converse/report_window.c
         src/c/vibes/haptic_feedback.c
         src/c/util/action_menu_crimes.c
+        src/c/image_manager/image_manager.c
+        src/c/converse/segments/widgets/map.c
 )

@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
+var map = require('./map');
 var weather = require('./weather');
 var timer = require('./timer');
 var highlights = require('./highlights');
 
 var widgetMap = {
+    'map': map.map,
     'timer': timer.timer,
     'number': highlights.number,
     'weather-single-day': weather.singleDay,

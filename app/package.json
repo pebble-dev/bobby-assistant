@@ -95,7 +95,17 @@
       "REPORT_THREAD_UUID",
       "REPORT_SEND_RESULT",
       "COBBLE_WARNING",
-      "ACTION_FEEDBACK_SENT"
+      "ACTION_FEEDBACK_SENT",
+      "IMAGE_WIDTH",
+      "IMAGE_HEIGHT",
+      "IMAGE_START_BYTE_SIZE",
+      "IMAGE_CHUNK_OFFSET",
+      "IMAGE_CHUNK_DATA",
+      "IMAGE_COMPLETE",
+      "IMAGE_ID",
+      "MAP_WIDGET",
+      "MAP_WIDGET_IMAGE_ID",
+      "MAP_WIDGET_USER_LOCATION"
     ],
     "resources": {
       "media": [

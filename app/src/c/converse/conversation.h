@@ -37,6 +37,7 @@ typedef enum {
   ConversationWidgetTypeWeatherMultiDay,
   ConversationWidgetTypeTimer,
   ConversationWidgetTypeNumber,
+  ConversationWidgetTypeMap,
 } ConversationWidgetType;
 
 typedef struct {
@@ -132,6 +133,10 @@ typedef struct {
 } ConversationWidgetNumber;
 
 typedef struct {
+  int image_id;
+} ConversationWidgetMap;
+
+typedef struct {
   ConversationWidgetType type;
   bool locally_created;
   union {
@@ -140,6 +145,7 @@ typedef struct {
     ConversationWidgetWeatherMultiDay weather_multi_day;
     ConversationWidgetTimer timer;
     ConversationWidgetNumber number;
+    ConversationWidgetMap map;
   } widget;
 } ConversationWidget;
 

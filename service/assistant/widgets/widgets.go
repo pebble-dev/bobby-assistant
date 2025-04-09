@@ -10,6 +10,7 @@ import (
 var timerWidgetRegex = regexp.MustCompile(`<!TIMER targetTime=[\["]?(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{0,5})?(?:Z|[+-](?:\d{4}|\d\d:\d\d)))[]"!]? ?(?: name=[\["]?(.*?)[]"]?)?[!/]>`)
 var weatherWidgetRegex = regexp.MustCompile(`<!WEATHER-(CURRENT|SINGLE-DAY|MULTI-DAY) location=[\["]?(.+?)[]"!]? units=[\["]?(imperial|metric|uk hybrid)[]"!]?(?: day=[\["]?(.+?)[]"]?)?[!/]>`)
 var numberWidgetRegex = regexp.MustCompile(`<!NUMERIC-ANSWER number=[\["]?(.+?)[]"!]? ?(?: unit=[\["]?(.*?)[]"]?)?[!/]>`)
+var mapWidgetRegex = regexp.MustCompile(`<!POI-MAP poiKeys=[\["]?(.+?)[]"!]? ?(?: showCurrentLocation=[\["]?(true|false)[]"]?)?[!/]>`)
 
 type Widget struct {
 	Content any    `json:"content"`
@@ -62,6 +63,15 @@ func ProcessWidget(ctx context.Context, widget string) (any, error) {
 			return nil, fmt.Errorf("error processing number widget: %w", err)
 		}
 		return Widget{Content: widget, Type: "number"}, nil
+	}
+	mapWidgets := mapWidgetRegex.FindAllStringSubmatch(widget, -1)
+	for _, w := range mapWidgets {
+		widget, err := mapWidget(ctx, w[1], w[2])
+		if err != nil {
+			log.Printf("Error processing map widget: %v", err)
+			return nil, fmt.Errorf("error processing map widget: %w", err)
+		}
+		return Widget{Content: widget, Type: "map"}, nil
 	}
 	return nil, fmt.Errorf("unknown widget %q", widget)
 }

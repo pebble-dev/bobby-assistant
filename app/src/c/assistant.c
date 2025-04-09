@@ -18,12 +18,14 @@
 #include "consent/consent.h"
 #include "converse/session_window.h"
 #include "converse/conversation_manager.h"
+#include "image_manager/image_manager.h"
 #include "alarms/manager.h"
 #include "version/version.h"
 #include "settings/settings.h"
 
 #include <pebble.h>
 #include <pebble-events/pebble-events.h>
+
 
 #define QUICK_LAUNCH_TIMEOUT_MS 60000
 
@@ -34,6 +36,7 @@ static void prv_init(void) {
   consent_migrate();
   settings_init();
   conversation_manager_init();
+  image_manager_init();
   events_app_message_open();
   alarm_manager_init();
 }
@@ -42,6 +45,7 @@ static void prv_deinit(void) {
   if (s_root_window) {
     root_window_destroy(s_root_window);
   }
+  image_manager_deinit();
 }
 
 int main(void) {

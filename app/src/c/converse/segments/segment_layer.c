@@ -23,8 +23,10 @@
 #include "widgets/weather_multi_day.h"
 #include "widgets/number.h"
 #include "widgets/timer.h"
+#include "widgets/map.h"
 
 #include <pebble.h>
+
 
 
 #define CONTENT_FONT FONT_KEY_GOTHIC_24_BOLD
@@ -38,6 +40,7 @@ typedef enum {
   SegmentTypeWeatherMultiDayWidget,
   SegmentTypeTimerWidget,
   SegmentTypeNumberWidget,
+  SegmentTypeMapWidget,
 } SegmentType;
 
 typedef struct {
@@ -56,6 +59,7 @@ typedef struct {
     WeatherMultiDayWidget* weather_multi_day_widget;
     TimerWidget* timer_widget;
     NumberWidget* number_widget;
+    MapWidget* map_widget;
   };
 } SegmentLayerData;
 
@@ -97,6 +101,9 @@ SegmentLayer* segment_layer_create(GRect rect, ConversationEntry* entry, bool as
     case SegmentTypeNumberWidget:
       data->number_widget = number_widget_create(child_frame, entry);
       break;
+    case SegmentTypeMapWidget:
+      data->map_widget = map_widget_create(child_frame, entry);
+      break;
   }
   layer_add_child(layer, data->layer);
   GSize child_size = layer_get_frame(data->layer).size;
@@ -132,6 +139,9 @@ void segment_layer_destroy(SegmentLayer* layer) {
       break;
     case SegmentTypeNumberWidget:
       number_widget_destroy(data->number_widget);
+      break;
+    case SegmentTypeMapWidget:
+      map_widget_destroy(data->map_widget);
       break;
   }
   if (data->assistant_label_layer) {
@@ -169,6 +179,9 @@ void segment_layer_update(SegmentLayer* layer) {
     case SegmentTypeNumberWidget:
       number_widget_update(data->number_widget);
       break;
+    case SegmentTypeMapWidget:
+      map_widget_update(data->map_widget);
+      break;
   }
   GSize child_size = layer_get_frame(data->layer).size;
   GPoint origin = layer_get_frame(layer).origin;
@@ -200,6 +213,8 @@ static SegmentType prv_get_segment_type(ConversationEntry* entry) {
           return SegmentTypeTimerWidget;
         case ConversationWidgetTypeNumber:
           return SegmentTypeNumberWidget;
+        case ConversationWidgetTypeMap:
+          return SegmentTypeMapWidget;
       }
       break;
   }

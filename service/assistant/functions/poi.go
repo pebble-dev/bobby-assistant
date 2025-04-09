@@ -20,6 +20,7 @@ import (
 	"github.com/honeycombio/beeline-go"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/query"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/util"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/util/mapbox"
 	"github.com/umahmood/haversine"
 	"google.golang.org/api/places/v1"
@@ -45,8 +46,9 @@ type POI struct {
 	PriceLevel         string
 	StarRating         float64
 	RatingCount        int64
-	DistanceKilometers float64 `json:"DistanceKilometers,omitempty"`
-	DistanceMiles      float64 `json:"DistanceMiles,omitempty"`
+	DistanceKilometers float64     `json:"DistanceKilometers,omitempty"`
+	DistanceMiles      float64     `json:"DistanceMiles,omitempty"`
+	Coordinates        util.Coords `json:"Coordinates,omitempty"`
 }
 
 type POIResponse struct {
@@ -179,6 +181,10 @@ func searchPoi(ctx context.Context, quotaTracker *quota.Tracker, args any) any {
 			RatingCount:        place.UserRatingCount,
 			DistanceMiles:      distMiles,
 			DistanceKilometers: distKm,
+			Coordinates: util.Coords{
+				Latitude:  place.Location.Latitude,
+				Longitude: place.Location.Longitude,
+			},
 		}
 		if place.CurrentOpeningHours != nil {
 			poi.OpeningHours = place.CurrentOpeningHours.WeekdayDescriptions
@@ -191,6 +197,9 @@ func searchPoi(ctx context.Context, quotaTracker *quota.Tracker, args any) any {
 			}
 		}
 	}
+
+	threadContext := query.ThreadContextFromContext(ctx)
+	threadContext.ContextStorage["poi_results"] = pois
 
 	var attributionList []string
 	for provider := range attributions {

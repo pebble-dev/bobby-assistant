@@ -18,6 +18,7 @@ var location = require('./location');
 var config = require('./config');
 var actions = require('./actions');
 var widgets = require('./widgets');
+var messageQueue = require('./lib/message_queue').Queue;
 
 var API_URL = require('./urls').QUERY_URL;
 var package_json = require('package.json');
@@ -126,35 +127,11 @@ Session.prototype.processWidget = function(widgetData) {
 }
 
 Session.prototype.enqueue = function(message) {
-    this.queue.push(message);
-    if (this.messagesInFlight < 10) {
-        console.log('sending immediately, messages in flight: ' + this.messagesInFlight);
-        this.dequeue();
-    } else {
-        console.log('enqueued, queue length: ' + this.queue.length);
-    }
+    messageQueue.enqueue(message);
 }
 
 Session.prototype.dequeue = function() {
-    var m = this.queue.shift();
-    console.log('sending message, remaining: ' + this.queue.length);
-    this.messagesInFlight++;
-    Pebble.sendAppMessage(m, (function() {
-        this.messagesInFlight--;
-        console.log('sent successfully');
-        if (this.queue.length > 0) {
-            console.log('next');
-            this.dequeue();
-        } else {
-            console.log('done');
-        }
-    }).bind(this), (function() {
-        this.messagesInFlight--;
-        console.log('failed, message lost. carrying on shortly.');
-        setTimeout(function() {
-            this.dequeue();
-            }, 10);
-    }).bind(this));
+    messageQueue.dequeue();
 }
 
 Session.prototype.handleClose = function(event) {

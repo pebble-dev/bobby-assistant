@@ -36,6 +36,7 @@ static void prv_handle_app_message_inbox_dropped(AppMessageResult result, void *
 static void prv_process_weather_widget(int widget_type, DictionaryIterator *iter, ConversationManager *manager);
 static void prv_process_timer_widget(int widget_type, DictionaryIterator *iter, ConversationManager *manager);
 static void prv_process_highlight_widget(int widget_type, DictionaryIterator *iter, ConversationManager *manager);
+static void prv_process_map_widget(int widget_type, DictionaryIterator *iter, ConversationManager *manager);
 
 static ConversationManager* s_conversation_manager;
 
@@ -199,6 +200,10 @@ static void prv_handle_app_message_inbox_received(DictionaryIterator *iter, void
       conversation_complete_response(manager->conversation);
       prv_conversation_updated(manager, false);
       prv_process_highlight_widget(tuple->value->int32, iter, manager);
+    } else if (tuple->key == MESSAGE_KEY_MAP_WIDGET) {
+      conversation_complete_response(manager->conversation);
+      prv_conversation_updated(manager, false);
+      prv_process_map_widget(tuple->value->int32, iter, manager);
     }
   }
 }
@@ -341,6 +346,24 @@ static void prv_process_highlight_widget(int widget_type, DictionaryIterator *it
       .number = {
         .number = number_stored,
         .unit = units_stored,
+      }
+    }
+  };
+  conversation_add_widget(manager->conversation, &widget);
+  prv_conversation_updated(manager, true);
+}
+
+
+static void prv_process_map_widget(int widget_type, DictionaryIterator *iter, ConversationManager *manager) {
+  if (widget_type != 1) {
+    return;
+  }
+  int image_id = dict_find(iter, MESSAGE_KEY_MAP_WIDGET_IMAGE_ID)->value->int32;
+  ConversationWidget widget = {
+    .type = ConversationWidgetTypeMap,
+    .widget = {
+      .map = {
+        .image_id = image_id,
       }
     }
   };

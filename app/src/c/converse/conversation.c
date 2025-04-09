@@ -15,6 +15,7 @@
  */
 
 #include "conversation.h"
+#include "../image_manager/image_manager.h"
 
 
 struct ConversationEntry {
@@ -113,6 +114,9 @@ void conversation_destroy(Conversation* conversation) {
             if (entry->content.widget->widget.number.unit) {
               free(entry->content.widget->widget.number.unit);
             }
+            break;
+          case ConversationWidgetTypeMap:
+            image_manager_destroy_image(entry->content.widget->widget.map.image_id);
             break;
         }
         free(entry->content.widget);
