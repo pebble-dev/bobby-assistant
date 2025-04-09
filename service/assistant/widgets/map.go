@@ -5,6 +5,7 @@ import (
 	"context"
 	_ "embed"
 	"encoding/base64"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/config"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/query"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/util"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/util/pbi"
@@ -26,7 +27,8 @@ var mapClient *gmaps.Client
 
 func init() {
 	var err error
-	mapClient, err = gmaps.NewClient(gmaps.WithAPIKeyAndSignature("AIzaSyBqOaNKiSWwtpTYFwLs9lwnKDqZs7WITOI", "KTUTcHaSV6OFb8RZ3LYmoqEZbtA="))
+	c := config.GetConfig()
+	mapClient, err = gmaps.NewClient(gmaps.WithAPIKeyAndSignature(c.GoogleMapsStaticKey, c.GoogleMapsStaticSecret))
 	if err != nil {
 		panic(err)
 	}
@@ -110,7 +112,7 @@ func generateMap(ctx context.Context, markers map[string]util.Coords, userLocati
 		Size:    "144x100",
 		Format:  "png8",
 		MapType: "roadmap",
-		MapId:   "c36800aa7c671dbd",
+		MapId:   config.GetConfig().GoogleMapsStaticMapId,
 		Markers: mapMarkers,
 	}
 	return mapClient.StaticMap(ctx, &request)
