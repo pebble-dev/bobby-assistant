@@ -491,6 +491,11 @@
           "targetPlatforms": [
             "diorite"
           ]
+        },
+        {
+          "file": "images/skull.pdc",
+          "name": "IMAGE_SKULL",
+          "type": "raw"
         }
       ]
     }

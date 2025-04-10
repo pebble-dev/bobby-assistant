@@ -68,16 +68,16 @@ void memory_pressure_unregister_callback(MemoryPressureHandler handler) {
 
 bool memory_pressure_try_free() {
   BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Memory emergency! Trying to free memory.");
-  int priority = 0;
   int count = linked_list_count(s_callback_list);
   if (count == 0) {
     BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "No memory freeing callbacks registered");
     return false;
   }
-  for (int p = 0; p < s_max_priority; ++p) {
+  for (int p = 0; p <= s_max_priority; ++p) {
+    BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Trying priority level %d", p);
     for (int i = 0; i < count; ++i) {
       MemoryPressureCallbackEntry *entry = linked_list_get(s_callback_list, i);
-      if (entry->priority != priority) {
+      if (entry->priority != p) {
         continue;
       }
       BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Calling memory pressure callback %p with priority %d", entry->handler, entry->priority);

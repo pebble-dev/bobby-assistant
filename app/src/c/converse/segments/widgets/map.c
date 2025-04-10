@@ -17,6 +17,7 @@
 #include <pebble.h>
 #include "../../../image_manager/image_manager.h"
 #include "../../../util/memory/sdk.h"
+#include "../../../util/thinking_layer.h"
 
 #include "map.h"
 
@@ -26,6 +27,8 @@ static void prv_layer_update(Layer *layer, GContext *ctx);
 typedef struct {
   ConversationEntry* entry;
   GBitmap* bitmap;
+  ThinkingLayer* loading_layer;
+  GDrawCommandImage *skull_image;
 } MapWidgetData;
 
 static inline int prv_get_image_id(MapWidgetData *data) {
@@ -39,6 +42,8 @@ MapWidget* map_widget_create(GRect rect, ConversationEntry* entry) {
   MapWidgetData* data = layer_get_data(layer);
   data->entry = entry;
   data->bitmap = NULL;
+  data->loading_layer = thinking_layer_create(GRect(rect.size.w / 2 - THINKING_LAYER_WIDTH / 2, image_size.h / 2 - THINKING_LAYER_HEIGHT / 2, THINKING_LAYER_WIDTH, THINKING_LAYER_HEIGHT));
+  layer_add_child(layer, data->loading_layer);
   image_manager_register_callback(image_id, prv_image_updated, layer);
   layer_set_update_proc(layer, prv_layer_update);
   return layer;
@@ -54,6 +59,12 @@ void map_widget_destroy(MapWidget* layer) {
   if (data->bitmap) {
     gbitmap_destroy(data->bitmap);
   }
+  if (data->loading_layer) {
+    thinking_layer_destroy(data->loading_layer);
+  }
+  if (data->skull_image) {
+    gdraw_command_image_destroy(data->skull_image);
+  }
   int image_id = prv_get_image_id(data);
   image_manager_unregister_callback(image_id);
   layer_destroy(layer);
@@ -67,13 +78,26 @@ static void prv_image_updated(int image_id, ImageStatus status, void *context) {
   Layer *layer = context;
   MapWidgetData* data = layer_get_data(layer);
   if (status == ImageStatusCompleted) {
+    if (data->loading_layer) {
+      layer_remove_from_parent(data->loading_layer);
+      thinking_layer_destroy(data->loading_layer);
+      data->loading_layer = NULL;
+    }
     if (data->bitmap) {
       gbitmap_destroy(data->bitmap);
     }
     data->bitmap = image_manager_get_image(image_id);
     layer_mark_dirty(layer);
   } else if (status == ImageStatusDestroyed) {
+    if (data->loading_layer) {
+      layer_remove_from_parent(data->loading_layer);
+      thinking_layer_destroy(data->loading_layer);
+      data->loading_layer = NULL;
+    }
     data->bitmap = NULL;
+    if (!data->skull_image) {
+      data->skull_image = bgdraw_command_image_create_with_resource(RESOURCE_ID_IMAGE_SKULL);
+    }
     layer_mark_dirty(layer);
   }
 }
@@ -100,5 +124,9 @@ static void prv_layer_update(Layer *layer, GContext *ctx) {
   } else {
     graphics_context_set_fill_color(ctx, COLOR_FALLBACK(GColorLightGray, GColorWhite));
     graphics_fill_rect(ctx, image_rect, 0, GCornerNone);
+    if (data->skull_image) {
+      GSize skull_size = gdraw_command_image_get_bounds_size(data->skull_image);
+      gdraw_command_image_draw(ctx, data->skull_image, GPoint(image_rect.origin.x + image_rect.size.w / 2 - skull_size.w / 2, image_rect.origin.y + image_rect.size.h / 2 - skull_size.h / 2));
+    }
   }
 }
