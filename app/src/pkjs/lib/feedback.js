@@ -82,22 +82,12 @@ function sendRequest(request, url, callback) {
     req.setRequestHeader('Content-Type', 'application/json');
     req.onload = function(e) {
         if (req.readyState === 4) {
-            var response = {};
             if (req.status === 200) {
                 callback(true, req.status);
                 console.log("Feedback sent successfully");
-                if (responseKey) {
-                    response[responseKey] = 0;
-                }
             } else {
                 console.log("Feedback request returned error code " + req.status.toString());
                 callback(false, req.status);
-                if (responseKey) {
-                    response[responseKey] = 1;
-                }
-            }
-            if (responseKey) {
-                Pebble.sendAppMessage(response);
             }
         }
     }
