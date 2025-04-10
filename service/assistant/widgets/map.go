@@ -151,8 +151,6 @@ func monochrome(img image.Image) image.Image {
 				} else {
 					newImg.Set(x, y, color.Black)
 				}
-			} else if !isGrey(c) {
-				newImg.Set(x, y, colourToMonochrome(c))
 			} else if closeToBlack(c) {
 				newImg.Set(x, y, color.Black)
 			} else {
@@ -171,8 +169,6 @@ func lowColour(img image.Image) image.Image {
 			c := img.At(x, y)
 			if shouldDither(c) {
 				newImg.Set(x, y, color.Gray{0xaa})
-			} else if !isGrey(c) {
-				newImg.Set(x, y, colourToMonochrome(c))
 			} else {
 				newImg.Set(x, y, greyTo2BitGrey(c))
 			}
@@ -220,7 +216,7 @@ func closeToBlack(c color.Color) bool {
 
 func shouldDither(c color.Color) bool {
 	r, g, b, _ := c.RGBA()
-	return r == 0 && g == 0 && b == 0xFFFF
+	return r == 42148 && g == 43176 && b == 43690
 }
 
 func isGrey(c color.Color) bool {
