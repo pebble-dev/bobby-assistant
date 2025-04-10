@@ -94,7 +94,7 @@ static void prv_layer_update(Layer *layer, GContext *ctx) {
       graphics_fill_circle(ctx, center, 6);
       graphics_context_set_stroke_color(ctx, COLOR_FALLBACK(GColorDarkGray, GColorBlack));
       graphics_draw_circle(ctx, center, 6);
-      graphics_context_set_fill_color(ctx, COLOR_FALLBACK(GColorBlue, GColorDarkGray));
+      graphics_context_set_fill_color(ctx, COLOR_FALLBACK(GColorBlue, GColorBlack));
       graphics_fill_circle(ctx, center, 4);
     }
   } else {

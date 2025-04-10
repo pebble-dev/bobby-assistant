@@ -24,6 +24,10 @@ import (
 var googleLogo2BitBytes []byte
 var googleLogo2Bit image.Image
 
+//go:embed google1bit.png
+var googleLogo1BitBytes []byte
+var googleLogo1Bit image.Image
+
 var mapClient *gmaps.Client
 
 func init() {
@@ -34,6 +38,10 @@ func init() {
 		panic(err)
 	}
 	googleLogo2Bit, err = png.Decode(bytes.NewReader(googleLogo2BitBytes))
+	if err != nil {
+		panic(err)
+	}
+	googleLogo1Bit, err = png.Decode(bytes.NewReader(googleLogo1BitBytes))
 	if err != nil {
 		panic(err)
 	}
@@ -53,6 +61,7 @@ func mapWidget(ctx context.Context, markerString, includeLocationString string) 
 	markers := make(map[string]util.Coords)
 	threadContext := query.ThreadContextFromContext(ctx)
 	poiInfo := threadContext.ContextStorage.POIs
+	// Sometimes the model decides to quote random parts of the string, I don't know.
 	markerString = strings.ReplaceAll(markerString, "\"", "")
 	for _, marker := range strings.Split(markerString, ",") {
 		parts := strings.Split(marker, ":")
@@ -191,6 +200,7 @@ func monochrome(img image.Image) image.Image {
 			}
 		}
 	}
+	stampLogo(newImg, googleLogo1Bit)
 	return newImg
 }
 
@@ -207,11 +217,15 @@ func lowColour(img image.Image) image.Image {
 			}
 		}
 	}
-	// slap the 2-bit version of the Google logo over the existing one
-	topCorner := image.Pt(8, newImg.Bounds().Max.Y-16)
-	targetImageRect := image.Rect(topCorner.X, topCorner.Y, topCorner.X+googleLogo2Bit.Bounds().Dx(), topCorner.Y+googleLogo2Bit.Bounds().Dy())
-	draw.Draw(newImg, targetImageRect, googleLogo2Bit, image.Point{0, 0}, draw.Over)
+	stampLogo(newImg, googleLogo2Bit)
 	return newImg
+}
+
+func stampLogo(img *image.Paletted, logo image.Image) {
+	// slap the black and white version of the Google logo over the existing one
+	topCorner := image.Pt(7, img.Bounds().Max.Y-17)
+	targetImageRect := image.Rect(topCorner.X, topCorner.Y, topCorner.X+googleLogo2Bit.Bounds().Dx(), topCorner.Y+googleLogo2Bit.Bounds().Dy())
+	draw.Draw(img, targetImageRect, logo, image.Point{0, 0}, draw.Over)
 }
 
 func greyTo2BitGrey(c color.Color) color.Color {
@@ -228,20 +242,6 @@ func greyTo2BitGrey(c color.Color) color.Color {
 	}
 }
 
-func colourToMonochrome(c color.Color) color.Color {
-	isBlack := color.Gray16Model.Convert(c).(color.Gray16).Y <= 0xEFFF
-	if isBlack {
-		return color.Black
-	} else {
-		return color.White
-	}
-}
-
-func closeToWhite(c color.Color) bool {
-	r, g, b, _ := c.RGBA()
-	return r > 0x7FFF && g > 0x7FFF && b > 0x7FFF
-}
-
 func closeToBlack(c color.Color) bool {
 	r, _, _, _ := c.RGBA()
 	return r <= 0x8FFF
@@ -250,9 +250,4 @@ func closeToBlack(c color.Color) bool {
 func shouldDither(c color.Color) bool {
 	r, g, b, _ := c.RGBA()
 	return r == 42148 && g == 43176 && b == 43690
-}
-
-func isGrey(c color.Color) bool {
-	r, g, b, _ := c.RGBA()
-	return r == g && g == b
 }
