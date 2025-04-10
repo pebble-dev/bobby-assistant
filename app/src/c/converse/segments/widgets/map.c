@@ -81,16 +81,22 @@ static void prv_image_updated(int image_id, ImageStatus status, void *context) {
 static void prv_layer_update(Layer *layer, GContext *ctx) {
   MapWidgetData *data = layer_get_data(layer);
   GRect bounds = layer_get_bounds(layer);
-  // bounds = grect_inset(bounds, (GEdgeInsets){.right = 5});
-  GSize image_size = image_manager_get_size(prv_get_image_id(data));
-  // GRect border_rect = GRect((bounds.size.w - image_size.w) / 2, 0, image_size.w + 2, image_size.h + 2);
-  // GRect image_rect = grect_inset(border_rect, GEdgeInsets(1));
+  GPoint user_location = conversation_entry_get_widget(data->entry)->widget.map.user_location;
   GRect image_rect = grect_inset(bounds, GEdgeInsets(1, 0));
   graphics_context_set_stroke_color(ctx, GColorBlack);
   graphics_draw_line(ctx, GPoint(0, 0), GPoint(bounds.size.w, 0));
   graphics_draw_line(ctx, GPoint(0, bounds.size.h - 1), GPoint(bounds.size.w, bounds.size.h - 1));
   if (data->bitmap) {
     graphics_draw_bitmap_in_rect(ctx, data->bitmap, image_rect);
+    if (user_location.x > 0 && user_location.y > 0) {
+      GPoint center = GPoint(user_location.x + image_rect.origin.x, user_location.y + image_rect.origin.y);
+      graphics_context_set_fill_color(ctx, GColorWhite);
+      graphics_fill_circle(ctx, center, 6);
+      graphics_context_set_stroke_color(ctx, COLOR_FALLBACK(GColorDarkGray, GColorBlack));
+      graphics_draw_circle(ctx, center, 6);
+      graphics_context_set_fill_color(ctx, COLOR_FALLBACK(GColorBlue, GColorDarkGray));
+      graphics_fill_circle(ctx, center, 4);
+    }
   } else {
     graphics_context_set_fill_color(ctx, COLOR_FALLBACK(GColorLightGray, GColorWhite));
     graphics_fill_rect(ctx, image_rect, 0, GCornerNone);

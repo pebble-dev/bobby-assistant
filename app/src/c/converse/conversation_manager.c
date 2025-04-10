@@ -370,11 +370,13 @@ static void prv_process_map_widget(int widget_type, DictionaryIterator *iter, Co
     return;
   }
   int image_id = dict_find(iter, MESSAGE_KEY_MAP_WIDGET_IMAGE_ID)->value->int32;
+  int user_location = dict_find(iter, MESSAGE_KEY_MAP_WIDGET_USER_LOCATION)->value->int32;
   ConversationWidget widget = {
     .type = ConversationWidgetTypeMap,
     .widget = {
       .map = {
         .image_id = image_id,
+        .user_location = GPoint(user_location >> 16, user_location & 0xFFFF),
       }
     }
   };

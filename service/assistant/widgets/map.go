@@ -40,9 +40,11 @@ func init() {
 }
 
 type MapWidget struct {
-	Image  string `json:"image"`
-	Height int16  `json:"height"`
-	Width  int16  `json:"width"`
+	Image         string `json:"image"`
+	Height        int16  `json:"height"`
+	Width         int16  `json:"width"`
+	UserLocationX int16  `json:"user_location_x"`
+	UserLocationY int16  `json:"user_location_y"`
 }
 
 func mapWidget(ctx context.Context, markerString, includeLocationString string) (*MapWidget, error) {
@@ -86,6 +88,7 @@ func mapWidget(ctx context.Context, markerString, includeLocationString string) 
 		// Handle error
 		return nil, err
 	}
+	userX, userY := findUserLocation(mapImage)
 	if query.SupportsColourFromContext(ctx) {
 		mapImage = lowColour(mapImage)
 	} else {
@@ -93,9 +96,11 @@ func mapWidget(ctx context.Context, markerString, includeLocationString string) 
 	}
 	mapImageBase64, err := encodeImageToBase64(mapImage)
 	return &MapWidget{
-		Image:  mapImageBase64,
-		Height: int16(mapImage.Bounds().Dy()),
-		Width:  int16(mapImage.Bounds().Dx()),
+		Image:         mapImageBase64,
+		Height:        int16(mapImage.Bounds().Dy()),
+		Width:         int16(mapImage.Bounds().Dx()),
+		UserLocationX: int16(userX),
+		UserLocationY: int16(userY),
 	}, nil
 }
 
@@ -114,6 +119,18 @@ func generateMap(ctx context.Context, markers map[string]util.Coords, userLocati
 			Size:  "mid",
 		})
 	}
+	if userLocation != nil {
+		mapMarkers = append(mapMarkers, gmaps.Marker{
+			Location: []gmaps.LatLng{{
+				Lat: userLocation.Latitude,
+				Lng: userLocation.Longitude,
+			}},
+			CustomIcon: gmaps.CustomIcon{
+				IconURL: "https://storage.googleapis.com/bobby-assets/user-location-pixel.png",
+				Anchor:  "center",
+			},
+		})
+	}
 
 	screenWidth := query.ScreenWidthFromContext(ctx)
 	if screenWidth == 0 {
@@ -127,6 +144,22 @@ func generateMap(ctx context.Context, markers map[string]util.Coords, userLocati
 		Markers: mapMarkers,
 	}
 	return mapClient.StaticMap(ctx, &request)
+}
+
+func findUserLocation(img image.Image) (x, y int) {
+	// Find the user location in the image
+	bounds := img.Bounds()
+	for y := 0; y < bounds.Max.Y; y++ {
+		for x := 0; x < bounds.Max.X; x++ {
+			c := img.At(x, y)
+			r, g, b, a := c.RGBA()
+			// This is the colour of the magic pixel we put on the map to mark the user's location.
+			if r == 2827 && g == 5911 && b == 56540 && a == 65535 {
+				return x, y
+			}
+		}
+	}
+	return 0, 0
 }
 
 func encodeImageToBase64(img image.Image) (string, error) {

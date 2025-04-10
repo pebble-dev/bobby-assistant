@@ -27,9 +27,14 @@ exports.map = function(session, params) {
         imageData[i] = pbi.charCodeAt(i);
     }
     var imageId = imageManager.sendImage(width, height, imageData);
+    var userLocation = 0;
+    if (params['user_location_x'] && params['user_location_y']) {
+        userLocation = (params['user_location_x'] << 16) | params['user_location_y'];
+    }
     var message = {
         MAP_WIDGET: 1,
         MAP_WIDGET_IMAGE_ID: imageId,
+        MAP_WIDGET_USER_LOCATION: userLocation
     };
     console.log(JSON.stringify(message));
     session.enqueue(message);

@@ -134,6 +134,7 @@ typedef struct {
 
 typedef struct {
   int image_id;
+  GPoint user_location;
 } ConversationWidgetMap;
 
 typedef struct {
