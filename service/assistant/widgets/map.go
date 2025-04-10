@@ -5,6 +5,7 @@ import (
 	"context"
 	_ "embed"
 	"encoding/base64"
+	"fmt"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/config"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/query"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/util"
@@ -85,6 +86,11 @@ func mapWidget(ctx context.Context, markerString, includeLocationString string) 
 		// Handle error
 		return nil, err
 	}
+	if query.SupportsColourFromContext(ctx) {
+		mapImage = lowColour(mapImage)
+	} else {
+		mapImage = monochrome(mapImage)
+	}
 	mapImageBase64, err := encodeImageToBase64(mapImage)
 	return &MapWidget{
 		Image:  mapImageBase64,
@@ -108,8 +114,13 @@ func generateMap(ctx context.Context, markers map[string]util.Coords, userLocati
 			Size:  "mid",
 		})
 	}
+
+	screenWidth := query.ScreenWidthFromContext(ctx)
+	if screenWidth == 0 {
+		screenWidth = 144
+	}
 	request := gmaps.StaticMapRequest{
-		Size:    "144x100",
+		Size:    fmt.Sprintf("%dx100", screenWidth),
 		Format:  "png8",
 		MapType: "roadmap",
 		MapId:   config.GetConfig().GoogleMapsStaticMapId,
@@ -119,16 +130,9 @@ func generateMap(ctx context.Context, markers map[string]util.Coords, userLocati
 }
 
 func encodeImageToBase64(img image.Image) (string, error) {
-	mc := antialiasedMonochrome(img)
-	bufpng := bytes.Buffer{}
-	err := png.Encode(&bufpng, mc)
-	if err != nil {
-		return "", err
-	}
-	log.Println(base64.StdEncoding.EncodeToString(bufpng.Bytes()))
 	// Convert the image to a base64 string
 	buf := bytes.Buffer{}
-	err = pbi.Encode(&buf, mc)
+	err := pbi.Encode(&buf, img)
 	if err != nil {
 		return "", err
 	}
@@ -141,7 +145,6 @@ func monochrome(img image.Image) image.Image {
 	for y := 0; y < img.Bounds().Max.Y; y++ {
 		for x := 0; x < img.Bounds().Max.X; x++ {
 			c := img.At(x, y)
-			log.Println(c.RGBA())
 			if shouldDither(c) {
 				if x%2 != y%2 {
 					newImg.Set(x, y, color.White)
@@ -160,7 +163,7 @@ func monochrome(img image.Image) image.Image {
 	return newImg
 }
 
-func antialiasedMonochrome(img image.Image) image.Image {
+func lowColour(img image.Image) image.Image {
 	p := color.Palette{color.White, color.Black, color.Gray{0x55}, color.Gray{0xaa}}
 	newImg := image.NewPaletted(img.Bounds(), p)
 	for y := 0; y < img.Bounds().Max.Y; y++ {

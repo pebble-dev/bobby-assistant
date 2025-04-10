@@ -38,6 +38,9 @@ type queryContext struct {
 	preferredUnits    string
 	threadId          string
 	threadContext     *persistence.ThreadContext
+	supportsColour    bool
+	screenWidth       int
+	screenHeight      int
 }
 
 type qckt int
@@ -62,6 +65,9 @@ func ContextWith(ctx context.Context, q url.Values) context.Context {
 	preferredLanguage := q.Get("lang")
 	preferredUnits := q.Get("units")
 	threadId := q.Get("threadId")
+	supportsColour := q.Get("supportsColour") == "true"
+	screenWidth, _ := strconv.Atoi(q.Get("screenWidth"))
+	screenHeight, _ := strconv.Atoi(q.Get("screenHeight"))
 	qc := queryContext{
 		location:          location,
 		tzOffset:          offset,
@@ -71,6 +77,9 @@ func ContextWith(ctx context.Context, q url.Values) context.Context {
 		preferredUnits:    preferredUnits,
 		threadId:          threadId,
 		threadContext:     persistence.NewContext(),
+		supportsColour:    supportsColour,
+		screenWidth:       screenWidth,
+		screenHeight:      screenHeight,
 	}
 	ctx = context.WithValue(ctx, queryContextKey, qc)
 	return ctx
@@ -118,6 +127,14 @@ func ThreadIdFromContext(ctx context.Context) string {
 
 func ThreadContextFromContext(ctx context.Context) *persistence.ThreadContext {
 	return ctx.Value(queryContextKey).(queryContext).threadContext
+}
+
+func SupportsColourFromContext(ctx context.Context) bool {
+	return ctx.Value(queryContextKey).(queryContext).supportsColour
+}
+
+func ScreenWidthFromContext(ctx context.Context) int {
+	return ctx.Value(queryContextKey).(queryContext).screenWidth
 }
 
 func ContextWithThread(ctx context.Context, threadContext *persistence.ThreadContext) context.Context {

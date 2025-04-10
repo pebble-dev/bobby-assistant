@@ -27,9 +27,7 @@ function Session(prompt, threadId) {
     this.prompt = prompt;
     this.threadId = threadId;
     this.ws = undefined;
-    this.queue = [];
     this.hasOpenDialog = false;
-    this.messagesInFlight = 0;
 }
 
 function getSettings() {
@@ -51,11 +49,55 @@ Session.prototype.run = function() {
     // negate this because JavaScript does it backwards for some reason.
     url += '&tzOffset=' + (-(new Date()).getTimezoneOffset());
     url += '&actions=' + actions.getSupportedActions().join(',');
-    url += '&widgets=weather,timer,number';
+    url += '&widgets=weather,timer,number,map';
     var settings = getSettings();
     url += '&units=' + settings['UNIT_PREFERENCE'] || '';
     url += '&lang=' + settings['LANGUAGE_CODE'] || '';
     url += '&version=' + package_json['version'];
+
+    // Figure out our colour support
+    if (Pebble.getActiveWatchInfo) {
+        var platform = Pebble.getActiveWatchInfo().platform;
+        var supportsColour;
+        var screenWidth;
+        var screenHeight;
+        switch (platform) {
+            case 'aplite':
+                supportsColour = false;
+                screenWidth = 144;
+                screenHeight = 168;
+                break;
+            case 'basalt':
+                supportsColour = true;
+                screenWidth = 144;
+                screenHeight = 168;
+                break;
+            case 'chalk':
+                supportsColour = true;
+                screenWidth = 180;
+                screenHeight = 180;
+                break;
+            case 'diorite':
+                supportsColour = false;
+                screenWidth = 144;
+                screenHeight = 168;
+                break;
+            case 'emery':
+                supportsColour = true;
+                screenWidth = 200;
+                screenHeight = 228;
+                break;
+            default:
+                console.log('Unknown platform: ' + platform);
+                // generally a safe bet.
+                supportsColour = false;
+                screenWidth = 144;
+                screenHeight = 168;
+        }
+        url += '&supportsColour=' + supportsColour;
+        url += '&screenWidth=' + screenWidth;
+        url += '&screenHeight=' + screenHeight;
+    }
 
     console.log(url);
     this.ws = new WebSocket(url);
