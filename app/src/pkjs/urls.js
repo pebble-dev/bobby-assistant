@@ -14,11 +14,17 @@
  * limitations under the License.
  */
 
+var getSettings = function() {
+    return JSON.parse(localStorage.getItem('clay-settings')) || {};
+}
 
-exports.QUERY_URL = 'wss://bobby-api.rebble.io/query';
-exports.QUOTA_URL = 'https://bobby-api.rebble.io/quota';
-exports.FEEDBACK_URL = 'https://bobby-api.rebble.io/feedback';
-exports.REPORT_URL = 'https://bobby-api.rebble.io/report';
+var settings = getSettings();
+var BOBBY_API_URI = settings['BOBBY_API_URI'];
+
+exports.QUERY_URL = 'wss://' + BOBBY_API_URI + '/query';
+exports.QUOTA_URL = 'https://' + BOBBY_API_URI + '/quota';
+exports.FEEDBACK_URL = 'https://' + BOBBY_API_URI + '/feedback';
+exports.REPORT_URL = 'https://' + BOBBY_API_URI + '/report';
 
 var override = require('./urls_override');
 
