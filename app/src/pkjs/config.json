@@ -133,6 +133,22 @@
         ]
     },
     {
+        "type": "section",
+        "items": [
+           {
+                "type": "heading",
+                "defaultValue": "Advanced"
+           },
+           {
+                "type": "input",
+                "messageKey": "BOBBY_API_URI",
+                "defaultValue": "bobby-api.rebble.io",
+                "label": "Bobby API URI",
+                "description": "Bobby API URI. Only domain root, do not include protocol (e.g. no http://)."
+           }
+        ]
+    },
+    {
         "type": "submit",
         "defaultValue": "Save"
     }
