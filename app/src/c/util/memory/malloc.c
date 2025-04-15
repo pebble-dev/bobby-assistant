@@ -24,6 +24,7 @@ void *bmalloc(size_t size) {
   int heap_size = heap_bytes_free();
   BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "malloc request: %d; free: %d", size, heap_size);
   while (true) {
+    heap_size = heap_bytes_free();
     if (heap_bytes_free() > 750) {
       void *ptr = malloc(size);
       if (ptr) {
