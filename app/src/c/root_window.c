@@ -21,6 +21,7 @@
 #include "talking_horse_layer.h"
 #include "converse/session_window.h"
 #include "menus/root_menu.h"
+#include "util/logging.h"
 #include "util/style.h"
 #include "util/time.h"
 #include "util/memory/malloc.h"
@@ -60,50 +61,16 @@ static void prv_suggestion_clicked(ActionMenu *action_menu, const ActionMenuItem
 static void prv_app_message_handler(DictionaryIterator *iter, void *context);
 
 RootWindow* root_window_create() {
-  RootWindow* window = bmalloc(sizeof(RootWindow));
-  window->window = bwindow_create();
-  window_set_window_handlers(window->window, (WindowHandlers) {
+  RootWindow* rw = bmalloc(sizeof(RootWindow));
+  memset(rw, 0, sizeof(RootWindow));
+  rw->window = bwindow_create();
+  window_set_window_handlers(rw->window, (WindowHandlers) {
     .load = prv_window_load,
     .appear = prv_window_appear,
     .disappear = prv_window_disappear,
   });
-  GRect bounds = layer_get_bounds(window_get_root_layer(window->window));
-  window_set_background_color(window->window, COLOR_FALLBACK(ACCENT_COLOUR, GColorWhite));
-  window->question_icon = bgbitmap_create_with_resource(RESOURCE_ID_QUESTION_ICON);
-  window->dictation_icon = bgbitmap_create_with_resource(RESOURCE_ID_DICTATION_ICON);
-  window->more_icon = bgbitmap_create_with_resource(RESOURCE_ID_MORE_ICON);
-  window->action_bar = baction_bar_layer_create();
-  action_bar_layer_set_context(window->action_bar, window);
-  action_bar_layer_set_icon(window->action_bar, BUTTON_ID_UP, window->question_icon);
-  action_bar_layer_set_icon(window->action_bar, BUTTON_ID_SELECT, window->dictation_icon);
-  action_bar_layer_set_icon(window->action_bar, BUTTON_ID_DOWN, window->more_icon);
-  window_set_user_data(window->window, window);
-  window->time_layer = btext_layer_create(GRect(0, 5, 144 - ACTION_BAR_WIDTH, 40));
-  window->event_handle = NULL;
-  text_layer_set_text_alignment(window->time_layer, GTextAlignmentCenter);
-  text_layer_set_font(window->time_layer, fonts_get_system_font(FONT_KEY_LECO_36_BOLD_NUMBERS));
-  text_layer_set_text(window->time_layer, "12:34");
-  text_layer_set_background_color(window->time_layer, GColorClear);
-  layer_add_child(window_get_root_layer(window->window), (Layer *)window->time_layer);
-  window->talking_horse_layer = talking_horse_layer_create(GRect(0, 56, 144 - ACTION_BAR_WIDTH, 112));
-  layer_add_child(window_get_root_layer(window->window), (Layer *)window->talking_horse_layer);
-  window->talking_horse_overridden = false;
-  if (version_is_updated() || rand() < RAND_MAX / 10) {
-    window->talking_horse_overridden = true;
-    talking_horse_layer_set_text(window->talking_horse_layer, "Try holding select in chat!");
-  }
-
-  VersionInfo version_info = version_get_current();
-  snprintf(window->version_string, sizeof(window->version_string), "v%d.%d", version_info.major, version_info.minor);
-  window->version_string[sizeof(window->version_string) - 1] = '\0';
-  window->version_layer = btext_layer_create(GRect(0, bounds.size.h - 18, bounds.size.w - ACTION_BAR_WIDTH - 4, 18));
-  text_layer_set_font(window->version_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
-  text_layer_set_text_alignment(window->version_layer, GTextAlignmentRight);
-  text_layer_set_background_color(window->version_layer, GColorClear);
-  text_layer_set_text(window->version_layer, window->version_string);
-  layer_add_child(window_get_root_layer(window->window), (Layer *)window->version_layer);
-
-  return window;
+  window_set_user_data(rw->window, rw);
+  return rw;
 }
 
 void root_window_push(RootWindow* window) {
@@ -112,13 +79,6 @@ void root_window_push(RootWindow* window) {
 
 void root_window_destroy(RootWindow* window) {
   window_destroy(window->window);
-  action_bar_layer_destroy(window->action_bar);
-  gbitmap_destroy(window->question_icon);
-  gbitmap_destroy(window->dictation_icon);
-  gbitmap_destroy(window->more_icon);
-  text_layer_destroy(window->time_layer);
-  text_layer_destroy(window->version_layer);
-  talking_horse_layer_destroy(window->talking_horse_layer);
   free(window);
 }
 
@@ -127,13 +87,49 @@ Window* root_window_get_window(RootWindow* window) {
 }
 
 static void prv_window_load(Window *window) {
-  RootWindow* root_window = (RootWindow*)window_get_user_data(window);
-  action_bar_layer_add_to_window(root_window->action_bar, window);
-  action_bar_layer_set_click_config_provider(root_window->action_bar, prv_click_config_provider);
+  // RootWindow* root_window = (RootWindow*)window_get_user_data(window);
 }
 
 static void prv_window_appear(Window* window) {
+  size_t heap_size = heap_bytes_free();
   RootWindow* rw = window_get_user_data(window);
+  GRect bounds = layer_get_bounds(window_get_root_layer(rw->window));
+  window_set_background_color(rw->window, COLOR_FALLBACK(ACCENT_COLOUR, GColorWhite));
+  rw->question_icon = bgbitmap_create_with_resource(RESOURCE_ID_QUESTION_ICON);
+  rw->dictation_icon = bgbitmap_create_with_resource(RESOURCE_ID_DICTATION_ICON);
+  rw->more_icon = bgbitmap_create_with_resource(RESOURCE_ID_MORE_ICON);
+  rw->action_bar = baction_bar_layer_create();
+  action_bar_layer_set_context(rw->action_bar, rw);
+  action_bar_layer_set_icon(rw->action_bar, BUTTON_ID_UP, rw->question_icon);
+  action_bar_layer_set_icon(rw->action_bar, BUTTON_ID_SELECT, rw->dictation_icon);
+  action_bar_layer_set_icon(rw->action_bar, BUTTON_ID_DOWN, rw->more_icon);
+  action_bar_layer_add_to_window(rw->action_bar, window);
+  action_bar_layer_set_click_config_provider(rw->action_bar, prv_click_config_provider);
+  rw->time_layer = btext_layer_create(GRect(0, 5, 144 - ACTION_BAR_WIDTH, 40));
+  text_layer_set_text_alignment(rw->time_layer, GTextAlignmentCenter);
+  text_layer_set_font(rw->time_layer, fonts_get_system_font(FONT_KEY_LECO_36_BOLD_NUMBERS));
+  text_layer_set_text(rw->time_layer, "12:34");
+  text_layer_set_background_color(rw->time_layer, GColorClear);
+  layer_add_child(window_get_root_layer(rw->window), (Layer *)rw->time_layer);
+  rw->talking_horse_layer = talking_horse_layer_create(GRect(0, 56, 144 - ACTION_BAR_WIDTH, 112));
+  layer_add_child(window_get_root_layer(rw->window), (Layer *)rw->talking_horse_layer);
+  rw->talking_horse_overridden = false;
+  if (version_is_updated() || rand() < RAND_MAX / 10) {
+    rw->talking_horse_overridden = true;
+    talking_horse_layer_set_text(rw->talking_horse_layer, "Try holding select in chat!");
+  }
+
+  VersionInfo version_info = version_get_current();
+  snprintf(rw->version_string, sizeof(rw->version_string), "v%d.%d", version_info.major, version_info.minor);
+  rw->version_string[sizeof(rw->version_string) - 1] = '\0';
+  rw->version_layer = btext_layer_create(GRect(0, bounds.size.h - 18, bounds.size.w - ACTION_BAR_WIDTH - 4, 18));
+  text_layer_set_font(rw->version_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
+  text_layer_set_text_alignment(rw->version_layer, GTextAlignmentRight);
+  text_layer_set_background_color(rw->version_layer, GColorClear);
+  text_layer_set_text(rw->version_layer, rw->version_string);
+  layer_add_child(window_get_root_layer(rw->window), (Layer *)rw->version_layer);
+
+
   if (!rw->event_handle) {
     rw->event_handle = events_tick_timer_service_subscribe_context(MINUTE_UNIT, prv_time_changed, rw);
     time_t now = time(NULL);
@@ -142,9 +138,11 @@ static void prv_window_appear(Window* window) {
   if (!rw->app_message_handle) {
     rw->app_message_handle = events_app_message_register_inbox_received(prv_app_message_handler, rw);
   }
+  BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Window appeared. Heap usage increased %d bytes", heap_size - heap_bytes_free());
 }
 
 static void prv_window_disappear(Window* window) {
+  size_t heap_size = heap_bytes_free();
   RootWindow* rw = window_get_user_data(window);
   if (rw->event_handle) {
     events_tick_timer_service_unsubscribe(rw->event_handle);
@@ -153,6 +151,14 @@ static void prv_window_disappear(Window* window) {
   if (rw->app_message_handle) {
     events_app_message_unsubscribe(rw->app_message_handle);
   }
+  action_bar_layer_destroy(rw->action_bar);
+  gbitmap_destroy(rw->question_icon);
+  gbitmap_destroy(rw->dictation_icon);
+  gbitmap_destroy(rw->more_icon);
+  text_layer_destroy(rw->time_layer);
+  text_layer_destroy(rw->version_layer);
+  talking_horse_layer_destroy(rw->talking_horse_layer);
+  BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Window disappeared. Heap usage decreased %d bytes", heap_bytes_free() - heap_size);
 }
 
 static void prv_app_message_handler(DictionaryIterator *iter, void *context) {
