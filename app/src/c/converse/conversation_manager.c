@@ -59,7 +59,8 @@ ConversationManager* conversation_manager_create() {
       .sent = prv_handle_app_message_outbox_sent,
       .failed = prv_handle_app_message_outbox_failed,
       .received = prv_handle_app_message_inbox_received,
-      .dropped = prv_handle_app_message_inbox_dropped,
+      // We don't handle this elegantly enough for it to make sense here.
+      // .dropped = prv_handle_app_message_inbox_dropped,
   }, manager);
   s_conversation_manager = manager;
   memory_pressure_register_callback(prv_handle_memory_pressure, 1, manager);
