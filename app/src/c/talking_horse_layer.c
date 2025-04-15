@@ -52,6 +52,7 @@ TalkingHorseLayer *talking_horse_layer_create(GRect frame) {
 void talking_horse_layer_destroy(TalkingHorseLayer *layer) {
   TalkingHorseLayerData *data = layer_get_data(layer);
   gdraw_command_image_destroy(data->pony);
+  graphics_text_attributes_destroy(data->text_attributes);
   layer_destroy(layer);
 }
 
