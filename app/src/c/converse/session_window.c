@@ -77,6 +77,7 @@ static void prv_cancel_timeout(SessionWindow* sw);
 static void prv_action_menu_query(ActionMenu *action_menu, const ActionMenuItem *action, void *context);
 static void prv_action_menu_input(ActionMenu *action_menu, const ActionMenuItem *action, void *context);
 static void prv_action_menu_report_thread(ActionMenu *action_menu, const ActionMenuItem *action, void *context);
+static void prv_start_dictation(SessionWindow *sw);
 
 void session_window_push(int timeout, char *starting_prompt) {
   Window *window = bwindow_create();
@@ -112,7 +113,7 @@ static void prv_destroy(SessionWindow *sw) {
     thinking_layer_destroy(sw->thinking_layer);
     sw->thinking_layer = NULL;
   }
-  for (int i = 0; i < sw->segment_count; ++i) {
+  for (int i = sw->segments_deleted; i < sw->segment_count; ++i) {
     segment_layer_destroy(sw->segment_layers[i]);
   }
   free(sw->segment_layers);
@@ -201,8 +202,7 @@ static void prv_window_appear(Window *window) {
   }
   if (sw->dictation_pending) {
     sw->dictation_pending = false;
-    free(bmalloc(500));
-    dictation_session_start(sw->dictation);
+    prv_start_dictation(sw);
   }
 }
 
@@ -338,6 +338,12 @@ static void prv_conversation_manager_handler(bool entry_added, void* context) {
   }
   SegmentLayer* layer = segment_layer_create(GRect(0, prv_content_height(sw), holder_size.w, 10), entry, conversation_assistant_just_started(conversation));
   sw->segment_layers[sw->segment_count++] = layer;
+  // It's possible that the content height changed *while the layer was being created*. In case this happened, move the
+  // layer back to where it should be. Because segment layers are expected to adjust their own frame during
+  // construction, we must read its size back first.
+  GRect frame = layer_get_frame(layer);
+  frame.origin.y = prv_content_height(sw);
+  layer_set_frame(layer, frame);
   scroll_layer_add_child(sw->scroll_layer, layer);
   int layer_height = layer_get_frame(layer).size.h;
   sw->content_height += layer_height;
@@ -413,8 +419,7 @@ static void prv_click_config_provider(void *context) {
 static void prv_select_clicked(ClickRecognizerRef recognizer, void *context) {
   SessionWindow* sw = context;
   if (conversation_is_idle(conversation_manager_get_conversation(sw->manager))) {
-    free(bmalloc(500));
-    dictation_session_start(sw->dictation);
+    prv_start_dictation(sw);
   }
 }
 
@@ -464,13 +469,13 @@ static void prv_select_long_pressed(ClickRecognizerRef recognizer, void *context
   };
   vibe_haptic_feedback();
   sw->query_time = time(NULL);
+  free(bmalloc(750));
   action_menu_open(&config);
 }
 
 static void prv_action_menu_query(ActionMenu *action_menu, const ActionMenuItem *action, void *context) {
   SessionWindow* sw = context;
-  free(bmalloc(500));
-  dictation_session_start(sw->dictation);
+  prv_start_dictation(sw);
 }
 
 
@@ -513,4 +518,10 @@ static void prv_cancel_timeout(SessionWindow* sw) {
 static void prv_timed_out(void *ctx) {
   BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Timed out");
   window_stack_pop(true);
+}
+
+static void prv_start_dictation(SessionWindow *sw) {
+  // Dictation needs a ridiculous amount of memory to behave properly.
+  free(bmalloc(2048));
+  dictation_session_start(sw->dictation);
 }
