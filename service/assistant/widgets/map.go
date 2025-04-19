@@ -56,7 +56,6 @@ type MapWidget struct {
 }
 
 func mapWidget(ctx context.Context, markerString, includeLocationString string) (*MapWidget, error) {
-	log.Println("MAP WIDGET!")
 	includeLocation := strings.EqualFold(includeLocationString, "true")
 	markers := make(map[string]util.Coords)
 	threadContext := query.ThreadContextFromContext(ctx)
@@ -135,6 +134,7 @@ func generateMap(ctx context.Context, markers map[string]util.Coords, userLocati
 				Lng: userLocation.Longitude,
 			}},
 			CustomIcon: gmaps.CustomIcon{
+				// This is a single blue pixel with the magic 16-bit colour rgb(2827, 5911, 56540)
 				IconURL: "https://storage.googleapis.com/bobby-assets/user-location-pixel.png",
 				Anchor:  "center",
 			},
@@ -224,7 +224,7 @@ func lowColour(img image.Image) image.Image {
 func stampLogo(img *image.Paletted, logo image.Image) {
 	// slap the black and white version of the Google logo over the existing one
 	topCorner := image.Pt(7, img.Bounds().Max.Y-17)
-	targetImageRect := image.Rect(topCorner.X, topCorner.Y, topCorner.X+googleLogo2Bit.Bounds().Dx(), topCorner.Y+googleLogo2Bit.Bounds().Dy())
+	targetImageRect := image.Rect(topCorner.X, topCorner.Y, topCorner.X+logo.Bounds().Dx(), topCorner.Y+logo.Bounds().Dy())
 	draw.Draw(img, targetImageRect, logo, image.Point{0, 0}, draw.Over)
 }
 
@@ -249,5 +249,7 @@ func closeToBlack(c color.Color) bool {
 
 func shouldDither(c color.Color) bool {
 	r, g, b, _ := c.RGBA()
+	// This is the magic colour we use to indicate a region that should be dithered. It's just off a mid-grey, so the
+	// antialiasing against it looks about right, but it's not a colour that can ever naturally occur.
 	return r == 42148 && g == 43176 && b == 43690
 }
