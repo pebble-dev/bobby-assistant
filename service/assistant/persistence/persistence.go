@@ -33,7 +33,8 @@ type SerializedMessage struct {
 }
 
 type StoredContext struct {
-	POIs []util.POI `json:"pois"`
+	PoiQuery *util.POIQuery `json:"poiQuery"`
+	POIs     []util.POI     `json:"pois"`
 }
 
 type ThreadContext struct {

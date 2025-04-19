@@ -14,3 +14,20 @@ type POI struct {
 	DistanceMiles      float64 `json:"DistanceMiles,omitempty"`
 	Coordinates        Coords  `json:"Coordinates,omitempty"`
 }
+
+type POIQuery struct {
+	Location     string
+	Query        string
+	LanguageCode string
+	Units        string
+}
+
+func (p *POIQuery) Equal(other *POIQuery) bool {
+	if other == nil {
+		return false
+	}
+	return p.Location == other.Location &&
+		p.Query == other.Query &&
+		p.LanguageCode == other.LanguageCode &&
+		p.Units == other.Units
+}

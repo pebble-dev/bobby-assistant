@@ -29,13 +29,6 @@ import (
 	"strings"
 )
 
-type POIQuery struct {
-	Location     string
-	Query        string
-	LanguageCode string
-	Units        string
-}
-
 type POIResponse struct {
 	Results []util.POI
 	Warning string `json:"CriticalRequirement,omitempty"`
@@ -70,12 +63,12 @@ func init() {
 		},
 		Fn:        searchPoi,
 		Thought:   searchPoiThought,
-		InputType: POIQuery{},
+		InputType: util.POIQuery{},
 	})
 }
 
 func searchPoiThought(args any) string {
-	poiQuery := args.(*POIQuery)
+	poiQuery := args.(*util.POIQuery)
 	if poiQuery.Location != "" {
 		location, _, _ := strings.Cut(poiQuery.Location, ",")
 		return fmt.Sprintf("Looking for %s near %s...", poiQuery.Query, location)
@@ -86,7 +79,14 @@ func searchPoiThought(args any) string {
 func searchPoi(ctx context.Context, quotaTracker *quota.Tracker, args any) any {
 	ctx, span := beeline.StartSpan(ctx, "search_poi")
 	defer span.Send()
-	poiQuery := args.(*POIQuery)
+	threadContext := query.ThreadContextFromContext(ctx)
+	poiQuery := args.(*util.POIQuery)
+	if threadContext.ContextStorage.PoiQuery != nil && poiQuery.Equal(threadContext.ContextStorage.PoiQuery) {
+		log.Printf("Reusing the POI results from before.")
+		return &POIResponse{
+			Results: threadContext.ContextStorage.POIs,
+		}
+	}
 	span.AddField("query", poiQuery.Query)
 	location := query.LocationFromContext(ctx)
 	if poiQuery.Location != "" {
@@ -183,8 +183,8 @@ func searchPoi(ctx context.Context, quotaTracker *quota.Tracker, args any) any {
 		}
 	}
 
-	threadContext := query.ThreadContextFromContext(ctx)
 	threadContext.ContextStorage.POIs = pois
+	threadContext.ContextStorage.PoiQuery = poiQuery
 
 	var attributionList []string
 	for provider := range attributions {
