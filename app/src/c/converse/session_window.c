@@ -26,6 +26,7 @@
 #include "../util/memory/malloc.h"
 #include "../util/memory/sdk.h"
 #include "../vibes/haptic_feedback.h"
+#include "../features.h"
 
 #include <pebble.h>
 
@@ -529,5 +530,10 @@ static void prv_timed_out(void *ctx) {
 static void prv_start_dictation(SessionWindow *sw) {
   // Dictation needs a ridiculous amount of memory to behave properly.
   free(bmalloc(2048));
+#if !ENABLE_FEATURE_FIXED_PROMPT
   dictation_session_start(sw->dictation);
+#else
+  // skip this, just send some nonsense.
+  prv_dictation_status_callback(sw->dictation, DictationSessionStatusSuccess, "This is just a test message", sw);
+#endif
 }
