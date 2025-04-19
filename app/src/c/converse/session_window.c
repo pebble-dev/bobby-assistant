@@ -103,6 +103,9 @@ static void prv_destroy(SessionWindow *sw) {
   BOBBY_LOG(APP_LOG_LEVEL_INFO, "destroying SessionWindow %p.", sw);
   prv_cancel_timeout(sw);
   dictation_session_destroy(sw->dictation);
+  for (int i = sw->segments_deleted; i < sw->segment_count; ++i) {
+    segment_layer_destroy(sw->segment_layers[i]);
+  }
   conversation_manager_destroy(sw->manager);
   status_bar_layer_destroy(sw->status_layer);
   scroll_layer_destroy(sw->scroll_layer);
@@ -112,9 +115,6 @@ static void prv_destroy(SessionWindow *sw) {
   if (sw->thinking_layer) {
     thinking_layer_destroy(sw->thinking_layer);
     sw->thinking_layer = NULL;
-  }
-  for (int i = sw->segments_deleted; i < sw->segment_count; ++i) {
-    segment_layer_destroy(sw->segment_layers[i]);
   }
   free(sw->segment_layers);
   window_destroy(sw->window);
@@ -307,6 +307,7 @@ static void prv_conversation_manager_handler(bool entry_added, void* context) {
     }
     return;
   }
+  Conversation *conversation = conversation_manager_get_conversation(sw->manager);
   // If we have a new entry, we might just want to replace the old segment layer - we don't
   // keep old Thought segments around.
   if (sw->segment_count > sw->segments_deleted) {
@@ -320,9 +321,9 @@ static void prv_conversation_manager_handler(bool entry_added, void* context) {
       layer_remove_from_parent(last_layer);
       segment_layer_destroy(last_layer);
       sw->segment_layers[--sw->segment_count] = NULL;
+      conversation_delete_last_thought(conversation);
     }
   }
-  Conversation *conversation = conversation_manager_get_conversation(sw->manager);
   ConversationEntry* entry = conversation_peek(conversation);
   if (entry == NULL) {
     // ??????
@@ -370,6 +371,7 @@ static void prv_conversation_manager_handler(bool entry_added, void* context) {
       break;
     case EntryTypePrompt:
     case EntryTypeThought:
+    case EntryTypeDeleted:
       // nothing to do here.
       break;
   }
@@ -390,6 +392,10 @@ static void prv_conversation_entry_deleted_handler(int index, void* context) {
   SegmentLayer *to_delete = sw->segment_layers[sw->segments_deleted];
   int16_t removed_height = layer_get_frame(to_delete).size.h;
   for (int i = sw->segments_deleted + 1; i < sw->segment_count; ++i) {
+    if (sw->segment_layers[i] == NULL) {
+      BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Segment layer %d is NULL (not possible!?)", i);
+      continue;
+    }
     SegmentLayer *layer = sw->segment_layers[i];
     GRect frame = layer_get_frame(layer);
     frame.origin.y -= removed_height;

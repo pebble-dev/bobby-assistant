@@ -34,6 +34,7 @@ struct ConversationEntry {
 struct Conversation {
   ConversationEntry* entries;
   int deleted_entries;
+  int nulled_entries;
   int entry_count;
   int entry_allocated;
   char thread_id[37];
@@ -41,10 +42,12 @@ struct Conversation {
 
 static ConversationEntry* prv_create_entry(Conversation* conversation);
 void prv_destroy_entry(ConversationEntry *entry);
+const char* prv_type_to_string(EntryType type);
 
 Conversation* conversation_create() {
   Conversation *conversation = bmalloc(sizeof(Conversation));
   conversation->deleted_entries = 0;
+  conversation->nulled_entries = 0;
   conversation->entry_count = 0;
   conversation->entry_allocated = 30;
   conversation->entries = bmalloc(sizeof(ConversationEntry) * conversation->entry_allocated);
@@ -62,6 +65,9 @@ void conversation_destroy(Conversation* conversation) {
 
 void prv_destroy_entry(ConversationEntry *entry) {
   switch (entry->type) {
+    case EntryTypeDeleted:
+      // Nothing to do here.
+      break;
     case EntryTypePrompt:
       free(entry->content.prompt->prompt);
       free(entry->content.prompt);
@@ -132,6 +138,7 @@ void prv_destroy_entry(ConversationEntry *entry) {
       free(entry->content.widget);
       break;
   }
+  entry->type = EntryTypeDeleted;
 }
 
 static ConversationEntry* prv_create_entry(Conversation* conversation) {
@@ -141,6 +148,7 @@ static ConversationEntry* prv_create_entry(Conversation* conversation) {
     ++conversation->entry_allocated;
     conversation->entries = new_entries;
   }
+  memset(&conversation->entries[conversation->entry_count], 0, sizeof(ConversationEntry));
   return &conversation->entries[conversation->entry_count++];
 }
 
@@ -261,8 +269,27 @@ void conversation_add_widget(Conversation* conversation, ConversationWidget* wid
 }
 
 void conversation_delete_first_entry(Conversation* conversation) {
-  prv_destroy_entry(&conversation->entries[conversation->deleted_entries]);
+  ConversationEntry* entry = &conversation->entries[conversation->deleted_entries];
+  while (entry->type == EntryTypeDeleted && conversation->deleted_entries < conversation->entry_count) {
+    conversation->deleted_entries++;
+    conversation->nulled_entries--;
+    entry = &conversation->entries[conversation->deleted_entries];
+  }
+  prv_destroy_entry(entry);
   conversation->deleted_entries++;
+}
+
+
+void conversation_delete_last_thought(Conversation* conversation) {
+  BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Deleting last thought");
+  for (int i = conversation->entry_count - 2; i >= conversation->deleted_entries; --i) {
+    ConversationEntry* entry = &conversation->entries[i];
+    if (entry->type == EntryTypeThought) {
+      BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Deleting thought %d", i);
+      prv_destroy_entry(entry);
+      return;
+    }
+  }
 }
 
 ConversationEntry* conversation_entry_at_index(Conversation* conversation, int index) {
@@ -293,6 +320,8 @@ ConversationEntry* conversation_get_last_of_type(Conversation* conversation, Ent
 
 const char* prv_type_to_string(EntryType type) {
   switch(type) {
+    case EntryTypeDeleted:
+      return "EntryTypeDeleted";
     case EntryTypePrompt:
       return "EntryTypePrompt";
     case EntryTypeResponse:
@@ -371,7 +400,7 @@ const char* conversation_get_thread_id(Conversation* conversation) {
 }
 
 int conversation_length(Conversation* conversation) {
-  return conversation->entry_count - conversation->deleted_entries;
+  return conversation->entry_count - conversation->deleted_entries - conversation->nulled_entries;
 }
 
 bool conversation_is_idle(Conversation* conversation) {
@@ -393,6 +422,7 @@ bool conversation_is_idle(Conversation* conversation) {
 
 static bool prv_entry_type_is_assistant(ConversationEntry* entry) {
   switch (entry->type) {
+    case EntryTypeDeleted:
     case EntryTypePrompt:
     case EntryTypeError:
     case EntryTypeThought:

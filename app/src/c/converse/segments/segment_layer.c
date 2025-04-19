@@ -35,6 +35,7 @@
 #define NAME_HEIGHT 20
 
 typedef enum {
+  SegmentTypeNone,
   SegmentTypeMessage,
   SegmentTypeInfo,
   SegmentTypeWeatherSingleDayWidget,
@@ -82,6 +83,8 @@ SegmentLayer* segment_layer_create(GRect rect, ConversationEntry* entry, bool as
     data->assistant_label_layer = NULL;
   }
   switch (data->type) {
+    case SegmentTypeNone:
+      break;
     case SegmentTypeMessage:
       data->message_layer = message_layer_create(child_frame, entry);
       break;
@@ -121,6 +124,8 @@ void segment_layer_destroy(SegmentLayer* layer) {
   BOBBY_LOG(APP_LOG_LEVEL_INFO, "destroying SegmentLayer %p.", layer);
   SegmentLayerData* data = layer_get_data(layer);
   switch (data->type) {
+    case SegmentTypeNone:
+      break;
     case SegmentTypeMessage:
       message_layer_destroy(data->message_layer);
       break;
@@ -160,6 +165,8 @@ ConversationEntry* segment_layer_get_entry(SegmentLayer* layer) {
 void segment_layer_update(SegmentLayer* layer) {
   SegmentLayerData* data = layer_get_data(layer);
   switch (data->type) {
+    case SegmentTypeNone:
+      break;
     case SegmentTypeMessage:
       message_layer_update(data->message_layer);
       break;
@@ -196,6 +203,8 @@ void segment_layer_update(SegmentLayer* layer) {
 
 static SegmentType prv_get_segment_type(ConversationEntry* entry) {
   switch (conversation_entry_get_type(entry)) {
+    case EntryTypeDeleted:
+      return SegmentTypeNone;
     case EntryTypePrompt:
     case EntryTypeResponse:
       return SegmentTypeMessage;
@@ -221,5 +230,5 @@ static SegmentType prv_get_segment_type(ConversationEntry* entry) {
       break;
   }
   BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Unknown entry type %d.", conversation_entry_get_type(entry));
-  return SegmentTypeMessage;
+  return SegmentTypeNone;
 }
