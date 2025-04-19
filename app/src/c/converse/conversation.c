@@ -46,7 +46,7 @@ Conversation* conversation_create() {
   Conversation *conversation = bmalloc(sizeof(Conversation));
   conversation->deleted_entries = 0;
   conversation->entry_count = 0;
-  conversation->entry_allocated = 3;
+  conversation->entry_allocated = 30;
   conversation->entries = bmalloc(sizeof(ConversationEntry) * conversation->entry_allocated);
   conversation->thread_id[0] = 0;
   return conversation;
