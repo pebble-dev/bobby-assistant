@@ -95,7 +95,14 @@ Pebble.addEventListener("ready",
         // given how many things bizarrely don't work.
         doCobbleWarning();
         console.log("Bobby " + package_json['version']);
+        if (Pebble.platform === 'pypkjs') {
+            console.log("Entering emulator mode.");
+            var emulator_main = require('./emulator/emulator_main');
+            emulator_main.main();
+            return;
+        }
         Pebble.getTimelineToken(function(token) {
+            console.log("Entering real mode.");
             session.userToken = token;
             main();
         }, function(e) {
