@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-var MAX_BYTES_IN_FLIGHT = 600;
+var MAX_BYTES_IN_FLIGHT = 400;
 
 function MessageQueue() {
     this.queue = [];
@@ -62,7 +62,7 @@ MessageQueue.prototype.enqueue = function(message) {
         this.log.push(message);
     }
     this.queue.push(message);
-    if (this.messagesInFlight < 10 && this.bytesInFlight < MAX_BYTES_IN_FLIGHT) {
+    if (this.messagesInFlight < 6 && this.bytesInFlight < MAX_BYTES_IN_FLIGHT) {
         console.log('sending immediately, messages in flight: ' + this.messagesInFlight + ', bytes in flight: ' + this.bytesInFlight);
         this.dequeue();
     } else {
