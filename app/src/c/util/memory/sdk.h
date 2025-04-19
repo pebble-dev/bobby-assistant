@@ -29,4 +29,4 @@ ScrollLayer *bscroll_layer_create(GRect frame);
 StatusBarLayer *bstatus_bar_layer_create();
 GBitmap *bgbitmap_create_with_resource(uint32_t resource_id);
 GDrawCommandImage *bgdraw_command_image_create_with_resource(uint32_t resource_id);
-GDrawCommandImage *bgdraw_command_sequence_create_with_resource(uint32_t resource_id);
+GDrawCommandSequence *bgdraw_command_sequence_create_with_resource(uint32_t resource_id);

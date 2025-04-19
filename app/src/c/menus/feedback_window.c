@@ -119,7 +119,7 @@ static void prv_window_load(Window *window) {
   bitmap_layer_set_bitmap(data->select_indicator_layer, data->select_indicator);
   bitmap_layer_set_compositing_mode(data->select_indicator_layer, GCompOpSet);
 
-  data->loading_sequence = gdraw_command_sequence_create_with_resource(RESOURCE_ID_RUNNING_PONY);
+  data->loading_sequence = bgdraw_command_sequence_create_with_resource(RESOURCE_ID_RUNNING_PONY);
   GSize pony_size = gdraw_command_sequence_get_bounds_size(data->loading_sequence);
   data->loading_layer = vector_sequence_layer_create(GRect(bounds.size.w / 2 - pony_size.w / 2, bounds.size.h / 2 - pony_size.h / 2, pony_size.w, pony_size.h));
   vector_sequence_layer_set_sequence(data->loading_layer, data->loading_sequence);

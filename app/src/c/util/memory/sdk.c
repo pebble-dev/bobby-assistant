@@ -130,7 +130,7 @@ GDrawCommandImage *bgdraw_command_image_create_with_resource(uint32_t resource_i
   return NULL;
 }
 
-GDrawCommandImage *bgdraw_command_sequence_create_with_resource(uint32_t resource_id) {
+GDrawCommandSequence *bgdraw_command_sequence_create_with_resource(uint32_t resource_id) {
   int heap_size = heap_bytes_free();
   void *ptr = gdraw_command_sequence_create_with_resource(resource_id);
   if (ptr) {

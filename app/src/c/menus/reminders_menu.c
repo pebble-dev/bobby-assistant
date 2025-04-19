@@ -129,7 +129,7 @@ static void prv_window_load(Window *window) {
     gcolor_legible_over(SELECTION_HIGHLIGHT_COLOUR));
 
   // Show loading animation
-  data->loading_sequence = gdraw_command_sequence_create_with_resource(RESOURCE_ID_RUNNING_PONY);
+  data->loading_sequence = bgdraw_command_sequence_create_with_resource(RESOURCE_ID_RUNNING_PONY);
   GSize pony_size = gdraw_command_sequence_get_bounds_size(data->loading_sequence);
   data->loading_layer = vector_sequence_layer_create(GRect(
     bounds.size.w / 2 - pony_size.w / 2,

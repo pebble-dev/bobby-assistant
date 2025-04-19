@@ -68,7 +68,7 @@ static void prv_window_load(Window* window) {
   scroll_layer_add_child(data->scroll_layer, (Layer *)data->explanation_layer);
   scroll_layer_add_child(data->scroll_layer, (Layer *)data->usage_layer);
   // We need to look up the quota, so we'll show a running pony while we do that.
-  data->loading_sequence = gdraw_command_sequence_create_with_resource(RESOURCE_ID_RUNNING_PONY);
+  data->loading_sequence = bgdraw_command_sequence_create_with_resource(RESOURCE_ID_RUNNING_PONY);
   GSize pony_size = gdraw_command_sequence_get_bounds_size(data->loading_sequence);
   data->loading_layer = vector_sequence_layer_create(GRect(bounds.size.w / 2 - pony_size.w / 2, bounds.size.h / 2 - pony_size.h / 2, pony_size.w, pony_size.h));
   vector_sequence_layer_set_sequence(data->loading_layer, data->loading_sequence);
