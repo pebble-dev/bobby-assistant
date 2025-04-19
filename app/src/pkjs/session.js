@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+var LOGGING_ENABLED = false;
+
 var location = require('./location');
 var config = require('./config');
 var actions = require('./actions');
@@ -35,6 +37,9 @@ function getSettings() {
 }
 
 Session.prototype.run = function() {
+    if (LOGGING_ENABLED) {
+        messageQueue.startLogging();
+    }
     console.log("Opening websocket connection...");
     var url = API_URL + '?prompt=' + encodeURIComponent(this.prompt) + '&token=' + exports.userToken;
     if (location.isReady() && config.isLocationEnabled()) {
@@ -151,6 +156,10 @@ Session.prototype.handleMessage = function(event) {
         this.enqueue({
             CHAT_DONE: true
         });
+        if (LOGGING_ENABLED) {
+            console.log(JSON.stringify(messageQueue.getLog()));
+            messageQueue.stopLogging();
+        }
     } else if (message[0] == 'a') {
         actions.handleAction(this, this.ws, message.substring(1));
     } else if (message[0] == 't') {
