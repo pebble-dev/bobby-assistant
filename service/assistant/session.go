@@ -183,7 +183,7 @@ func (ps *PromptSession) Run(ctx context.Context) {
 				ourContent := ""
 				for _, c := range choice.Content.Parts {
 					if c.Text != "" {
-						ourContent += c.Text
+						ourContent += fixUnsupportedCharacters(c.Text)
 					}
 					if c.FunctionCall != nil {
 						fc := *c.FunctionCall
@@ -381,6 +381,11 @@ func (ps *PromptSession) Run(ctx context.Context) {
 	}
 	log.Println("Request handled successfully.")
 	_ = ps.conn.Close(websocket.StatusNormalClosure, "")
+}
+
+func fixUnsupportedCharacters(s string) string {
+	// Replace the narrow non-breaking space with a regular non-breaking space.
+	return strings.ReplaceAll(s, "\u202f", "\u00a0")
 }
 
 func (ps *PromptSession) storeThread(ctx context.Context, messages []*genai.Content) error {
