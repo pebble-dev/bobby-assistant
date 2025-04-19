@@ -18,6 +18,7 @@
 #define CONVERSATION_H
 
 #include <pebble.h>
+#include "../features.h"
 
 typedef struct Conversation Conversation;
 typedef struct ConversationEntry ConversationEntry;
@@ -37,7 +38,9 @@ typedef enum {
   ConversationWidgetTypeWeatherMultiDay,
   ConversationWidgetTypeTimer,
   ConversationWidgetTypeNumber,
+#if ENABLE_FEATURE_MAPS
   ConversationWidgetTypeMap,
+#endif
 } ConversationWidgetType;
 
 typedef struct {

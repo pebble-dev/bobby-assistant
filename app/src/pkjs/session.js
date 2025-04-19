@@ -21,6 +21,7 @@ var config = require('./config');
 var actions = require('./actions');
 var widgets = require('./widgets');
 var messageQueue = require('./lib/message_queue').Queue;
+var features = require('./features');
 
 var API_URL = require('./urls').QUERY_URL;
 var package_json = require('package.json');
@@ -54,7 +55,10 @@ Session.prototype.run = function() {
     // negate this because JavaScript does it backwards for some reason.
     url += '&tzOffset=' + (-(new Date()).getTimezoneOffset());
     url += '&actions=' + actions.getSupportedActions().join(',');
-    url += '&widgets=weather,timer,number,map';
+    url += '&widgets=weather,timer,number';
+    if (features.FEATURE_MAP_WIDGET) {
+        url += ',map';
+    }
     var settings = getSettings();
     url += '&units=' + settings['UNIT_PREFERENCE'] || '';
     url += '&lang=' + settings['LANGUAGE_CODE'] || '';

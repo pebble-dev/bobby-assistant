@@ -41,7 +41,9 @@ static void prv_handle_app_message_inbox_dropped(AppMessageResult result, void *
 static void prv_process_weather_widget(int widget_type, DictionaryIterator *iter, ConversationManager *manager);
 static void prv_process_timer_widget(int widget_type, DictionaryIterator *iter, ConversationManager *manager);
 static void prv_process_highlight_widget(int widget_type, DictionaryIterator *iter, ConversationManager *manager);
+#if ENABLE_FEATURE_MAPS
 static void prv_process_map_widget(int widget_type, DictionaryIterator *iter, ConversationManager *manager);
+#endif
 static bool prv_handle_memory_pressure(void *context);
 
 static ConversationManager* s_conversation_manager;
@@ -212,10 +214,12 @@ static void prv_handle_app_message_inbox_received(DictionaryIterator *iter, void
       conversation_complete_response(manager->conversation);
       prv_conversation_updated(manager, false);
       prv_process_highlight_widget(tuple->value->int32, iter, manager);
+#if ENABLE_FEATURE_MAPS
     } else if (tuple->key == MESSAGE_KEY_MAP_WIDGET) {
       conversation_complete_response(manager->conversation);
       prv_conversation_updated(manager, false);
       prv_process_map_widget(tuple->value->int32, iter, manager);
+#endif
     }
   }
 }
@@ -365,7 +369,7 @@ static void prv_process_highlight_widget(int widget_type, DictionaryIterator *it
   prv_conversation_updated(manager, true);
 }
 
-
+#if ENABLE_FEATURE_MAPS
 static void prv_process_map_widget(int widget_type, DictionaryIterator *iter, ConversationManager *manager) {
   if (widget_type != 1) {
     return;
@@ -384,6 +388,7 @@ static void prv_process_map_widget(int widget_type, DictionaryIterator *iter, Co
   conversation_add_widget(manager->conversation, &widget);
   prv_conversation_updated(manager, true);
 }
+#endif
 
 static void prv_handle_app_message_inbox_dropped(AppMessageResult reason, void *context) {
   BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Received message dropped: %d", reason);

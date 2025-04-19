@@ -18,14 +18,18 @@ var map = require('./map');
 var weather = require('./weather');
 var timer = require('./timer');
 var highlights = require('./highlights');
+var features = require('../features');
 
 var widgetMap = {
-    'map': map.map,
     'timer': timer.timer,
     'number': highlights.number,
     'weather-single-day': weather.singleDay,
     'weather-current': weather.current,
     'weather-multi-day': weather.multiDay
+}
+
+if (features.FEATURE_MAP_WIDGET) {
+    widgetMap['map'] = map.map;
 }
 
 exports.handleWidget = function(session, widgetString) {

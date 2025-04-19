@@ -26,6 +26,7 @@
 #include "widgets/map.h"
 #include "../../util/memory/sdk.h"
 #include "../../util/logging.h"
+#include "../../features.h"
 
 #include <pebble.h>
 
@@ -43,7 +44,9 @@ typedef enum {
   SegmentTypeWeatherMultiDayWidget,
   SegmentTypeTimerWidget,
   SegmentTypeNumberWidget,
+#if ENABLE_FEATURE_MAPS
   SegmentTypeMapWidget,
+#endif
 } SegmentType;
 
 typedef struct {
@@ -62,7 +65,9 @@ typedef struct {
     WeatherMultiDayWidget* weather_multi_day_widget;
     TimerWidget* timer_widget;
     NumberWidget* number_widget;
+#if ENABLE_FEATURE_MAPS
     MapWidget* map_widget;
+#endif
   };
 } SegmentLayerData;
 
@@ -106,9 +111,11 @@ SegmentLayer* segment_layer_create(GRect rect, ConversationEntry* entry, bool as
     case SegmentTypeNumberWidget:
       data->number_widget = number_widget_create(child_frame, entry);
       break;
+#if ENABLE_FEATURE_MAPS
     case SegmentTypeMapWidget:
       data->map_widget = map_widget_create(child_frame, entry);
       break;
+#endif
   }
   layer_add_child(layer, data->layer);
   GSize child_size = layer_get_frame(data->layer).size;
@@ -147,9 +154,11 @@ void segment_layer_destroy(SegmentLayer* layer) {
     case SegmentTypeNumberWidget:
       number_widget_destroy(data->number_widget);
       break;
+#if ENABLE_FEATURE_MAPS
     case SegmentTypeMapWidget:
       map_widget_destroy(data->map_widget);
       break;
+#endif
   }
   if (data->assistant_label_layer) {
     text_layer_destroy(data->assistant_label_layer);
@@ -188,9 +197,11 @@ void segment_layer_update(SegmentLayer* layer) {
     case SegmentTypeNumberWidget:
       number_widget_update(data->number_widget);
       break;
+#if ENABLE_FEATURE_MAPS
     case SegmentTypeMapWidget:
       map_widget_update(data->map_widget);
       break;
+#endif
   }
   GSize child_size = layer_get_frame(data->layer).size;
   GPoint origin = layer_get_frame(layer).origin;
@@ -224,8 +235,10 @@ static SegmentType prv_get_segment_type(ConversationEntry* entry) {
           return SegmentTypeTimerWidget;
         case ConversationWidgetTypeNumber:
           return SegmentTypeNumberWidget;
+#if ENABLE_FEATURE_MAPS
         case ConversationWidgetTypeMap:
           return SegmentTypeMapWidget;
+#endif
       }
       break;
   }

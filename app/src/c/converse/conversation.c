@@ -18,6 +18,7 @@
 #include "../image_manager/image_manager.h"
 #include "../util/memory/malloc.h"
 #include "../util/logging.h"
+#include "../features.h"
 
 struct ConversationEntry {
   EntryType type;
@@ -131,9 +132,11 @@ void prv_destroy_entry(ConversationEntry *entry) {
             free(entry->content.widget->widget.number.unit);
           }
           break;
+#if ENABLE_FEATURE_MAPS
         case ConversationWidgetTypeMap:
           image_manager_destroy_image(entry->content.widget->widget.map.image_id);
           break;
+#endif
       }
       free(entry->content.widget);
       break;

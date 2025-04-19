@@ -40,7 +40,9 @@ static void prv_init(void) {
   consent_migrate();
   settings_init();
   conversation_manager_init();
+#if ENABLE_FEATURE_IMAGE_MANAGER
   image_manager_init();
+#endif
   events_app_message_open();
   alarm_manager_init();
 }
@@ -49,7 +51,9 @@ static void prv_deinit(void) {
   if (s_root_window) {
     root_window_destroy(s_root_window);
   }
+#ifdef ENABLE_FEATURE_IMAGE_MANAGER
   image_manager_deinit();
+#endif
 }
 
 int main(void) {
