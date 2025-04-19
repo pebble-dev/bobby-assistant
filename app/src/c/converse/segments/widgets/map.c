@@ -56,9 +56,6 @@ ConversationEntry* map_widget_get_entry(MapWidget* layer) {
 
 void map_widget_destroy(MapWidget* layer) {
   MapWidgetData* data = layer_get_data(layer);
-  if (data->bitmap) {
-    gbitmap_destroy(data->bitmap);
-  }
   if (data->loading_layer) {
     thinking_layer_destroy(data->loading_layer);
   }
