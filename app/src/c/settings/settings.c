@@ -56,6 +56,11 @@ VibePatternSetting settings_get_timer_vibe_pattern() {
   return result;
 }
 
+bool settings_get_should_confirm_transcripts() {
+  // the default is false, so we don't have to check whether it exists.
+  return persist_read_bool(PERSIST_KEY_CONFIRM_TRANSCRIPTS);
+}
+
 static void prv_app_message_handler(DictionaryIterator *iter, void *context) {
   for (Tuple *tuple = dict_read_first(iter); tuple; tuple = dict_read_next(iter)) {
     if (tuple->key == MESSAGE_KEY_QUICK_LAUNCH_BEHAVIOUR) {
@@ -65,6 +70,8 @@ static void prv_app_message_handler(DictionaryIterator *iter, void *context) {
       persist_write_int(PERSIST_KEY_ALARM_VIBE_PATTERN, atoi(tuple->value->cstring));
     } else if (tuple->key == MESSAGE_KEY_TIMER_VIBE_PATTERN) {
       persist_write_int(PERSIST_KEY_TIMER_VIBE_PATTERN, atoi(tuple->value->cstring));
+    } else if (tuple->key == MESSAGE_KEY_CONFIRM_TRANSCRIPTS) {
+      persist_write_bool(PERSIST_KEY_CONFIRM_TRANSCRIPTS, tuple->value->int8);
     }
   }
 }

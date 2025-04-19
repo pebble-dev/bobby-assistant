@@ -19,6 +19,7 @@
 #include "conversation.h"
 #include "conversation_manager.h"
 #include "segments/segment_layer.h"
+#include "../settings/settings.h"
 #include "../util/thinking_layer.h"
 #include "../util/style.h"
 #include "../util/action_menu_crimes.h"
@@ -135,7 +136,7 @@ static void prv_window_load(Window *window) {
   conversation_manager_set_handler(sw->manager, prv_conversation_manager_handler, sw);
   conversation_manager_set_deletion_handler(sw->manager, prv_conversation_entry_deleted_handler);
   sw->dictation = dictation_session_create(0, prv_dictation_status_callback, sw);
-  dictation_session_enable_confirmation(sw->dictation, false);
+  dictation_session_enable_confirmation(sw->dictation, settings_get_should_confirm_transcripts());
 
   sw->segment_space = 3;
   sw->segment_count = 0;

@@ -20,7 +20,7 @@
 // These keys are stored centrally so we can avoid accidental collisions.
 // Remember: these numbers can *never* be changed.
 
-// next key: 13
+// next key: 14
 
 // We write the alarm count twice - once before doing any work, and once after.
 // If they disagree we assume the lower number is correct.
@@ -44,5 +44,6 @@
 #define PERSIST_KEY_QUICK_LAUNCH_BEHAVIOUR 9
 #define PERSIST_KEY_ALARM_VIBE_PATTERN 10
 #define PERSIST_KEY_TIMER_VIBE_PATTERN 11
+#define PERSIST_KEY_CONFIRM_TRANSCRIPTS 13
 
 #endif //APP_PERSIST_KEYS_H

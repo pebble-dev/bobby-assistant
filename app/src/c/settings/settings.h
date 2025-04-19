@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <pebble.h>
+
 typedef enum {
   QuickLaunchBehaviourConverseWithTimeout = 1,
   QuickLaunchBehaviourConverseForever = 2,
@@ -35,3 +37,4 @@ void settings_deinit();
 QuickLaunchBehaviour settings_get_quick_launch_behaviour();
 VibePatternSetting settings_get_alarm_vibe_pattern();
 VibePatternSetting settings_get_timer_vibe_pattern();
+bool settings_get_should_confirm_transcripts();

@@ -113,6 +113,13 @@
                     {"label": "Start conversation then stay open", "value": "2"},
                     {"label": "Open home screen", "value": "3"}
                 ]
+            },
+            {
+                "type": "toggle",
+                "messageKey": "CONFIRM_TRANSCRIPTS",
+                "defaultValue": false,
+                "label": "Confirm prompts before responding",
+                "description": "When enabled, after dictating to the watch, you'll always be asked to confirm your input before Bobby takes action. When disabled, Bobby will respond immediately to whatever was recognised."
             }
         ]
     },
