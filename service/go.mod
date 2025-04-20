@@ -6,14 +6,14 @@ toolchain go1.23.3
 
 require (
 	github.com/google/uuid v1.6.0
-	github.com/honeycombio/beeline-go v1.18.0
+	github.com/honeycombio/beeline-go v1.19.0
 	github.com/joho/godotenv v1.5.1
-	github.com/redis/go-redis/v9 v9.7.1
+	github.com/redis/go-redis/v9 v9.7.3
 	github.com/umahmood/haversine v0.0.0-20151105152445-808ab04add26
 	github.com/yuin/gopher-lua v1.1.1
-	golang.org/x/exp v0.0.0-20250228200357-dead58393ab7
+	golang.org/x/exp v0.0.0-20250408133849-7e4ce0ab07d0
 	golang.org/x/text v0.24.0
-	google.golang.org/api v0.228.0
+	google.golang.org/api v0.229.0
 	google.golang.org/genai v1.1.0
 	googlemaps.github.io/maps v1.7.0
 	nhooyr.io/websocket v1.8.10
@@ -63,3 +63,10 @@ exclude nhooyr.io/websocket v1.8.11
 
 // In v1.8.12, nhooyr.io/websocket moved to github.com/coder/websocket (which still hasn't fixed the closing issue)
 exclude nhooyr.io/websocket v1.8.12
+
+// Apparently this is now updating again but none of these are fixed either.
+exclude nhooyr.io/websocket v1.8.13
+exclude nhooyr.io/websocket v1.8.14
+exclude nhooyr.io/websocket v1.8.15
+exclude nhooyr.io/websocket v1.8.16
+exclude nhooyr.io/websocket v1.8.17
