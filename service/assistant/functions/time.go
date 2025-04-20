@@ -23,18 +23,19 @@ type GetTimeInput struct {
 }
 
 func init() {
+	f := false
 	registerFunction(Registration{
 		Definition: genai.FunctionDeclaration{
 			Name:        "get_time_elsewhere",
 			Description: "Get the current time in a given valid tzdb timezone. Not all cities have a tzdb entry - be sure to use one that exists. Call multiple times to find the time in multiple timezones.",
 			Parameters: &genai.Schema{
 				Type:     genai.TypeObject,
-				Nullable: false,
+				Nullable: &f,
 				Properties: map[string]*genai.Schema{
 					"timezone": {
 						Type:        genai.TypeString,
 						Description: "The timezone, e.g. 'America/Los_Angeles'.",
-						Nullable:    false,
+						Nullable:    &f,
 					},
 					"offset": {
 						Type:        genai.TypeNumber,

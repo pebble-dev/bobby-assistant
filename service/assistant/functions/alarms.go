@@ -55,14 +55,16 @@ type DeleteTimerInput struct {
 type Empty struct{}
 
 func init() {
+	f := false
+	t := true
 	params := genai.Schema{
 		Type:     genai.TypeObject,
-		Nullable: false,
+		Nullable: &f,
 		Properties: map[string]*genai.Schema{
 			"time": {
 				Type:        genai.TypeString,
 				Description: "The time to schedule the alarm for in ISO 8601 format, e.g. '2023-07-12T00:00:00-07:00'. Must always be in the future.",
-				Nullable:    true,
+				Nullable:    &t,
 			},
 		},
 	}
@@ -85,7 +87,7 @@ func init() {
 	paramsWithNames.Properties["name"] = &genai.Schema{
 		Type:        genai.TypeString,
 		Description: "Only if explicitly specified by the user, the name of the alarm. Use title case. If the user didn't ask to name the alarm, just leave it empty.",
-		Nullable:    true,
+		Nullable:    &t,
 	}
 	// This registration is for new watch apps that support named alarms. The capability prevents the option for
 	// naming being presented to the model for older apps.
@@ -118,12 +120,12 @@ func init() {
 			Description: "Delete a specific alarm by its expiration time.",
 			Parameters: &genai.Schema{
 				Type:     genai.TypeObject,
-				Nullable: false,
+				Nullable: &f,
 				Properties: map[string]*genai.Schema{
 					"time": {
 						Type:        genai.TypeString,
 						Description: "The time of the alarm to delete in ISO 8601 format, e.g. '2023-07-12T00:00:00-07:00'.",
-						Nullable:    false,
+						Nullable:    &t,
 					},
 				},
 			},
@@ -134,12 +136,12 @@ func init() {
 	})
 	timerParams := genai.Schema{
 		Type:     genai.TypeObject,
-		Nullable: false,
+		Nullable: &f,
 		Properties: map[string]*genai.Schema{
 			"duration_seconds": {
 				Type:        genai.TypeInteger,
 				Description: "The number of seconds to set the timer for.",
-				Nullable:    true,
+				Nullable:    &t,
 				Format:      "int32",
 			},
 		},
@@ -162,7 +164,7 @@ func init() {
 	timerParamsWithNames.Properties["name"] = &genai.Schema{
 		Type:        genai.TypeString,
 		Description: "Only if explicitly specified by the user, the name of the timer. Use title case. If the user didn't ask to name the timer, just leave it empty.",
-		Nullable:    true,
+		Nullable:    &t,
 	}
 	registerFunction(Registration{
 		Definition: genai.FunctionDeclaration{
@@ -193,12 +195,12 @@ func init() {
 			Description: "Delete a specific timer by its expiration time.",
 			Parameters: &genai.Schema{
 				Type:     genai.TypeObject,
-				Nullable: false,
+				Nullable: &f,
 				Properties: map[string]*genai.Schema{
 					"time": {
 						Type:        genai.TypeString,
 						Description: "The time of the alarm to delete in ISO 8601 format, e.g. '2023-07-12T00:00:00-07:00'.",
-						Nullable:    false,
+						Nullable:    &f,
 					},
 				},
 			},

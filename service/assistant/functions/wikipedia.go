@@ -46,29 +46,30 @@ var urlMap = map[string]string{
 }
 
 func init() {
+	f := false
 	registerFunction(Registration{
 		Definition: genai.FunctionDeclaration{
 			Name:        "wikipedia",
 			Description: "Look up the content of a single named wiki article, from Wikipedia or topic-specific wikis like Bulbapedia. Never say the wiki page didn't have the information needed without first trying to fetch the complete article.",
 			Parameters: &genai.Schema{
 				Type:     genai.TypeObject,
-				Nullable: false,
+				Nullable: &f,
 				Properties: map[string]*genai.Schema{
 					"wiki": {
 						Type:        genai.TypeString,
 						Description: "The Wiki to search.",
-						Nullable:    false,
+						Nullable:    &f,
 						Enum:        []string{"wikipedia", "bulbapedia"},
 					},
 					"article_name": {
 						Type:        genai.TypeString,
 						Description: "The name of the article to look up",
-						Nullable:    false,
+						Nullable:    &f,
 					},
 					"complete_article": {
 						Type:        genai.TypeBoolean,
 						Description: "Whether to return the complete article or just the summary. Prefer to fetch only the summary. If the summary didn't have the information you expected, you can try again with the complete article.",
-						Nullable:    false,
+						Nullable:    &f,
 					},
 				},
 				Required: []string{"wiki", "article_name"},

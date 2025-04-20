@@ -38,24 +38,25 @@ type CurrencyConversionResponse struct {
 }
 
 func init() {
+	f := false
 	registerFunction(Registration{
 		Definition: genai.FunctionDeclaration{
 			Name:        "convert_currency",
 			Description: "Convert an amount of one (real, non-crypto) currency to another. *Always* call this function to get exchange rates when doing currency conversion - never use memorised rates.",
 			Parameters: &genai.Schema{
 				Type:     genai.TypeObject,
-				Nullable: false,
+				Nullable: &f,
 				Properties: map[string]*genai.Schema{
 					"amount": {
 						Type:        genai.TypeNumber,
 						Format:      "double",
 						Description: "The amount of currency to convert.",
-						Nullable:    false,
+						Nullable:    &f,
 					},
 					"from": {
 						Type:        genai.TypeString,
 						Description: "The currency code to convert from.",
-						Nullable:    false,
+						Nullable:    &f,
 					},
 					"to": {
 						Type:        genai.TypeString,

@@ -25,18 +25,19 @@ type GetLocationInput struct {
 }
 
 func init() {
+	f := false
 	registerFunction(Registration{
 		Definition: genai.FunctionDeclaration{
 			Name:        "get_location",
 			Description: "Get the latitude and longitude of a given location. If the user's location is available, also provides the distance from the user.",
 			Parameters: &genai.Schema{
 				Type:     genai.TypeObject,
-				Nullable: false,
+				Nullable: &f,
 				Properties: map[string]*genai.Schema{
 					"place_name": {
 						Type:        genai.TypeString,
 						Description: `The name of a place to locate, e.g. "San Francisco, CA, USA" or "Paris, France".`,
-						Nullable:    false,
+						Nullable:    &f,
 					},
 				},
 				Required: []string{"place_name"},

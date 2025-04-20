@@ -35,23 +35,25 @@ type POIResponse struct {
 }
 
 func init() {
+	f := false
+	t := true
 	registerFunction(Registration{
 		Definition: genai.FunctionDeclaration{
 			Name:        "poi",
 			Description: "Look up points of interest near the user's location (or another named location).",
 			Parameters: &genai.Schema{
 				Type:     genai.TypeObject,
-				Nullable: false,
+				Nullable: &f,
 				Properties: map[string]*genai.Schema{
 					"query": {
 						Type:        genai.TypeString,
 						Description: "The search query to use to find points of interest. Could be a name (e.g. \"McDonald's\"), a category (e.g. \"restaurant\" or \"pizza\"), or another search term.",
-						Nullable:    false,
+						Nullable:    &f,
 					},
 					"location": {
 						Type:        genai.TypeString,
 						Description: "The name of the location to search near. If not provided, the user's current location will be used. Assume that no location should be provided unless explicitly requested: not providing one results in more accurate answers.",
-						Nullable:    true,
+						Nullable:    &t,
 					},
 					"languageCode": {
 						Type:        genai.TypeString,

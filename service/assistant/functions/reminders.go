@@ -45,29 +45,31 @@ type DeleteReminderInput struct {
 }
 
 func init() {
+	f := false
+	t := true
 	registerFunction(Registration{
 		Definition: genai.FunctionDeclaration{
 			Name:        "set_reminder",
 			Description: "Set a reminder for the user to perform a task at a time.  Either time or delay must be provided, but not both. If the user specifies a time but not a day, assume they meant the next time that time will happen.",
 			Parameters: &genai.Schema{
 				Type:     genai.TypeObject,
-				Nullable: false,
+				Nullable: &f,
 				Properties: map[string]*genai.Schema{
 					"time": {
 						Type:        genai.TypeString,
 						Description: "The time to schedule the reminder for in ISO 8601 format, e.g. '2023-07-12T00:00:00-07:00'. Always assume the user's timezone unless otherwise specified.",
-						Nullable:    true,
+						Nullable:    &t,
 					},
 					"delay_mins": {
 						Type:        genai.TypeInteger,
 						Description: "The delay from now to when the reminder should be scheduled, in minutes.",
-						Nullable:    true,
+						Nullable:    &t,
 						Format:      "int32",
 					},
 					"what": {
 						Type:        genai.TypeString,
 						Description: "What to remind the user to do.",
-						Nullable:    false,
+						Nullable:    &t,
 					},
 				},
 				Required: []string{"what"},
@@ -94,12 +96,12 @@ func init() {
 			Description: "Delete a specific reminder by its ID.",
 			Parameters: &genai.Schema{
 				Type:     genai.TypeObject,
-				Nullable: false,
+				Nullable: &f,
 				Properties: map[string]*genai.Schema{
 					"id": {
 						Type:        genai.TypeString,
 						Description: "The ID of the reminder to delete. You *must* call get_reminders first to discover the ID of the correct reminder.",
-						Nullable:    false,
+						Nullable:    &f,
 					},
 				},
 				Required: []string{"id"},

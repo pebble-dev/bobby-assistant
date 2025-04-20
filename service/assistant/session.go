@@ -148,13 +148,17 @@ func (ps *PromptSession) Run(ctx context.Context) {
 			}
 			systemPrompt := ps.generateSystemPrompt(ctx)
 			streamCtx, streamSpan := beeline.StartSpan(ctx, "chat_stream")
-			temperature := float64(0.5)
-			one := int64(1)
+			temperature := float32(0.5)
+			zero := int32(0)
 			s := geminiClient.Models.GenerateContentStream(streamCtx, "models/gemini-2.0-flash", messages, &genai.GenerateContentConfig{
 				SystemInstruction: &genai.Content{Parts: []*genai.Part{{Text: systemPrompt}}},
 				Temperature:       &temperature,
-				CandidateCount:    &one,
+				CandidateCount:    1,
 				Tools:             tools,
+				ThinkingConfig: &genai.ThinkingConfig{
+					IncludeThoughts: false,
+					ThinkingBudget:  &zero,
+				},
 			})
 			var functionCall *genai.FunctionCall
 			content := ""
@@ -264,19 +268,19 @@ func (ps *PromptSession) Run(ctx context.Context) {
 			}
 			streamSpan.Send()
 			if usageData != nil {
-				if usageData.PromptTokenCount != nil {
-					_, err = qt.ChargeOutputQuota(ctx, int(*usageData.PromptTokenCount))
+				if usageData.PromptTokenCount != 0 {
+					_, err = qt.ChargeOutputQuota(ctx, int(usageData.PromptTokenCount))
 					if err != nil {
 						log.Printf("charge output quota failed: %v\n", err)
 					}
-					totalInputTokens += int(*usageData.PromptTokenCount)
+					totalInputTokens += int(usageData.PromptTokenCount)
 				}
-				if usageData.CandidatesTokenCount != nil {
-					_, err = qt.ChargeInputQuota(ctx, int(*usageData.CandidatesTokenCount))
+				if usageData.CandidatesTokenCount != 0 {
+					_, err = qt.ChargeInputQuota(ctx, int(usageData.CandidatesTokenCount))
 					if err != nil {
 						log.Printf("charge input quota failed: %v\n", err)
 					}
-					totalOutputTokens += int(*usageData.CandidatesTokenCount)
+					totalOutputTokens += int(usageData.CandidatesTokenCount)
 				}
 			}
 			if len(strings.TrimSpace(content)) > 0 {

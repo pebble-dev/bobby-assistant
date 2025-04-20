@@ -36,29 +36,31 @@ type WeatherInput struct {
 }
 
 func init() {
+	t := true
+	f := false
 	registerFunction(Registration{
 		Definition: genai.FunctionDeclaration{
 			Name:        "get_weather",
 			Description: "Given a location, return the current or future weather, and sunrise/sunset times. Do not specify a location if you want the user's local weather.",
 			Parameters: &genai.Schema{
 				Type:     genai.TypeObject,
-				Nullable: false,
+				Nullable: &f,
 				Properties: map[string]*genai.Schema{
 					"location": {
 						Type:        genai.TypeString,
 						Description: "The city, state, and country, e.g. 'Redwood City, CA, USA'. Omit for the user's current location.",
-						Nullable:    true,
+						Nullable:    &t,
 					},
 					"unit": {
 						Type:        genai.TypeString,
 						Description: "The user's unit preference",
-						Nullable:    false,
+						Nullable:    &f,
 						Enum:        []string{"imperial", "metric", "uk hybrid"},
 					},
 					"kind": {
 						Type:        genai.TypeString,
 						Description: "The kind of weather to return: current weather, the next 7 days, or the next 24 hours.",
-						Nullable:    false,
+						Nullable:    &f,
 						Enum:        []string{"current", "forecast daily", "forecast hourly"},
 					},
 				},

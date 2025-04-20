@@ -37,23 +37,25 @@ type LuaInput struct {
 }
 
 func init() {
+	f := false
+	t := true
 	registerFunction(Registration{
 		Definition: genai.FunctionDeclaration{
 			Name:        "lua",
 			Description: "Runs the provided Lua 5.2 script, and returns the result. ONLY STANDARD LIBRARY FUNCTIONS ARE AVAILABLE. DO NOT CALL ANYTHING ELSE.",
 			Parameters: &genai.Schema{
 				Type:     genai.TypeObject,
-				Nullable: false,
+				Nullable: &f,
 				Properties: map[string]*genai.Schema{
 					"script": {
 						Type:        genai.TypeString,
 						Description: "The Lua 5.2 script to run. Remember the return statements!",
-						Nullable:    false,
+						Nullable:    &f,
 					},
 					"timezone": {
 						Type:        genai.TypeString,
 						Description: "If necessary, the timezone name to assume when running the script. Defaults to the user's local time.",
-						Nullable:    true,
+						Nullable:    &t,
 					},
 				},
 				Required: []string{"script"},
