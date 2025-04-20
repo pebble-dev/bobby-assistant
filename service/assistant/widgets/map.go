@@ -68,8 +68,8 @@ func mapWidget(ctx context.Context, markerString, includeLocationString string) 
 			continue
 		}
 		idxStr := parts[0]
-		name := parts[1]
-		idx, err := strconv.Atoi(idxStr)
+		name := strings.TrimSpace(parts[1])
+		idx, err := strconv.Atoi(strings.TrimSpace(idxStr))
 		if err != nil {
 			log.Printf("Error parsing index %s: %v", idxStr, err)
 			continue
