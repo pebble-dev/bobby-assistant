@@ -18,6 +18,7 @@
 #include "../util/vector_sequence_layer.h"
 #include "../util/formatted_text_layer.h"
 #include "../util/result_window.h"
+#include "../util/strings.h"
 #include "../util/style.h"
 #include "../util/memory/malloc.h"
 #include "../util/memory/sdk.h"
@@ -176,6 +177,7 @@ static void prv_dictation_status_callback(DictationSession *session, DictationSe
   vector_sequence_layer_play(data->loading_layer);
   DictionaryIterator *iter;
   app_message_outbox_begin(&iter);
+  strings_fix_android_bridge_bodge(transcription);
   dict_write_cstring(iter, MESSAGE_KEY_FEEDBACK_TEXT, transcription);
   VersionInfo version = version_get_current();
   dict_write_int8(iter, MESSAGE_KEY_FEEDBACK_APP_MAJOR, version.major);
