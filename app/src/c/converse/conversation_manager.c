@@ -20,6 +20,7 @@
 #include "../util/memory/malloc.h"
 #include "../util/memory/pressure.h"
 #include "../util/logging.h"
+#include "../util/strings.h"
 
 #include <pebble-events/pebble-events.h>
 #include <pebble.h>
@@ -106,7 +107,15 @@ void conversation_manager_add_input(ConversationManager* manager, const char* in
     prv_conversation_updated(manager, true);
     return;
   }
-  dict_write_cstring(iter, MESSAGE_KEY_PROMPT, input);
+
+  // The Android Pebble app has a fun bug where any double-quotes in a
+  // message will cause it to be dropped, this is a bodge workaround.
+  char* bridge_bodge = bmalloc(strlen(input) + 1);
+  strcpy(bridge_bodge, input);
+  strings_fix_android_bridge_bodge(bridge_bodge);
+  dict_write_cstring(iter, MESSAGE_KEY_PROMPT, bridge_bodge);
+  free(bridge_bodge);
+
   const char* thread_id = conversation_get_thread_id(manager->conversation);
   if (thread_id[0] != 0) {
     BOBBY_LOG(APP_LOG_LEVEL_INFO, "Continuing previous conversation %s.", thread_id);
