@@ -97,6 +97,7 @@ func GetCurrentConditions(ctx context.Context, lat, lon float64, units string) (
 	}
 	conditions.WindSpeedUnit = mapWindSpeedUnit(units)
 	conditions.TemperatureUnit = mapTemperatureUnit(units)
+	conditions.Attribution = "The Weather Channel"
 	return &conditions, nil
 }
 
@@ -196,6 +197,7 @@ type CurrentConditions struct {
 	WindGust              int     `json:"windGust"`
 	Description           string  `json:"wxPhraseLong"`
 	IconCode              int     `json:"iconCode"`
+	Attribution           string  `json:"attribution"`
 }
 
 type HourlyForecast struct {

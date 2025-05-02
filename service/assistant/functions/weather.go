@@ -158,7 +158,7 @@ func processDailyForecast(ctx context.Context, lat, lon float64, units string) a
 		}
 	}
 	response["temperatureUnit"] = forecast.TemperatureUnit
-	//response["source"] = "The Weather Channel"
+	response["attribution"] = "The Weather Channel"
 	return response
 }
 
@@ -188,7 +188,11 @@ func processHourlyForecast(ctx context.Context, lat, lon float64, units string) 
 		response = append(response, entry)
 	}
 	// the thing that is returned must not be an array.
-	return map[string]any{"response": response, "temperatureUnit": hourly.TemperatureUnit}
+	return map[string]any{
+		"response":        response,
+		"temperatureUnit": hourly.TemperatureUnit,
+		"attribution":     "The Weather Channel",
+	}
 }
 
 func processCurrentWeather(ctx context.Context, lat, lon float64, units string) any {
