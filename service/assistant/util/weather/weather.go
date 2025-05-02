@@ -202,13 +202,14 @@ type CurrentConditions struct {
 }
 
 type HourlyForecast struct {
-	WxPhraseLong    []string `json:"wxPhraseLong"`
-	Temperature     []int    `json:"temperature"`
-	PrecipChance    []int    `json:"precipChance"`
-	PrecipType      []string `json:"precipType"`
-	ValidTimeLocal  []string `json:"validTimeLocal"`
-	UVIndex         []int    `json:"uvIndex"`
-	WindSpeed       []int    `json:"windSpeed"`
-	TemperatureUnit string   `json:"temperatureUnit"`
-	WindSpeedUnit   string   `json:"windSpeedUnit"`
+	WxPhraseLong          []string `json:"wxPhraseLong"`
+	Temperature           []int    `json:"temperature"`
+	PrecipChance          []int    `json:"precipChance"`
+	PrecipType            []string `json:"precipType"`
+	ValidTimeLocal        []string `json:"validTimeLocal"`
+	UVIndex               []int    `json:"uvIndex"`
+	WindSpeed             []int    `json:"windSpeed"`
+	WindDirectionCardinal []string `json:"windDirectionCardinal"`
+	TemperatureUnit       string   `json:"temperatureUnit"`
+	WindSpeedUnit         string   `json:"windSpeedUnit"`
 }
