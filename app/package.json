@@ -106,7 +106,8 @@
       "MAP_WIDGET",
       "MAP_WIDGET_IMAGE_ID",
       "MAP_WIDGET_USER_LOCATION",
-      "CONFIRM_TRANSCRIPTS"
+      "CONFIRM_TRANSCRIPTS",
+      "ACTION_SETTINGS_UPDATED"
     ],
     "resources": {
       "media": [

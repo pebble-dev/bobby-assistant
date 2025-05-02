@@ -208,7 +208,9 @@ static char* prv_generate_action_text(ConversationAction* action) {
       strncpy(buffer, "Checklist updated.", 50);
       break;
     case ConversationActionTypeGenericSentence:
-      strncpy(buffer, action->action.generic_sentence.sentence, 50);
+      free(buffer);
+      buffer = bmalloc(strlen(action->action.generic_sentence.sentence) + 1);
+      strcpy(buffer, action->action.generic_sentence.sentence);
       break;
   }
   return buffer;

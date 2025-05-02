@@ -17,6 +17,7 @@
 var reminders = require('./reminders');
 var alarms = require('./alarms');
 var feedback = require('./feedback');
+var settings = require('./settings');
 var config = require('../config.js');
 
 var actionMap = {
@@ -26,6 +27,7 @@ var actionMap = {
     'set_alarm': alarms.setAlarm,
     'get_alarm': alarms.getAlarm,
     'send_feedback': feedback.sendFeedback,
+    'update_settings': settings.updateSettings,
 };
 
 var extraActions = ['named_alarms'];

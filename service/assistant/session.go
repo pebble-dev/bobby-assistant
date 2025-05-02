@@ -356,6 +356,8 @@ func (ps *PromptSession) Run(ctx context.Context) {
 				formattedLies = append(formattedLies, "set a timer")
 			case "reminder":
 				formattedLies = append(formattedLies, "set a reminder")
+			case "settings":
+				formattedLies = append(formattedLies, "change any settings")
 			}
 		}
 		prettyLies := strings.Join(formattedLies, ", ")
