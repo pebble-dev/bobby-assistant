@@ -144,6 +144,10 @@ func processDailyForecast(ctx context.Context, lat, lon float64, units string) a
 		if uvIndex == nil {
 			uvIndex = dayParts.UvIndex[i*2+1]
 		}
+		windSpeed := dayParts.WindSpeed[i*2]
+		if windSpeed == nil {
+			windSpeed = dayParts.WindSpeed[i*2+1]
+		}
 		response[day] = map[string]any{
 			"high":      forecast.CalendarDayTemperatureMax[i],
 			"low":       forecast.CalendarDayTemperatureMin[i],
@@ -153,12 +157,14 @@ func processDailyForecast(ctx context.Context, lat, lon float64, units string) a
 			//"moonrise":   forecast.MoonriseTimeLocal[i],
 			//"moonset":    forecast.MoonsetTimeLocal[i],
 			//"moon_phase": forecast.MoonPhase[i],
-			"qpf":      forecast.Qpf[i],
-			"qpf_snow": forecast.QpfSnow[i],
-			"uv_index": uvIndex,
+			"qpf":        forecast.Qpf[i],
+			"qpf_snow":   forecast.QpfSnow[i],
+			"uv_index":   uvIndex,
+			"wind_speed": windSpeed,
 		}
 	}
 	response["temperatureUnit"] = forecast.TemperatureUnit
+	response["windSpeedUnit"] = forecast.WindSpeedUnit
 	response["attribution"] = "The Weather Channel"
 	return response
 }
@@ -180,6 +186,7 @@ func processHourlyForecast(ctx context.Context, lat, lon float64, units string) 
 			"temperature": hourly.Temperature[i],
 			"uv_index":    hourly.UVIndex[i],
 			"description": hourly.WxPhraseLong[i],
+			"wind_speed":  hourly.WindSpeed[i],
 		}
 		if hourly.PrecipChance[i] > 20 {
 			entry["precip_chance"] = fmt.Sprintf("%d%%", hourly.PrecipChance[i])

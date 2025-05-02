@@ -120,6 +120,7 @@ func GetHourlyForecast(ctx context.Context, lat, lon float64, units string) (*Ho
 		return nil, fmt.Errorf("error decoding response: %w", err)
 	}
 	hourly.TemperatureUnit = mapTemperatureUnit(units)
+	hourly.WindSpeedUnit = mapWindSpeedUnit(units)
 	return &hourly, nil
 }
 
@@ -207,5 +208,7 @@ type HourlyForecast struct {
 	PrecipType      []string `json:"precipType"`
 	ValidTimeLocal  []string `json:"validTimeLocal"`
 	UVIndex         []int    `json:"uvIndex"`
+	WindSpeed       []int    `json:"windSpeed"`
 	TemperatureUnit string   `json:"temperatureUnit"`
+	WindSpeedUnit   string   `json:"windSpeedUnit"`
 }
