@@ -124,22 +124,22 @@ func GetHourlyForecast(ctx context.Context, lat, lon float64, units string) (*Ho
 }
 
 type Forecast struct {
-	CalendarDayTemperatureMax []int              `json:"calendarDayTemperatureMax"`
-	CalendarDayTemperatureMin []int              `json:"calendarDayTemperatureMin"`
-	DayOfWeek                 []string           `json:"dayOfWeek"`
-	MoonPhaseCode             []string           `json:"moonPhaseCode"`
-	MoonPhase                 []string           `json:"moonPhase"`
-	MoonPhaseDay              []int              `json:"moonPhaseDay"`
-	Narrative                 []string           `json:"narrative"`
-	SunriseTimeLocal          []string           `json:"sunriseTimeLocal"`
-	SunsetTimeLocal           []string           `json:"sunsetTimeLocal"`
-	MoonriseTimeLocal         []string           `json:"moonriseTimeLocal"`
-	MoonsetTimeLocal          []string           `json:"moonsetTimeLocal"`
-	Qpf                       []float32          `json:"qpf"`
-	QpfSnow                   []float32          `json:"qpfSnow"`
-	DayParts                  []*ForecastDayPart `json:"daypart"`
-	WindSpeedUnit             string             `json:"windSpeedUnit"`
-	TemperatureUnit           string             `json:"temperatureUnit"`
+	CalendarDayTemperatureMax []int             `json:"calendarDayTemperatureMax"`
+	CalendarDayTemperatureMin []int             `json:"calendarDayTemperatureMin"`
+	DayOfWeek                 []string          `json:"dayOfWeek"`
+	MoonPhaseCode             []string          `json:"moonPhaseCode"`
+	MoonPhase                 []string          `json:"moonPhase"`
+	MoonPhaseDay              []int             `json:"moonPhaseDay"`
+	Narrative                 []string          `json:"narrative"`
+	SunriseTimeLocal          []string          `json:"sunriseTimeLocal"`
+	SunsetTimeLocal           []string          `json:"sunsetTimeLocal"`
+	MoonriseTimeLocal         []string          `json:"moonriseTimeLocal"`
+	MoonsetTimeLocal          []string          `json:"moonsetTimeLocal"`
+	Qpf                       []float32         `json:"qpf"`
+	QpfSnow                   []float32         `json:"qpfSnow"`
+	DayParts                  []ForecastDayPart `json:"daypart"`
+	WindSpeedUnit             string            `json:"windSpeedUnit"`
+	TemperatureUnit           string            `json:"temperatureUnit"`
 }
 
 type ForecastDayPart struct {

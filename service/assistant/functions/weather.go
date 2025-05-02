@@ -139,9 +139,10 @@ func processDailyForecast(ctx context.Context, lat, lon float64, units string) a
 		if i == 0 {
 			day += " (Today)"
 		}
-		dayPart := forecast.DayParts[i*2]
-		if dayPart == nil {
-			dayPart = forecast.DayParts[i*2+1]
+		dayParts := forecast.DayParts[0]
+		uvIndex := dayParts.UvIndex[i*2]
+		if uvIndex == nil {
+			uvIndex = dayParts.UvIndex[i*2+1]
 		}
 		response[day] = map[string]any{
 			"high":      forecast.CalendarDayTemperatureMax[i],
@@ -154,7 +155,7 @@ func processDailyForecast(ctx context.Context, lat, lon float64, units string) a
 			//"moon_phase": forecast.MoonPhase[i],
 			"qpf":      forecast.Qpf[i],
 			"qpf_snow": forecast.QpfSnow[i],
-			"uv_index": dayPart.UvIndex,
+			"uv_index": uvIndex,
 		}
 	}
 	response["temperatureUnit"] = forecast.TemperatureUnit
