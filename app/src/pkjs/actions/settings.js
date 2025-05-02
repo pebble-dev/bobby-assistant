@@ -101,18 +101,18 @@ function updateResponseLanguage(session, value) {
 }
 
 var vibePatternMap = {
-    'Reveille': 1,
-    'Mario': 2,
-    'Nudge Nudge': 3,
-    'Jackhammer': 4,
-    'Standard': 5,
+    'Reveille': "1",
+    'Mario': "2",
+    'Nudge Nudge': "3",
+    'Jackhammer': "4",
+    'Standard': "5",
 }
 
 function updateAlarmVibrationPattern(session, value) {
     if (value in vibePatternMap) {
-        config.setSetting('ALARM_VIBRATION_PATTERN', vibePatternMap[value]);
+        config.setSetting('ALARM_VIBE_PATTERN', vibePatternMap[value]);
         session.enqueue({
-            'ALARM_VIBRATION_PATTERN': vibePatternMap[value]
+            'ALARM_VIBE_PATTERN': vibePatternMap[value]
         });
         return 'alarm vibration pattern to ' + value;
     } else {
@@ -122,9 +122,9 @@ function updateAlarmVibrationPattern(session, value) {
 
 function updateTimerVibrationPattern(session, value) {
     if (value in vibePatternMap) {
-        config.setSetting('TIMER_VIBRATION_PATTERN', vibePatternMap[value]);
+        config.setSetting('TIMER_VIBE_PATTERN', vibePatternMap[value]);
         session.enqueue({
-            'ALARM_VIBRATION_PATTERN': vibePatternMap[value]
+            'TIMER_VIBE_PATTERN': vibePatternMap[value]
         });
         return 'timer vibration pattern to ' + value;
     } else {
@@ -134,9 +134,9 @@ function updateTimerVibrationPattern(session, value) {
 
 function updateQuickLaunchBehaviour(session, value) {
     var behaviourMap = {
-        'start conversation and time out': 1,
-        'start conversation and stay open': 2,
-        'open home screen': 3,
+        'start conversation and time out': "1",
+        'start conversation and stay open': "2",
+        'open home screen': "3",
     };
     if (value in behaviourMap) {
         config.setSetting('QUICK_LAUNCH_BEHAVIOUR', behaviourMap[value]);

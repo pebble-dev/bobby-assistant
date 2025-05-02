@@ -49,7 +49,7 @@ Examples:
 - "The timer has 5 minutes left" -> topic: "timer", action: "reporting"
 - "OK, I've updated your settings to use metric units" -> topic: "settings", action: "setting"
 - "OK, I've set the alarm vibration pattern to Mario" -> topic: "settings"", action: "setting"
-- "OK, I've set both your alarm and timer vibration patterns to Mario" -> topic: "settings", action: "setting"
+- "OK, I've set both your alarm and timer vibration patterns to Mario" -> topic: "settings", action: "setting" - *not* timer or alarm, this is only about changing settings
 - "I can set an alarm for you" -> nothing, this is just information about capabilities
 - "Would you like me to set the unit system to metric?" -> nothing, this is just a question
 
