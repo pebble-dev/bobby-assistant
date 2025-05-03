@@ -30,6 +30,13 @@ var googleLogo2Bit image.Image
 var googleLogo1BitBytes []byte
 var googleLogo1Bit image.Image
 
+// This is a single blue pixel with the magic 16-bit colour rgb(2827, 5911, 56540)
+const locationPixelURL = "https://storage.googleapis.com/bobby-assets/user-location-pixel.png"
+
+// This is black circle that looks similar to the image rendered by the watch for the
+// user location marker.
+const destinationDotURL = "https://storage.googleapis.com/bobby-assets/destination-dot.png"
+
 var mapClient *gmaps.Client
 
 func init() {
@@ -130,6 +137,7 @@ func routeWidget(ctx context.Context, qt *quota.Tracker) (*MapWidget, error) {
 	if err != nil {
 		return nil, err
 	}
+	userX, userY := findUserLocation(mapImage)
 	if query.SupportsColourFromContext(ctx) {
 		mapImage = lowColour(mapImage)
 	} else {
@@ -140,9 +148,11 @@ func routeWidget(ctx context.Context, qt *quota.Tracker) (*MapWidget, error) {
 		return nil, err
 	}
 	return &MapWidget{
-		Image:  mapImageBase64,
-		Height: int16(mapImage.Bounds().Dy()),
-		Width:  int16(mapImage.Bounds().Dx()),
+		Image:         mapImageBase64,
+		Height:        int16(mapImage.Bounds().Dy()),
+		Width:         int16(mapImage.Bounds().Dx()),
+		UserLocationX: int16(userX),
+		UserLocationY: int16(userY),
 	}, nil
 }
 
@@ -157,16 +167,18 @@ func generateRouteMap(ctx context.Context, polyline string) (image.Image, error)
 
 	mapMarkers := []gmaps.Marker{
 		{
-			Location: []gmaps.LatLng{lineLocations[0]},
-			Label:    "A",
-			Color:    "0x555555",
-			Size:     "mid",
+			Location: []gmaps.LatLng{lineLocations[len(lineLocations)-1]},
+			CustomIcon: gmaps.CustomIcon{
+				IconURL: destinationDotURL,
+				Anchor:  "center",
+			},
 		},
 		{
-			Location: []gmaps.LatLng{lineLocations[len(lineLocations)-1]},
-			Label:    "B",
-			Color:    "0x555555",
-			Size:     "mid",
+			Location: []gmaps.LatLng{lineLocations[0]},
+			CustomIcon: gmaps.CustomIcon{
+				IconURL: locationPixelURL,
+				Anchor:  "center",
+			},
 		},
 	}
 
@@ -214,7 +226,7 @@ func generateMap(ctx context.Context, markers map[string]util.Coords, userLocati
 			}},
 			CustomIcon: gmaps.CustomIcon{
 				// This is a single blue pixel with the magic 16-bit colour rgb(2827, 5911, 56540)
-				IconURL: "https://storage.googleapis.com/bobby-assets/user-location-pixel.png",
+				IconURL: locationPixelURL,
 				Anchor:  "center",
 			},
 		})
