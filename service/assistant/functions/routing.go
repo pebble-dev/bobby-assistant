@@ -56,8 +56,9 @@ func init() {
 			Description: "Find a travel route between two locations, by car, bicycle, foot, or transit. " +
 				"When using the result of this method, consider adding a ROUTE-MAP widget to show the route on a map. " +
 				"If the user doesn't specify a mode of transport, assume driving directions. " +
+				"If the user asks for transit schedules, and has provided a destination, this method can give you the next available route. " +
 				"If the user doesn't specify a starting point, assume 'here'. Because of the destination lookup, " +
-				"*ALWAYS* mention the realOrigin and realDestination in your response if they are provided - " +
+				"*ALWAYS* mention the returned origin and destination name in your response if they are provided and don't exactly match what the user said - " +
 				"failure to do so may mislead the user.",
 			Parameters: &genai.Schema{
 				Type: genai.TypeObject,
@@ -146,28 +147,33 @@ func resolveLocation(ctx context.Context, location string) (*routingpb.Waypoint,
 	}, nil
 }
 
-func placeIdToName(ctx context.Context, qt *quota.Tracker, placeId string) (string, string, error) {
+func placeIdToName(ctx context.Context, qt *quota.Tracker, placeId string) (displayName, placeType, address string, err error) {
 	ctx, span := beeline.StartSpan(ctx, "place_id_to_name")
 	defer span.Send()
 	placeService, err := places.NewService(ctx)
 	if err != nil {
 		span.AddField("error", err)
-		return "", "", err
+		return "", "", "", err
 	}
 	// somehow, knowing the name of a place is "pro", not "essential"
 	if err := qt.ChargeUserOrGlobalQuota(ctx, "gplaces_details_pro", 5000, quota.GPlacesLookupProCredits); err != nil {
 		span.AddField("error", err)
-		return "", "", err
+		return "", "", "", err
 	}
-	result, err := placeService.Places.Get("places/" + placeId).Fields("displayName,primaryTypeDisplayName").Do()
+	result, err := placeService.Places.Get("places/" + placeId).Fields("displayName,primaryTypeDisplayName,shortFormattedAddress").Do()
 	if err != nil {
 		span.AddField("error", err)
-		return "", "", err
+		return "", "", "", err
 	}
-	if result.DisplayName.Text == "" {
-		return "", "", fmt.Errorf("no name found for place ID %q", placeId)
+	if result.DisplayName != nil {
+		displayName = result.DisplayName.Text
+	} else {
+		return "", "", "", fmt.Errorf("no displayName found for %q", placeId)
 	}
-	return result.DisplayName.Text, result.PrimaryTypeDisplayName.Text, nil
+	if result.PrimaryTypeDisplayName != nil {
+		placeType = result.PrimaryTypeDisplayName.Text
+	}
+	return displayName, placeType, result.ShortFormattedAddress, nil
 }
 
 func waypointFromString(ctx context.Context, location string) (*routingpb.Waypoint, error) {
@@ -292,22 +298,24 @@ func findRoute(ctx context.Context, quotaTracker *quota.Tracker, args any) any {
 		"route": routeToLegible(route),
 	}
 	if originPlace, ok := origin.LocationType.(*routingpb.Waypoint_PlaceId); ok {
-		placeName, placeType, err := placeIdToName(ctx, quotaTracker, originPlace.PlaceId)
+		placeName, placeType, placeAddress, err := placeIdToName(ctx, quotaTracker, originPlace.PlaceId)
 		if err == nil {
-			resp["realOrigin"] = map[string]string{
-				"name": placeName,
-				"type": placeType,
+			resp["origin"] = map[string]string{
+				"name":    placeName,
+				"type":    placeType,
+				"address": placeAddress,
 			}
 		} else {
 			log.Printf("Error getting place name for origin: %v", err)
 		}
 	}
 	if destinationPlace, ok := destination.LocationType.(*routingpb.Waypoint_PlaceId); ok {
-		placeName, placeType, err := placeIdToName(ctx, quotaTracker, destinationPlace.PlaceId)
+		placeName, placeType, placeAddress, err := placeIdToName(ctx, quotaTracker, destinationPlace.PlaceId)
 		if err == nil {
-			resp["realDestination"] = map[string]string{
-				"name": placeName,
-				"type": placeType,
+			resp["destination"] = map[string]string{
+				"name":    placeName,
+				"type":    placeType,
+				"address": placeAddress,
 			}
 		} else {
 			log.Printf("Error getting place name for destination: %v", err)
