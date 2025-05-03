@@ -6,6 +6,7 @@ import (
 	_ "embed"
 	"encoding/base64"
 	"fmt"
+	"github.com/honeycombio/beeline-go"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/config"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/query"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
@@ -146,8 +147,11 @@ func routeWidget(ctx context.Context, qt *quota.Tracker) (*MapWidget, error) {
 }
 
 func generateRouteMap(ctx context.Context, polyline string) (image.Image, error) {
+	ctx, span := beeline.StartSpan(ctx, "generate_route_map")
+	defer span.Send()
 	lineLocations, err := gmaps.DecodePolyline(polyline)
 	if err != nil {
+		span.AddField("error", fmt.Errorf("error decoding polyline: %w", err))
 		return nil, fmt.Errorf("error decoding polyline: %w", err)
 	}
 
@@ -188,6 +192,8 @@ func generateRouteMap(ctx context.Context, polyline string) (image.Image, error)
 func generateMap(ctx context.Context, markers map[string]util.Coords, userLocation *util.Coords) (image.Image, error) {
 	// For legal reasons, we *must* use Google Maps here - we're obliged to use it as long as we're using Google's
 	// Places API.
+	ctx, span := beeline.StartSpan(ctx, "generate_poi_map")
+	defer span.Send()
 	var mapMarkers []gmaps.Marker
 	for name, coords := range markers {
 		mapMarkers = append(mapMarkers, gmaps.Marker{
