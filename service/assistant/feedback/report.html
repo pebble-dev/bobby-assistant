@@ -31,14 +31,24 @@
         }
         pre {
             margin: 0;
+            white-space: pre-wrap;
         }
         .widget {
             font-family: monospace;
+        }
+        .response-text {
+            white-space:  pre-wrap;
+        }
+        summary {
+            font-weight: bold;
+            font-size: large;
+            cursor: pointer;
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/lua.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
 </head>
 <body>
 <h1>Reported thread</h1>
@@ -52,16 +62,16 @@
 <div class="context-storage">
     <h2>Context Storage</h2>
     {{if .ContextStorage.POIs}}
-    <h3>POIs</h3>
-    <ol>
-        {{range .ContextStorage.POIs}}
-            <li><code>{{.}}</code></li>
-        {{end}}
-    </ol>
+    <details>
+        <summary>POIs</summary>
+        <pre>{{jsonify .ContextStorage.POIs}}</pre>
+    </details>
     {{end}}
     {{if .ContextStorage.LastRoute}}
-    <h3>Last Route</h3>
-    <p><code>{{.ContextStorage.LastRoute}}</code></p>
+    <details>
+        <summary>Last Route</summary>
+        <pre>{{jsonify .ContextStorage.LastRoute}}</pre>
+    </details>
     {{end}}
 </div>
 {{end}}
@@ -101,21 +111,7 @@
         {{else if .FunctionResponse}}
         <div class="turn function">
             <p class="speaker">Function: <code>{{.FunctionResponse.Name}}</code></p>
-            <div class="function_args">
-                <table>
-                    <tr>
-                        <th>Key</th>
-                        <th>Value</th>
-                    </tr>
-                    {{$fn:=.FunctionResponse.Name}}
-                    {{range $key, $value := .FunctionResponse.Response}}
-                        <tr>
-                            <td><code>{{$key}}</code></td>
-                            <td><pre class="arg-{{$fn}}-{{$key}}">{{$value}}</pre></td>
-                        </tr>
-                    {{end}}
-                </table>
-            </div>
+            <pre class="language-json">{{jsonify .FunctionResponse.Response}}</pre></td>
         </div>
         {{end}}
     {{end}}
@@ -129,6 +125,14 @@
     }
     let luaCode = document.querySelectorAll('pre[class="arg-lua-script"]');
     for (let code of luaCode) {
+        hljs.highlightElement(code);
+    }
+    let nonLuaCode = document.querySelectorAll('.turn.function pre');
+    for (let code of nonLuaCode) {
+        hljs.highlightElement(code);
+    }
+    var storedContext = document.querySelectorAll('.context-storage pre');
+    for (let code of storedContext) {
         hljs.highlightElement(code);
     }
 </script>

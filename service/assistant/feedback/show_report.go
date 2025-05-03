@@ -16,6 +16,7 @@ package feedback
 
 import (
 	_ "embed"
+	"encoding/json"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/util/storage"
 	"html/template"
 	"log"
@@ -25,7 +26,16 @@ import (
 
 //go:embed report.html
 var reportTemplateString string
-var reportTemplate = template.Must(template.New("report").Parse(reportTemplateString))
+var funcMap = template.FuncMap{"jsonify": jsonify}
+var reportTemplate = template.Must(template.New("report").Funcs(funcMap).Parse(reportTemplateString))
+
+func jsonify(v interface{}) interface{} {
+	b, err := json.MarshalIndent(v, "", "  ")
+	if err != nil {
+		return v
+	}
+	return string(b)
+}
 
 func HandleShowReport(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -40,5 +50,9 @@ func HandleShowReport(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	reportTemplate.ExecuteTemplate(rw, "report", reportedThread)
+	if err := reportTemplate.ExecuteTemplate(rw, "report", reportedThread); err != nil {
+		log.Printf("Error executing template: %v", err)
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
