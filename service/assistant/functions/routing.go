@@ -64,11 +64,11 @@ func init() {
 				Properties: map[string]*genai.Schema{
 					"destination": {
 						Type:        genai.TypeString,
-						Description: "The routing destination. A place name is sufficient, it doesn't need to be an address. If you provide 'here', uses the user's current location is used. The origin and destination cannot be the same.",
+						Description: "The routing destination. A place name or even vague description (like 'train station') is sufficient, it doesn't need to be an address. If you provide 'here', uses the user's current location is used. The origin and destination cannot be the same.",
 					},
 					"origin": {
 						Type:        genai.TypeString,
-						Description: "Optional. The routing origin. A place name is sufficient, it doesn't have to be an address. If you provide 'here', uses the user's current location is used. You should always assume the origin is 'here' unless the users says otherwise - you MUST NOT ask them.",
+						Description: "Optional. The routing origin. A place name or even vague description (like 'train station') is sufficient, it doesn't have to be an address. If you provide 'here', uses the user's current location is used. You should always assume the origin is 'here' unless the users says otherwise - you MUST NOT ask them.",
 					},
 					"departureTime": {
 						Type:        genai.TypeString,
