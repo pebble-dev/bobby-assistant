@@ -247,7 +247,7 @@ func findRoute(ctx context.Context, quotaTracker *quota.Tracker, args any) any {
 		return Error{Error: "departureTime and arrivalTime are mutually exclusive"}
 	}
 
-	err = quotaTracker.ChargeUserOrGlobalQuota(ctx, "gmaps_route", 5000, quota.PoiSearchCredits)
+	err = quotaTracker.ChargeUserOrGlobalQuota(ctx, "gmaps_route", 5000, quota.RouteCalculationCredits)
 	if err != nil {
 		span.AddField("error", err)
 		return Error{Error: "Error charging quota: " + err.Error()}
