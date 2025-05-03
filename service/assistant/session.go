@@ -217,7 +217,7 @@ func (ps *PromptSession) Run(ctx context.Context) {
 					splitting := true
 					if len(widget) > 0 {
 						for _, w := range widget {
-							processed, err := widgets.ProcessWidget(ctx, w)
+							processed, err := widgets.ProcessWidget(ctx, qt, w)
 							replacement := ""
 							if err != nil {
 								log.Printf("process widget failed: %v\n", err)

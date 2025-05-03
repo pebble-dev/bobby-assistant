@@ -33,6 +33,7 @@ const WeatherQueryCredits = 21_000
 const PoiSearchCredits = 1_400_000
 const RouteCalculationCredits = 400_000
 const GPlacesLookupProCredits = 680_000
+const MapImageCredits = 80_000
 const MonthlyQuotaCredits = 80_000_000
 
 type Tracker struct {
