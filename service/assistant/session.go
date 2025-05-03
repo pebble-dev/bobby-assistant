@@ -98,14 +98,13 @@ func (ps *PromptSession) Run(ctx context.Context) {
 	if ps.originalThreadId != "" {
 		var threadContext *persistence.ThreadContext
 		ctx, threadContext, err = ps.restoreContext(ctx, ps.originalThreadId)
-		oldMessages := ps.restoreThread(threadContext)
 		if err != nil {
 			log.Printf("error restoring thread: %v\n", err)
 			_ = ps.conn.Close(websocket.StatusInternalError, "Error restoring thread.")
 			return
-		} else {
-			messages = append(oldMessages, messages...)
 		}
+		oldMessages := ps.restoreThread(threadContext)
+		messages = append(oldMessages, messages...)
 	}
 	query.ThreadContextFromContext(ctx).ThreadId = ps.threadId
 	user, err := quota.GetUserInfo(ctx, ps.userToken)
