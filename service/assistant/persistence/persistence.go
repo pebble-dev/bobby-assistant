@@ -33,8 +33,9 @@ type SerializedMessage struct {
 }
 
 type StoredContext struct {
-	PoiQuery *util.POIQuery `json:"poiQuery"`
-	POIs     []util.POI     `json:"pois"`
+	PoiQuery  *util.POIQuery `json:"poiQuery"`
+	POIs      []util.POI     `json:"pois"`
+	LastRoute map[string]any `json:"lastRoute"`
 }
 
 type ThreadContext struct {

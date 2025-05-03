@@ -59,6 +59,10 @@
         {{end}}
     </ol>
     {{end}}
+    {{if .ContextStorage.LastRoute}}
+    <h3>Last Route</h3>
+    <p><code>{{.ContextStorage.LastRoute}}</code></p>
+    {{end}}
 </div>
 {{end}}
 <div class="thread">

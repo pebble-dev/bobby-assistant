@@ -5,6 +5,7 @@ go 1.23.0
 toolchain go1.23.3
 
 require (
+	cloud.google.com/go/maps v1.20.4
 	github.com/google/uuid v1.6.0
 	github.com/honeycombio/beeline-go v1.19.0
 	github.com/joho/godotenv v1.5.1
@@ -13,8 +14,11 @@ require (
 	github.com/yuin/gopher-lua v1.1.1
 	golang.org/x/exp v0.0.0-20250408133849-7e4ce0ab07d0
 	golang.org/x/text v0.24.0
-	google.golang.org/api v0.229.0
+	google.golang.org/api v0.230.0
 	google.golang.org/genai v1.1.0
+	google.golang.org/genproto v0.0.0-20250303144028-a0af3efb3deb
+	google.golang.org/grpc v1.72.0
+	google.golang.org/protobuf v1.36.6
 	googlemaps.github.io/maps v1.7.0
 	nhooyr.io/websocket v1.8.10
 )
@@ -43,6 +47,7 @@ require (
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
+	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.60.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.60.0 // indirect
 	go.opentelemetry.io/otel v1.35.0 // indirect
 	go.opentelemetry.io/otel/metric v1.35.0 // indirect
@@ -50,11 +55,11 @@ require (
 	golang.org/x/crypto v0.37.0 // indirect
 	golang.org/x/net v0.39.0 // indirect
 	golang.org/x/oauth2 v0.29.0 // indirect
+	golang.org/x/sync v0.13.0 // indirect
 	golang.org/x/sys v0.32.0 // indirect
 	golang.org/x/time v0.11.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250414145226-207652e42e2e // indirect
-	google.golang.org/grpc v1.71.1 // indirect
-	google.golang.org/protobuf v1.36.6 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20250425173222-7b384671a197 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250425173222-7b384671a197 // indirect
 	gopkg.in/alexcesaro/statsd.v2 v2.0.0 // indirect
 )
 
@@ -66,7 +71,11 @@ exclude nhooyr.io/websocket v1.8.12
 
 // Apparently this is now updating again but none of these are fixed either.
 exclude nhooyr.io/websocket v1.8.13
+
 exclude nhooyr.io/websocket v1.8.14
+
 exclude nhooyr.io/websocket v1.8.15
+
 exclude nhooyr.io/websocket v1.8.16
+
 exclude nhooyr.io/websocket v1.8.17

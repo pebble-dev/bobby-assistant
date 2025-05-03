@@ -55,7 +55,7 @@ type MapWidget struct {
 	UserLocationY int16  `json:"user_location_y"`
 }
 
-func mapWidget(ctx context.Context, markerString, includeLocationString string) (*MapWidget, error) {
+func poiWidget(ctx context.Context, markerString, includeLocationString string) (*MapWidget, error) {
 	includeLocation := strings.EqualFold(includeLocationString, "true")
 	markers := make(map[string]util.Coords)
 	threadContext := query.ThreadContextFromContext(ctx)
@@ -110,6 +110,72 @@ func mapWidget(ctx context.Context, markerString, includeLocationString string) 
 		UserLocationX: int16(userX),
 		UserLocationY: int16(userY),
 	}, nil
+}
+
+func routeWidget(ctx context.Context) (*MapWidget, error) {
+	threadContext := query.ThreadContextFromContext(ctx)
+	routeInfo := threadContext.ContextStorage.LastRoute
+	if routeInfo == nil {
+		return nil, fmt.Errorf("no route information available")
+	}
+	mapImage, err := generateRouteMap(ctx, routeInfo["route"].(map[string]any)["polyline"].(map[string]any)["PolylineType"].(map[string]any)["EncodedPolyline"].(string))
+	if err != nil {
+		return nil, err
+	}
+	if query.SupportsColourFromContext(ctx) {
+		mapImage = lowColour(mapImage)
+	} else {
+		mapImage = monochrome(mapImage)
+	}
+	mapImageBase64, err := encodeImageToBase64(mapImage)
+	if err != nil {
+		return nil, err
+	}
+	return &MapWidget{
+		Image:  mapImageBase64,
+		Height: int16(mapImage.Bounds().Dy()),
+		Width:  int16(mapImage.Bounds().Dx()),
+	}, nil
+}
+
+func generateRouteMap(ctx context.Context, polyline string) (image.Image, error) {
+	lineLocations, err := gmaps.DecodePolyline(polyline)
+	if err != nil {
+		return nil, fmt.Errorf("error decoding polyline: %w", err)
+	}
+
+	mapMarkers := []gmaps.Marker{
+		{
+			Location: []gmaps.LatLng{lineLocations[0]},
+			Label:    "A",
+			Color:    "0x555555",
+			Size:     "mid",
+		},
+		{
+			Location: []gmaps.LatLng{lineLocations[len(lineLocations)-1]},
+			Label:    "B",
+			Color:    "0x555555",
+			Size:     "mid",
+		},
+	}
+
+	screenWidth := query.ScreenWidthFromContext(ctx)
+	if screenWidth == 0 {
+		screenWidth = 144
+	}
+	request := gmaps.StaticMapRequest{
+		Size:    fmt.Sprintf("%dx100", screenWidth),
+		Format:  "png8",
+		MapType: "roadmap",
+		MapId:   config.GetConfig().GoogleMapsStaticMapId,
+		Markers: mapMarkers,
+		Paths: []gmaps.Path{{
+			Weight:   5,
+			Color:    "0x000000FF",
+			Location: lineLocations,
+		}},
+	}
+	return mapClient.StaticMap(ctx, &request)
 }
 
 func generateMap(ctx context.Context, markers map[string]util.Coords, userLocation *util.Coords) (image.Image, error) {
