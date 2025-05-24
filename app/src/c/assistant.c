@@ -15,6 +15,7 @@
  */
 
 #include "root_window.h"
+#include "release_notes.h"
 #include "consent/consent.h"
 #include "converse/session_window.h"
 #include "converse/conversation_manager.h"
@@ -79,6 +80,7 @@ int main(void) {
         s_root_window = root_window_create();
         root_window_push(s_root_window);
       }
+      release_notes_maybe_push();
     }
   }
 

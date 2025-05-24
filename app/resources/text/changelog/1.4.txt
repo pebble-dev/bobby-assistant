@@ -1,0 +1,16 @@
+# New Features
+Bobby has been updated! We have some new features:
+## Directions
+Bobby can now give you driving, walking, cycling, and transit directions. Try asking questions like "how long would it take to drive to McDonald's?" or "when is the next train to San Francisco?". You can get directions too, e.g. "give me walking directions to the library".
+## Settings
+You can now ask Bobby to change settings verbally, e.g. "always use metric units", "use the Mario pattern for timers", or "set the response language to French". Every setting on the settings page except for location permissions can be changed verbally.
+## Release notes
+You're reading them! Bobby will show you these release notes on the first launch after an update.
+Since this is the first batch, here are some other features we've added since 1.0...
+## Places and maps
+Now when you ask Bobby about places (e.g. "where's a ramen place nearby?"), Bobby will now show up a map with the results on it. Bobby also now has more accurate location data in most regions (from Google Maps), and also knows the star ratings of each place - so you could, for instance, ask Bobby "which is the best?"
+Directions will show a map, too.
+## Weather
+Bobby now knows the UV index, wind speed, and direction for current, hourly, and daily forecasts.
+## Bug fixes
+We have some! Most notably, "double quotes" in your question now work - which can be helpful when, for instance, asking for translations.

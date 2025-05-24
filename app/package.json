@@ -1,7 +1,7 @@
 {
   "name": "Bobby",
   "author": "Rebble",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "keywords": [
     "pebble-app"
   ],
@@ -497,6 +497,11 @@
         {
           "file": "images/skull.pdc",
           "name": "IMAGE_SKULL",
+          "type": "raw"
+        },
+        {
+          "file": "text/changelog/1.4.txt",
+          "name": "CHANGELOG_1_4",
           "type": "raw"
         }
       ]

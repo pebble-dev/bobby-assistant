@@ -83,4 +83,5 @@ add_executable(tiny_assistant_app
         src/c/util/memory/malloc.c
         src/c/util/memory/pressure.c
         src/c/util/memory/sdk.c
+        src/c/release_notes.c
 )
