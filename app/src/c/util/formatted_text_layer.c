@@ -121,7 +121,7 @@ static void prv_layer_update(Layer *layer, GContext *ctx) {
       continue;
     }
     // If we're off the bottom of the screen, stop - there's no more work to do.
-    if (layer_convert_point_to_screen(layer, GPoint(0, fragment->vertical_offset)).y > 168) {
+    if (layer_convert_point_to_screen(layer, GPoint(0, fragment->vertical_offset)).y > PBL_DISPLAY_HEIGHT) {
       break;
     }
     // If the next fragment starts before the beginning of the screen, skip ahead.
