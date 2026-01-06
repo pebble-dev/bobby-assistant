@@ -22,7 +22,6 @@
 
 
 #define CONTENT_FONT FONT_KEY_GOTHIC_24_BOLD
-#define NAME_HEIGHT 15
 
 typedef struct {
   ConversationEntry* entry;
@@ -35,16 +34,20 @@ typedef struct {
 static char *prv_get_content_text(MessageLayer *layer);
 static int prv_get_content_height(MessageLayer* layer);
 
+static int16_t prv_get_name_height() {
+  return preferred_content_size() == PreferredContentSizeLarge ? 19 : 14;
+}
+
 MessageLayer* message_layer_create(GRect rect, ConversationEntry* entry) {
     Layer* layer = blayer_create_with_data(rect, sizeof(MessageLayerData));
     MessageLayerData* data = layer_get_data(layer);
     data->entry = entry;
-    data->speaker_layer = btext_layer_create(GRect(5, 0, rect.size.w, NAME_HEIGHT));
+    data->speaker_layer = btext_layer_create(GRect(5, 0, rect.size.w, prv_get_name_height()));
     size_t content_origin_y = -5;
     EntryType type = conversation_entry_get_type(entry);
     if (type == EntryTypePrompt) {
       text_layer_set_text(data->speaker_layer, "You");
-      content_origin_y = NAME_HEIGHT;
+      content_origin_y = prv_get_name_height();
     }
     layer_add_child(layer, (Layer *)data->speaker_layer);
     data->last_newline_offset = 0;
@@ -77,7 +80,7 @@ void message_layer_update(MessageLayer* layer) {
   GRect frame = layer_get_frame(layer);
   frame.size.h = data->content_height + 5;
   if (conversation_entry_get_type(data->entry) == EntryTypePrompt) {
-    frame.size.h += NAME_HEIGHT;
+    frame.size.h += prv_get_name_height();
   }
   text_layer_set_size(data->content_layer, GSize(width - 10, data->content_height + 5));
   layer_set_frame(layer, frame);

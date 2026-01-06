@@ -33,7 +33,6 @@
 
 
 #define CONTENT_FONT FONT_KEY_GOTHIC_24_BOLD
-#define NAME_HEIGHT 20
 
 typedef enum {
   SegmentTypeNone,
@@ -73,6 +72,10 @@ typedef struct {
 
 static SegmentType prv_get_segment_type(ConversationEntry* entry);
 
+static int16_t prv_get_name_height() {
+  return preferred_content_size() == PreferredContentSizeLarge ? 24 : 19;
+}
+
 SegmentLayer* segment_layer_create(GRect rect, ConversationEntry* entry, bool assistant_label) {
   Layer* layer = blayer_create_with_data(rect, sizeof(SegmentLayerData));
   SegmentLayerData* data = layer_get_data(layer);
@@ -80,10 +83,10 @@ SegmentLayer* segment_layer_create(GRect rect, ConversationEntry* entry, bool as
   data->type = prv_get_segment_type(entry);
   GRect child_frame = GRect(0, 0, rect.size.w, rect.size.h);
   if (assistant_label) {
-    data->assistant_label_layer = btext_layer_create(GRect(5, 0, rect.size.w, NAME_HEIGHT));
+    data->assistant_label_layer = btext_layer_create(GRect(5, 0, rect.size.w, prv_get_name_height()));
     layer_add_child(layer, text_layer_get_layer(data->assistant_label_layer));
     text_layer_set_text(data->assistant_label_layer, "Bobby");
-    child_frame = GRect(0, NAME_HEIGHT, rect.size.w, rect.size.h - NAME_HEIGHT);
+    child_frame = GRect(0, prv_get_name_height(), rect.size.w, rect.size.h - prv_get_name_height());
   } else {
     data->assistant_label_layer = NULL;
   }
@@ -121,7 +124,7 @@ SegmentLayer* segment_layer_create(GRect rect, ConversationEntry* entry, bool as
   GSize child_size = layer_get_frame(data->layer).size;
   GRect final_size = GRect(rect.origin.x, rect.origin.y, child_size.w, child_size.h);
   if (data->assistant_label_layer) {
-    final_size.size.h += NAME_HEIGHT;
+    final_size.size.h += prv_get_name_height();
   }
   layer_set_frame(layer, final_size);
   return layer;
@@ -207,7 +210,7 @@ void segment_layer_update(SegmentLayer* layer) {
   GPoint origin = layer_get_frame(layer).origin;
   GRect final_frame = GRect(origin.x, origin.y, child_size.w, child_size.h);
   if (data->assistant_label_layer) {
-    final_frame.size.h += NAME_HEIGHT;
+    final_frame.size.h += prv_get_name_height();
   }
   layer_set_frame(layer, final_frame);
 }
