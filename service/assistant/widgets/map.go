@@ -291,7 +291,9 @@ func monochrome(img image.Image) image.Image {
 			}
 		}
 	}
-	stampLogo(newImg, googleLogo1Bit)
+	if img.Bounds().Max.X <= 168 {
+		stampLogo(newImg, googleLogo1Bit)
+	}
 	return newImg
 }
 
@@ -308,7 +310,9 @@ func lowColour(img image.Image) image.Image {
 			}
 		}
 	}
-	stampLogo(newImg, googleLogo2Bit)
+	if img.Bounds().Max.X <= 168 {
+		stampLogo(newImg, googleLogo2Bit)
+	}
 	return newImg
 }
 
