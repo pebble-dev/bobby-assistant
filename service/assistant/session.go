@@ -149,7 +149,7 @@ func (ps *PromptSession) Run(ctx context.Context) {
 			streamCtx, streamSpan := beeline.StartSpan(ctx, "chat_stream")
 			temperature := float32(0.5)
 			zero := int32(0)
-			s := geminiClient.Models.GenerateContentStream(streamCtx, "models/gemini-2.0-flash", messages, &genai.GenerateContentConfig{
+			s := geminiClient.Models.GenerateContentStream(streamCtx, "models/gemini-2.5-flash", messages, &genai.GenerateContentConfig{
 				SystemInstruction: &genai.Content{Parts: []*genai.Part{{Text: systemPrompt}}},
 				Temperature:       &temperature,
 				CandidateCount:    1,

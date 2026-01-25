@@ -76,7 +76,7 @@ func DetermineActions(ctx context.Context, qt *quota.Tracker, message string) ([
 	// We don't want to hold up the user for too long - if the model is responding slowly, just give up.
 	// Under normal circumstances, the P99 response time is around 600ms.
 	timeoutCtx, cancelTimeout := context.WithTimeout(ctx, 1500*time.Millisecond)
-	response, err := geminiClient.Models.GenerateContent(timeoutCtx, "models/gemini-2.0-flash-lite", []*genai.Content{
+	response, err := geminiClient.Models.GenerateContent(timeoutCtx, "models/gemini-2.5-flash-lite", []*genai.Content{
 		genai.NewContentFromText(message, genai.RoleUser),
 	}, &genai.GenerateContentConfig{
 		SystemInstruction: genai.NewContentFromText(SYSTEM_PROMPT, genai.RoleUser),
