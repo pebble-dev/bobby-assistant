@@ -137,6 +137,10 @@ func ScreenWidthFromContext(ctx context.Context) int {
 	return ctx.Value(queryContextKey).(queryContext).screenWidth
 }
 
+func ScreenHeightFromContext(ctx context.Context) int {
+	return ctx.Value(queryContextKey).(queryContext).screenHeight
+}
+
 func ContextWithThread(ctx context.Context, threadContext *persistence.ThreadContext) context.Context {
 	qc := ctx.Value(queryContextKey).(queryContext)
 	qc.threadContext = threadContext

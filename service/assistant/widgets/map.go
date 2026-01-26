@@ -233,11 +233,22 @@ func generateMap(ctx context.Context, markers map[string]util.Coords, userLocati
 	}
 
 	screenWidth := query.ScreenWidthFromContext(ctx)
+	screenHeight := query.ScreenHeightFromContext(ctx)
 	if screenWidth == 0 {
 		screenWidth = 144
 	}
+
+	widgetHeight := 100
+	if screenWidth >= 168 {
+		widgetHeight = 140
+	}
+	// Assuming that screen with equal width and height is round
+	if screenWidth == screenHeight {
+		widgetHeight = screenHeight
+	}
+
 	request := gmaps.StaticMapRequest{
-		Size:    fmt.Sprintf("%dx100", screenWidth),
+		Size:    fmt.Sprintf("%dx%d", screenWidth, widgetHeight),
 		Format:  "png8",
 		MapType: "roadmap",
 		MapId:   config.GetConfig().GoogleMapsStaticMapId,
@@ -291,7 +302,9 @@ func monochrome(img image.Image) image.Image {
 			}
 		}
 	}
-	stampLogo(newImg, googleLogo1Bit)
+	if img.Bounds().Max.X <= 168 {
+		stampLogo(newImg, googleLogo1Bit)
+	}
 	return newImg
 }
 
@@ -308,7 +321,9 @@ func lowColour(img image.Image) image.Image {
 			}
 		}
 	}
-	stampLogo(newImg, googleLogo2Bit)
+	if img.Bounds().Max.X <= 168 {
+		stampLogo(newImg, googleLogo2Bit)
+	}
 	return newImg
 }
 

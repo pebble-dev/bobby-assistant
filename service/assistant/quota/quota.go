@@ -25,10 +25,10 @@ import (
 )
 
 // one credit is worth $0.000000025.
-const InputTokenCredits = 4
-const OutputTokenCredits = 16
-const LiteInputTokenCredits = 3
-const LiteOutputTokenCredits = 12
+const InputTokenCredits = 12
+const OutputTokenCredits = 100
+const LiteInputTokenCredits = 4
+const LiteOutputTokenCredits = 16
 const WeatherQueryCredits = 21_000
 const PoiSearchCredits = 1_400_000
 const RouteCalculationCredits = 400_000
