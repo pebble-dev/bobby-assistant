@@ -32,19 +32,19 @@ func init() {
 	registerFunction(Registration{
 		Definition: genai.FunctionDeclaration{
 			Name:        "send_feedback",
-			Description: "Send feedback to the developers. Include the thread if you want to provide context for the feedback. Only call this if the user specifically asks to send feedback. Feedback text is optional but recommended if include_thread is true.",
+			Description: "Send feedback from the user to the developers. Only call this if the user specifically asks to send feedback. Include the thread if you want to provide context for the feedback. Feedback text is optional but recommended if include_thread is true.",
 			Parameters: &genai.Schema{
 				Type:     genai.TypeObject,
 				Nullable: &f,
 				Properties: map[string]*genai.Schema{
 					"feedback": {
 						Type:        genai.TypeString,
-						Description: "The feedback to send to the developers.",
+						Description: "The feedback from the user to send to the developers.",
 						Nullable:    &f,
 					},
 					"include_thread": {
 						Type:        genai.TypeBoolean,
-						Description: "Whether to include the thread as context in the feedback.",
+						Description: "Whether to include this whole conversation as context in the feedback.",
 						Nullable:    &f,
 					},
 				},
