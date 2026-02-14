@@ -138,8 +138,8 @@ func (ps *PromptSession) generateSystemPrompt(ctx context.Context) string {
 		"Alarms and reminders are not interchangable - *never* use alarms when a user asks for reminders, and never user reminders when the user asks for an alarm or timer. If a user asks to set a timer, always set a timer (using 'set_timer'), not a reminder. If the user asks about a specific timer, respond only about that one. " +
 		"If asked to perform language translation (e.g. 'what is X in french?'), *don't* look anything up - just respond immediately. You know how to do translations between any language pair. " +
 		"Your responses will be displayed on a very small screen, so be brief. Do not use markdown in your responses.\n" +
+		generateWidgetSentence(ctx) +
 		locationString +
 		ps.generateTimeSentence(ctx) +
-		generateWidgetSentence(ctx) +
 		generateLanguageSentence(ctx)
 }
