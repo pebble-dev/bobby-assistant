@@ -134,6 +134,7 @@ func (ps *PromptSession) Run(ctx context.Context) {
 	}
 	log.Printf("user %d has used %d / %d credits\n", user.UserId, used, remaining)
 	totalInputTokens := 0
+	totalCachedInputTokens := 0
 	totalOutputTokens := 0
 	iterations := 0
 	for {
@@ -268,16 +269,17 @@ func (ps *PromptSession) Run(ctx context.Context) {
 			streamSpan.Send()
 			if usageData != nil {
 				if usageData.PromptTokenCount != 0 {
-					_, err = qt.ChargeOutputQuota(ctx, int(usageData.PromptTokenCount))
-					if err != nil {
-						log.Printf("charge output quota failed: %v\n", err)
-					}
-					totalInputTokens += int(usageData.PromptTokenCount)
-				}
-				if usageData.CandidatesTokenCount != 0 {
-					_, err = qt.ChargeInputQuota(ctx, int(usageData.CandidatesTokenCount))
+					_, err = qt.ChargeInputQuota(ctx, int(usageData.PromptTokenCount), int(usageData.CachedContentTokenCount))
 					if err != nil {
 						log.Printf("charge input quota failed: %v\n", err)
+					}
+					totalInputTokens += int(usageData.PromptTokenCount)
+					totalCachedInputTokens += int(usageData.CachedContentTokenCount)
+				}
+				if usageData.CandidatesTokenCount != 0 {
+					_, err = qt.ChargeOutputQuota(ctx, int(usageData.CandidatesTokenCount))
+					if err != nil {
+						log.Printf("charge output quota failed: %v\n", err)
 					}
 					totalOutputTokens += int(usageData.CandidatesTokenCount)
 				}
@@ -375,7 +377,8 @@ func (ps *PromptSession) Run(ctx context.Context) {
 
 	beeline.AddField(ctx, "total_input_tokens", totalInputTokens)
 	beeline.AddField(ctx, "total_output_tokens", totalOutputTokens)
-	beeline.AddField(ctx, "total_cost", totalInputTokens*quota.InputTokenCredits+totalOutputTokens*quota.OutputTokenCredits)
+	beeline.AddField(ctx, "total_cached_output_tokens", totalCachedInputTokens)
+	beeline.AddField(ctx, "total_cost", (totalInputTokens-totalCachedInputTokens)*quota.InputTokenCredits+totalCachedInputTokens*quota.CachedInputTokenCredits+totalOutputTokens*quota.OutputTokenCredits)
 	if err := ps.storeThread(ctx, messages); err != nil {
 		log.Printf("store thread failed: %v\n", err)
 		_ = ps.conn.Close(websocket.StatusInternalError, "store thread failed")

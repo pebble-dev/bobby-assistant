@@ -26,6 +26,7 @@ import (
 
 // one credit is worth $0.000000025.
 const InputTokenCredits = 12
+const CachedInputTokenCredits = 2
 const OutputTokenCredits = 100
 const LiteInputTokenCredits = 4
 const LiteOutputTokenCredits = 16
@@ -48,8 +49,8 @@ func NewTracker(redisClient *redis.Client, userId int) *Tracker {
 	}
 }
 
-func (q *Tracker) ChargeInputQuota(ctx context.Context, tokenCount int) (credits int, err error) {
-	credits = tokenCount * InputTokenCredits
+func (q *Tracker) ChargeInputQuota(ctx context.Context, tokenCount int, cachedTokenCount int) (credits int, err error) {
+	credits = (tokenCount - cachedTokenCount) * InputTokenCredits + cachedTokenCount * CachedInputTokenCredits
 	total, err := q.chargeCredits(ctx, q.userId, credits)
 	return total, err
 }
