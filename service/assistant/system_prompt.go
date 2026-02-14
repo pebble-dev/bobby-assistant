@@ -139,7 +139,7 @@ func (ps *PromptSession) generateSystemPrompt(ctx context.Context) string {
 		"If asked to perform language translation (e.g. 'what is X in french?'), *don't* look anything up - just respond immediately. You know how to do translations between any language pair. " +
 		"Your responses will be displayed on a very small screen, so be brief. Do not use markdown in your responses.\n" +
 		generateWidgetSentence(ctx) +
+		generateLanguageSentence(ctx) +
 		locationString +
-		ps.generateTimeSentence(ctx) +
-		generateLanguageSentence(ctx)
+		ps.generateTimeSentence(ctx)
 }
