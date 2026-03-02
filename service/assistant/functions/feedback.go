@@ -16,10 +16,10 @@ package functions
 
 import (
 	"context"
+	"log"
+
 	"github.com/pebble-dev/bobby-assistant/service/assistant/query"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
-	"google.golang.org/genai"
-	"log"
 )
 
 type FeedbackInput struct {
@@ -28,34 +28,34 @@ type FeedbackInput struct {
 }
 
 func init() {
-	f := false
-	registerFunction(Registration{
-		Definition: genai.FunctionDeclaration{
-			Name:        "send_feedback",
-			Description: "Send feedback from the user to the developers. Only call this if the user specifically asks to send feedback. Include the thread if you want to provide context for the feedback. Feedback text is optional but recommended if include_thread is true.",
-			Parameters: &genai.Schema{
-				Type:     genai.TypeObject,
-				Nullable: &f,
-				Properties: map[string]*genai.Schema{
-					"feedback": {
-						Type:        genai.TypeString,
-						Description: "The feedback from the user to send to the developers.",
-						Nullable:    &f,
-					},
-					"include_thread": {
-						Type:        genai.TypeBoolean,
-						Description: "Whether to include this whole conversation as context in the feedback.",
-						Nullable:    &f,
-					},
-				},
-				Required: []string{"include_thread"},
-			},
-		},
-		Cb:         sendFeedbackImpl,
-		Thought:    sendFeedbackThought,
-		InputType:  FeedbackInput{},
-		Capability: "send_feedback",
-	})
+	//f := false
+	//registerFunction(Registration{
+	//	Definition: genai.FunctionDeclaration{
+	//		Name:        "send_feedback",
+	//		Description: "Send feedback from the user to the developers. Only call this if the user specifically asks to send feedback. Include the thread if you want to provide context for the feedback. Feedback text is optional but recommended if include_thread is true.",
+	//		Parameters: &genai.Schema{
+	//			Type:     genai.TypeObject,
+	//			Nullable: &f,
+	//			Properties: map[string]*genai.Schema{
+	//				"feedback": {
+	//					Type:        genai.TypeString,
+	//					Description: "The feedback from the user to send to the developers.",
+	//					Nullable:    &f,
+	//				},
+	//				"include_thread": {
+	//					Type:        genai.TypeBoolean,
+	//					Description: "Whether to include this whole conversation as context in the feedback.",
+	//					Nullable:    &f,
+	//				},
+	//			},
+	//			Required: []string{"include_thread"},
+	//		},
+	//	},
+	//	Cb:         sendFeedbackImpl,
+	//	Thought:    sendFeedbackThought,
+	//	InputType:  FeedbackInput{},
+	//	Capability: "send_feedback",
+	//})
 }
 
 func sendFeedbackImpl(ctx context.Context, quotaTracker *quota.Tracker, i any, requestChan chan<- map[string]any, responseChan <-chan map[string]any) any {
