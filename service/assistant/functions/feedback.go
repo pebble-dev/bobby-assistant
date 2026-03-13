@@ -18,8 +18,8 @@ import (
 	"context"
 	"log"
 
-	"github.com/pebble-dev/bobby-assistant/service/assistant/query"
-	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
+	"github.com/jmsunseri/bobby-assistant/service/assistant/query"
+	"github.com/jmsunseri/bobby-assistant/service/assistant/quota"
 )
 
 type FeedbackInput struct {

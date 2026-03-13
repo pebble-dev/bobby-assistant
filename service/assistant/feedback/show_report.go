@@ -17,7 +17,7 @@ package feedback
 import (
 	_ "embed"
 	"encoding/json"
-	"github.com/pebble-dev/bobby-assistant/service/assistant/util/storage"
+	"github.com/jmsunseri/bobby-assistant/service/assistant/util/storage"
 	"html/template"
 	"log"
 	"net/http"

@@ -24,18 +24,14 @@ import (
 // TODO: something reasonable.
 
 type Config struct {
-	BaseURL                string
-	GeminiKey              string
-	MapboxKey              string
-	IBMKey                 string
-	ExchangeRateApiKey     string
-	RedisURL               string
-	UserIdentificationURL  string
-	HoneycombKey           string
-	DiscordFeedbackURL     string
-	GoogleMapsStaticKey    string
-	GoogleMapsStaticSecret string
-	GoogleMapsStaticMapId  string
+	BaseURL               string
+	RedisURL              string
+	UserIdentificationURL string
+	HoneycombKey          string
+	// Telegram configuration for Clawd
+	TelegramAppID      string
+	TelegramAppHash    string
+	TelegramSessionKey string // 32-byte encryption key for session storage
 }
 
 var c Config
@@ -54,17 +50,12 @@ func init() {
 	}
 
 	c = Config{
-		BaseURL:                os.Getenv("BASE_URL"),
-		GeminiKey:              os.Getenv("GEMINI_KEY"),
-		MapboxKey:              os.Getenv("MAPBOX_KEY"),
-		IBMKey:                 os.Getenv("IBM_KEY"),
-		ExchangeRateApiKey:     os.Getenv("EXCHANGE_RATE_API_KEY"),
-		RedisURL:               os.Getenv("REDIS_URL"),
-		UserIdentificationURL:  os.Getenv("USER_IDENTIFICATION_URL"),
-		HoneycombKey:           os.Getenv("HONEYCOMB_KEY"),
-		DiscordFeedbackURL:     os.Getenv("DISCORD_FEEDBACK_URL"),
-		GoogleMapsStaticKey:    os.Getenv("GOOGLE_MAPS_STATIC_KEY"),
-		GoogleMapsStaticSecret: os.Getenv("GOOGLE_MAPS_STATIC_SECRET"),
-		GoogleMapsStaticMapId:  os.Getenv("GOOGLE_MAPS_STATIC_MAP_ID"),
+		BaseURL:              os.Getenv("BASE_URL"),
+		RedisURL:             os.Getenv("REDIS_URL"),
+		UserIdentificationURL: os.Getenv("USER_IDENTIFICATION_URL"),
+		HoneycombKey:         os.Getenv("HONEYCOMB_KEY"),
+		TelegramAppID:        os.Getenv("TELEGRAM_APP_ID"),
+		TelegramAppHash:     os.Getenv("TELEGRAM_APP_HASH"),
+		TelegramSessionKey:  os.Getenv("TELEGRAM_SESSION_KEY"),
 	}
 }

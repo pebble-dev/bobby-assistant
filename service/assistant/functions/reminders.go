@@ -20,10 +20,10 @@ import (
 	"time"
 
 	"github.com/honeycombio/beeline-go"
-	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
+	"github.com/jmsunseri/bobby-assistant/service/assistant/quota"
 	"google.golang.org/genai"
 
-	"github.com/pebble-dev/bobby-assistant/service/assistant/query"
+	"github.com/jmsunseri/bobby-assistant/service/assistant/query"
 )
 
 type SetReminderInput struct {

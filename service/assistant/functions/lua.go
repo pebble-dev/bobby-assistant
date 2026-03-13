@@ -18,13 +18,13 @@ import (
 	"context"
 	"fmt"
 	"github.com/honeycombio/beeline-go"
-	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
+	"github.com/jmsunseri/bobby-assistant/service/assistant/quota"
 	"log"
 	"math"
 	"strings"
 	"time"
 
-	"github.com/pebble-dev/bobby-assistant/service/assistant/query"
+	"github.com/jmsunseri/bobby-assistant/service/assistant/query"
 	"github.com/yuin/gopher-lua"
 	"google.golang.org/genai"
 )

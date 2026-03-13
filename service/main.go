@@ -17,10 +17,10 @@ package main
 import (
 	"github.com/honeycombio/beeline-go"
 	"github.com/honeycombio/beeline-go/wrappers/hnynethttp"
-	"github.com/pebble-dev/bobby-assistant/service/assistant"
-	"github.com/pebble-dev/bobby-assistant/service/assistant/config"
-	"github.com/pebble-dev/bobby-assistant/service/assistant/util/redact"
-	"github.com/pebble-dev/bobby-assistant/service/assistant/util/storage"
+	"github.com/jmsunseri/bobby-assistant/service/assistant"
+	"github.com/jmsunseri/bobby-assistant/service/assistant/config"
+	"github.com/jmsunseri/bobby-assistant/service/assistant/util/redact"
+	"github.com/jmsunseri/bobby-assistant/service/assistant/util/storage"
 	"log"
 	"net/http"
 )

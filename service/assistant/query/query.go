@@ -16,7 +16,7 @@ package query
 
 import (
 	"context"
-	"github.com/pebble-dev/bobby-assistant/service/assistant/persistence"
+	"github.com/jmsunseri/bobby-assistant/service/assistant/persistence"
 	"net/url"
 	"strconv"
 	"strings"

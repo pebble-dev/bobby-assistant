@@ -64,6 +64,11 @@ Session.prototype.run = function() {
     url += '&lang=' + settings['LANGUAGE_CODE'] || '';
     url += '&version=' + package_json['version'];
 
+    // Add OpenClaw bot username if configured
+    if (settings['OPENCLAW_BOT']) {
+        url += '&bot=' + encodeURIComponent(settings['OPENCLAW_BOT']);
+    }
+
     // Figure out our colour support
     if (Pebble.getActiveWatchInfo) {
         var platform = Pebble.getActiveWatchInfo().platform;

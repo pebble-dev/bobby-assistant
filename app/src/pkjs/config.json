@@ -140,6 +140,54 @@
         ]
     },
     {
+        "type": "section",
+        "items": [
+            {
+                "type": "heading",
+                "defaultValue": "Telegram Connection"
+            },
+            {
+                "type": "text",
+                "label": "Setup Instructions",
+                "defaultValue": "In OpenClaw, enable the 'llm-task' plugin and create a skill named 'llm-task' for tools (timers, alarms, etc.) to work."
+            },
+            {
+                "type": "text",
+                "id": "openclawBot",
+                "messageKey": "OPENCLAW_BOT",
+                "label": "OpenClaw Bot Username",
+                "description": "Enter the username of the OpenClaw bot (e.g., @OpenClawBot)",
+                "defaultValue": "@OpenClawBot"
+            },
+            {
+                "type": "button",
+                "id": "telegramConnectBtn",
+                "messageKey": "TELEGRAM_CONNECT",
+                "defaultValue": "Connect to Telegram"
+            },
+            {
+                "type": "text",
+                "id": "telegramStatus",
+                "label": "Status",
+                "defaultValue": "Not connected"
+            }
+        ]
+    },
+    {
+        "type": "section",
+        "items": [
+            {
+                "type": "heading",
+                "defaultValue": "Help"
+            },
+            {
+                "type": "text",
+                "label": "Need help?",
+                "defaultValue": "Report issues at github.com/jmsunseri/bobby-assistant/issues"
+            }
+        ]
+    },
+    {
         "type": "submit",
         "defaultValue": "Save"
     }

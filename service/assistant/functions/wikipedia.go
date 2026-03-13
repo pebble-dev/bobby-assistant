@@ -26,7 +26,7 @@ import (
 	"strings"
 
 	"github.com/honeycombio/beeline-go"
-	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
+	"github.com/jmsunseri/bobby-assistant/service/assistant/quota"
 	"google.golang.org/genai"
 )
 
@@ -118,7 +118,7 @@ func queryWikiInternal(ctx context.Context, wiki, query string, completeArticle,
 	if err != nil {
 		return "", err
 	}
-	request.Header.Set("User-Agent", "Bobby/0.1 (https://github.com/pebble-dev/bobby-assistant)")
+	request.Header.Set("User-Agent", "Bobby/0.1 (https://github.com/jmsunseri/bobby-assistant)")
 	response, err := http.DefaultClient.Do(request)
 	if err != nil {
 		return "", err

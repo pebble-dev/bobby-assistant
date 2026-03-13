@@ -17,11 +17,11 @@ package functions
 import (
 	"context"
 	"github.com/honeycombio/beeline-go"
-	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
+	"github.com/jmsunseri/bobby-assistant/service/assistant/quota"
 	"log"
 	"maps"
 
-	"github.com/pebble-dev/bobby-assistant/service/assistant/query"
+	"github.com/jmsunseri/bobby-assistant/service/assistant/query"
 	"google.golang.org/genai"
 )
 

@@ -20,7 +20,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"github.com/pebble-dev/bobby-assistant/service/assistant/config"
+	"github.com/jmsunseri/bobby-assistant/service/assistant/config"
 )
 
 var onceRedis sync.Once

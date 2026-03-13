@@ -16,18 +16,23 @@ package assistant
 
 import (
 	"encoding/json"
-	"github.com/honeycombio/beeline-go/wrappers/hnynethttp"
-	"github.com/pebble-dev/bobby-assistant/service/assistant/feedback"
-	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
 	"log"
 	"net/http"
+	"strconv"
 
+	"github.com/honeycombio/beeline-go/wrappers/hnynethttp"
+	"github.com/jmsunseri/bobby-assistant/service/assistant/api"
+	"github.com/jmsunseri/bobby-assistant/service/assistant/auth/telegram"
+	"github.com/jmsunseri/bobby-assistant/service/assistant/config"
+	"github.com/jmsunseri/bobby-assistant/service/assistant/feedback"
+	"github.com/jmsunseri/bobby-assistant/service/assistant/quota"
 	"github.com/redis/go-redis/v9"
 )
 
 type Service struct {
-	mux   *http.ServeMux
-	redis *redis.Client
+	mux             *http.ServeMux
+	redis           *redis.Client
+	telegramManager *telegram.Manager
 }
 
 func NewService(r *redis.Client) *Service {
@@ -35,6 +40,26 @@ func NewService(r *redis.Client) *Service {
 		mux:   http.NewServeMux(),
 		redis: r,
 	}
+
+	// Initialize Telegram manager if credentials are configured
+	cfg := config.GetConfig()
+	if cfg.TelegramAppID != "" && cfg.TelegramAppHash != "" && cfg.TelegramSessionKey != "" {
+		appID, err := strconv.Atoi(cfg.TelegramAppID)
+		if err != nil {
+			log.Printf("Warning: Invalid Telegram App ID: %v", err)
+		} else {
+			manager, err := telegram.NewManager(appID, cfg.TelegramAppHash, cfg.TelegramSessionKey, r)
+			if err != nil {
+				log.Printf("Warning: Failed to initialize Telegram manager: %v", err)
+			} else {
+				s.telegramManager = manager
+				// Register Telegram auth routes
+				authHandler := api.NewTelegramAuthHandler(manager)
+				authHandler.RegisterRoutes(s.mux)
+			}
+		}
+	}
+
 	s.mux.HandleFunc("/query", s.handleQuery)
 	s.mux.HandleFunc("/quota", s.handleQuota)
 	s.mux.HandleFunc("/heartbeat", s.handleHeartbeat)
@@ -98,7 +123,7 @@ func (s *Service) handleQuota(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) handleQuery(rw http.ResponseWriter, r *http.Request) {
-	session, err := NewPromptSession(s.redis, rw, r)
+	session, err := NewPromptSession(s.redis, s.telegramManager, rw, r)
 	if err != nil {
 		log.Printf("Creating session failed: %v", err)
 		http.Error(rw, err.Error(), http.StatusInternalServerError)

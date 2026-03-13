@@ -19,7 +19,7 @@ import (
 	"encoding/json"
 	"github.com/google/uuid"
 	"github.com/honeycombio/beeline-go"
-	"github.com/pebble-dev/bobby-assistant/service/assistant/util"
+	"github.com/jmsunseri/bobby-assistant/service/assistant/util"
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/genai"
 	"time"

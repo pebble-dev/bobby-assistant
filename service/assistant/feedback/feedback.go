@@ -18,15 +18,19 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/pebble-dev/bobby-assistant/service/assistant/config"
-	"github.com/pebble-dev/bobby-assistant/service/assistant/persistence"
-	"github.com/pebble-dev/bobby-assistant/service/assistant/util/storage"
-	"github.com/redis/go-redis/v9"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/jmsunseri/bobby-assistant/service/assistant/persistence"
+	"github.com/jmsunseri/bobby-assistant/service/assistant/util/storage"
+	"github.com/redis/go-redis/v9"
 )
+
+type feedbackMetadata struct {
+	AppVersion string `json:"appVersion"`
+}
 
 type feedbackRequest struct {
 	feedbackMetadata
@@ -48,8 +52,6 @@ type ReportedThread struct {
 }
 
 func HandleFeedback(rw http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
 	var req feedbackRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		log.Printf("Error decoding feedback request: %v", err)
@@ -57,11 +59,11 @@ func HandleFeedback(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := sendToDiscord(ctx, "Feedback Received", req.Text, req.feedbackMetadata); err != nil {
-		log.Printf("Error sending feedback to Discord: %v", err)
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	// Log feedback (previously sent to Discord)
+	log.Printf("Feedback received: %s (app version: %s)", req.Text, req.AppVersion)
+
+	rw.WriteHeader(http.StatusOK)
+	rw.Write([]byte("Feedback received. Thank you!"))
 }
 
 func HandleReport(rw http.ResponseWriter, r *http.Request) {
@@ -106,17 +108,11 @@ func HandleReport(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var dm string
-	if req.Text == "" {
-		dm = fmt.Sprintf("A user has reported a bad thread: %s/reported-thread/%s", config.GetConfig().BaseURL, reportId)
-	} else {
-		dm = fmt.Sprintf("%s\n\n%s/reported-thread/%s", req.Text, config.GetConfig().BaseURL, reportId)
-	}
-	if err := sendToDiscord(ctx, "Report Received", dm, req.feedbackMetadata); err != nil {
-		log.Printf("Error sending report to Discord: %v", err)
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	// Log report (previously sent to Discord)
+	log.Printf("Report received: %s (report ID: %s, app version: %s)", req.Text, reportId, req.AppVersion)
+
+	rw.WriteHeader(http.StatusOK)
+	rw.Write([]byte(reportId))
 }
 
 func storeReport(ctx context.Context, rd *redis.Client, report ReportedThread) (string, error) {
@@ -125,7 +121,7 @@ func storeReport(ctx context.Context, rd *redis.Client, report ReportedThread) (
 	j, err := json.Marshal(report)
 	if err != nil {
 		log.Printf("Error marshalling report: %v", err)
-		return "", fmt.Errorf("Error marshalling report: %w", err)
+		return "", fmt.Errorf("error marshalling report: %w", err)
 	}
 	rd.Set(ctx, "reported-thread:"+reportId.String(), j, 0)
 	return reportId.String(), nil

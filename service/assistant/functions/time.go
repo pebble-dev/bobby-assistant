@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/honeycombio/beeline-go"
-	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
+	"github.com/jmsunseri/bobby-assistant/service/assistant/quota"
 )
 
 type TimeResponse struct {

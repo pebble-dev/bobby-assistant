@@ -25,7 +25,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/pebble-dev/bobby-assistant/service/assistant/config"
+	"github.com/jmsunseri/bobby-assistant/service/assistant/config"
 )
 
 type UserInfo struct {

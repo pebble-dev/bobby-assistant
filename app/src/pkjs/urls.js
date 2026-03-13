@@ -19,6 +19,11 @@ exports.QUERY_URL = 'wss://bobby-api.rebble.io/query';
 exports.QUOTA_URL = 'https://bobby-api.rebble.io/quota';
 exports.FEEDBACK_URL = 'https://bobby-api.rebble.io/feedback';
 exports.REPORT_URL = 'https://bobby-api.rebble.io/report';
+exports.TELEGRAM_AUTH_START_URL = 'https://bobby-api.rebble.io/telegram/auth/start';
+exports.TELEGRAM_AUTH_STATUS_URL = 'https://bobby-api.rebble.io/telegram/auth/status';
+exports.TELEGRAM_AUTH_CHECK_URL = 'https://bobby-api.rebble.io/telegram/auth/check';
+exports.TELEGRAM_AUTH_LOGOUT_URL = 'https://bobby-api.rebble.io/telegram/auth/logout';
+exports.TELEGRAM_SET_BOT_URL = 'https://bobby-api.rebble.io/telegram/auth/bot';
 
 var override = require('./urls_override');
 

@@ -16,7 +16,7 @@ package functions
 
 import (
 	"context"
-	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
+	"github.com/jmsunseri/bobby-assistant/service/assistant/quota"
 	"google.golang.org/genai"
 	"strings"
 )
