@@ -104,7 +104,6 @@ Tools execute locally on the phone app:
 | `get_reminders` | List reminders |
 | `delete_reminder` | Delete a reminder |
 | `get_time_elsewhere` | Get time in another timezone |
-| `wikipedia` | Look up Wikipedia articles |
 
 ## Security Considerations
 

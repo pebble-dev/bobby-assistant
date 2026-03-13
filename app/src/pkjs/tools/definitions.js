@@ -269,34 +269,6 @@ function getToolDefinitions(capabilities) {
         }
     });
 
-    // Wikipedia tool
-    tools.push({
-        type: 'function',
-        function: {
-            name: 'wikipedia',
-            description: 'Look up the content of a single named wiki article, from Wikipedia or topic-specific wikis like Bulbapedia. Never say the wiki page didn\'t have the information needed without first trying to fetch the complete article.',
-            parameters: {
-                type: 'object',
-                properties: {
-                    wiki: {
-                        type: 'string',
-                        description: 'The Wiki to search.',
-                        enum: ['wikipedia', 'bulbapedia']
-                    },
-                    article_name: {
-                        type: 'string',
-                        description: 'The name of the article to look up'
-                    },
-                    complete_article: {
-                        type: 'boolean',
-                        description: 'Whether to return the complete article or just the summary. Prefer to fetch only the summary. If the summary didn\'t have the information you expected, you can try again with the complete article.'
-                    }
-                },
-                required: ['wiki', 'article_name']
-            }
-        }
-    });
-
     return tools;
 }
 
@@ -349,12 +321,6 @@ function getToolThought(toolName, args) {
                 return 'Checking the time in ' + place;
             }
             return 'Checking the time';
-
-        case 'wikipedia':
-            if (args.article_name) {
-                return 'Looking up "' + args.article_name + '"...';
-            }
-            return 'Looking it up...';
 
         default:
             return 'Working...';

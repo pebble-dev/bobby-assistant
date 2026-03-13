@@ -76,10 +76,6 @@ function executeTool(toolName, args, session) {
                 executeGetTimeElsewhere(args, resolve, reject);
                 break;
 
-            case 'wikipedia':
-                executeWikipedia(args, resolve, reject);
-                break;
-
             default:
                 reject(new Error('Unknown tool: ' + toolName));
         }
@@ -256,122 +252,6 @@ function executeGetTimeElsewhere(args, resolve, reject) {
             resolve({ error: 'Failed to get time: ' + err.message });
         }
     }
-}
-
-/**
- * Execute wikipedia tool.
- */
-function executeWikipedia(args, resolve, reject) {
-    var wiki = args.wiki || 'wikipedia';
-    var articleName = args.article_name;
-    var completeArticle = args.complete_article || false;
-
-    // Map of wiki URLs
-    var wikiUrls = {
-        'wikipedia': 'https://en.wikipedia.org/',
-        'bulbapedia': 'https://bulbapedia.bulbagarden.net/'
-    };
-
-    if (!wikiUrls[wiki]) {
-        resolve({ error: 'Unknown wiki: ' + wiki });
-        return;
-    }
-
-    var baseUrl = wikiUrls[wiki];
-
-    // First try to get the article
-    var url = baseUrl + 'w/api.php?action=query&prop=revisions&rvprop=content&format=json&titles=' + encodeURIComponent(articleName);
-
-    if (!completeArticle) {
-        url += '&rvsection=0';
-    }
-
-    fetch(url).then(function(response) {
-        return response.json();
-    }).then(function(data) {
-        // Check if page exists
-        var pages = data.query && data.query.pages;
-        if (!pages) {
-            // Try searching
-            return searchWiki(wiki, articleName).then(function(title) {
-                if (title) {
-                    // Retry with the found title
-                    return fetchWikiArticle(baseUrl, title, completeArticle);
-                }
-                return { error: wiki + ' page "' + articleName + '" not found. Try to answer using your general knowledge.' };
-            });
-        }
-
-        var pageId = Object.keys(pages)[0];
-        if (pageId === '-1') {
-            // Page not found, try search
-            return searchWiki(wiki, articleName).then(function(title) {
-                if (title) {
-                    return fetchWikiArticle(baseUrl, title, completeArticle);
-                }
-                return { error: wiki + ' page "' + articleName + '" not found. Try to answer using your general knowledge.' };
-            });
-        }
-
-        var content = pages[pageId].revisions[0]['*'];
-        var addendum = completeArticle ? '' : '\n\nThis was only the summary. If necessary, more information can be returned by repeating the query with complete_article = true.';
-        return { results: content + addendum };
-    }).catch(function(err) {
-        resolve({ error: 'Failed to fetch wiki article: ' + err.message });
-    }).then(function(result) {
-        resolve(result);
-    });
-}
-
-/**
- * Search for a wiki article.
- */
-function searchWiki(wiki, query) {
-    var wikiUrls = {
-        'wikipedia': 'https://en.wikipedia.org/',
-        'bulbapedia': 'https://bulbapedia.bulbagarden.net/'
-    };
-
-    var url = wikiUrls[wiki] + 'w/api.php?action=opensearch&limit=5&namespace=0&format=json&redirects=resolve&search=' + encodeURIComponent(query);
-
-    return fetch(url).then(function(response) {
-        return response.json();
-    }).then(function(data) {
-        if (data && data.length >= 2 && data[1] && data[1].length > 0) {
-            return data[1][0]; // Return first result title
-        }
-        return null;
-    }).catch(function() {
-        return null;
-    });
-}
-
-/**
- * Fetch a wiki article by title.
- */
-function fetchWikiArticle(baseUrl, title, completeArticle) {
-    var url = baseUrl + 'w/api.php?action=query&prop=revisions&rvprop=content&format=json&titles=' + encodeURIComponent(title);
-    if (!completeArticle) {
-        url += '&rvsection=0';
-    }
-
-    return fetch(url).then(function(response) {
-        return response.json();
-    }).then(function(data) {
-        var pages = data.query && data.query.pages;
-        if (!pages) {
-            return { error: 'Article not found' };
-        }
-
-        var pageId = Object.keys(pages)[0];
-        if (pageId === '-1') {
-            return { error: 'Article not found' };
-        }
-
-        var content = pages[pageId].revisions[0]['*'];
-        var addendum = completeArticle ? '' : '\n\nThis was only the summary. If necessary, more information can be returned by repeating the query with complete_article = true.';
-        return { results: content + addendum };
-    });
 }
 
 /**
