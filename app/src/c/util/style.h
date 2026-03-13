@@ -19,7 +19,7 @@
 
 #include <pebble.h>
 
-#define ACCENT_COLOUR GColorShockingPink
+#define ACCENT_COLOUR GColorSpringBud
 #define BRANDED_BACKGROUND_COLOUR COLOR_FALLBACK(ACCENT_COLOUR, GColorWhite)
 #define SELECTION_HIGHLIGHT_COLOUR COLOR_FALLBACK(ACCENT_COLOUR, GColorBlack)
 
