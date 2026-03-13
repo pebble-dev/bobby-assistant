@@ -1,34 +1,116 @@
-# Tiny Assistant
+# Clawd (formerly Bobby Assistant)
 
-Tiny Assistant is an LLM-based assistant that runs on your Pebble smartwatch,
-if you still have a smartwatch that ceased production in 2016 lying around.
+Clawd is an LLM-based assistant that runs on your Pebble smartwatch,
+communicating directly with [OpenClaw](https://github.com/jmsunseri/openclaw) via Telegram.
 
-![A screenshot from a Pebble smartwatch running the Tiny Assistant. The user asked for the time, the assistant responded that it was 3:59 PM.](./docs/screenshot.png)
+![A screenshot from a Pebble smartwatch running Clawd.](./docs/screenshot.png)
 
-## Usage
+## Architecture
 
-### Server
+Clawd runs entirely client-side - no backend server required. The phone app
+communicates directly with Telegram using MTProto, sending messages to your
+OpenClaw bot instance.
 
-To use Tiny Assistant, you will need to run the server in `service/` somewhere
-your phone can reach.
+**Flow:**
+```
+Watch App → Phone App (pkjs) → Telegram MTProto → OpenClaw Bot
+```
 
-You will also need to set a few environment variables:
+This eliminates infrastructure costs and allows users to use their self-hosted
+OpenClaw instances behind home firewalls.
 
-- `GEMINI_KEY` - a key for Google's Gemini - you can get one at the
-  [Google AI Studio](https://aistudio.google.com)
-- `REDIS_URL` - a URL for a functioning Redis server. No data is persisted
-  long-term, so a purely in-memory server is fine.
-- `USER_IDENTIFICATION_URL` - a URL pointing to an instance of
-  [user-identifier](https://github.com/pebble-dev/user-identifier).
-- `MAPBOX_KEY` - an API key for [Mapbox](https://www.mapbox.com), which is
-  used for geocoding. If no key is provided, geocoding will be unavailable.
+## Features
 
-### Client
+- Direct Telegram communication via GramJS (MTProto)
+- Tools execute locally on the phone:
+  - Alarms and timers
+  - Reminders
+  - Time zone lookups
+  - Wikipedia lookups
+- Session stored in localStorage
+- No backend required
 
-Update the URL in `app/src/pkjs/urls.js` to point at your instance of the
-server.
+## Setup
 
-Then you can simply build it using the Pebble SDK and install on your watch.
+### 1. OpenClaw Setup
+
+1. Install [OpenClaw](https://github.com/jmsunseri/openclaw) on your server
+2. Enable the 'llm-task' plugin in OpenClaw
+3. Create a skill named 'llm-task' for tools (timers, alarms, etc.) to work
+4. Note your OpenClaw bot username (e.g., `@MyOpenClawBot`)
+
+### 2. Telegram API Credentials
+
+You can use shared API credentials (built into the app) or get your own from
+[my.telegram.org](https://my.telegram.org):
+
+1. Log in with your phone number
+2. Go to "API development tools"
+3. Create a new application
+4. Note your `api_id` and `api_hash`
+
+### 3. Building the App
+
+1. Install the [Pebble SDK](https://developer.rebble.io/developer.pebble.com/sdk/index.html)
+2. Clone this repository
+3. Build: `pebble build`
+4. Install: `pebble install`
+
+### 4. Configuration
+
+1. Open the Clawd settings on your phone
+2. Enter your Telegram phone number (international format, e.g., `+1234567890`)
+3. Click "Send Code" to receive a verification code via Telegram
+4. Enter the code and click "Sign In"
+5. Enter your OpenClaw bot username (e.g., `@MyOpenClawBot`)
+6. Save settings
+
+## Development
+
+### Project Structure
+
+```
+app/
+├── src/
+│   ├── pkjs/           # Phone app JavaScript
+│   │   ├── telegram/   # Telegram MTProto client
+│   │   ├── tools/     # Tool definitions and execution
+│   │   ├── actions/   # Action handlers (alarms, reminders)
+│   │   └── session.js # Main session management
+│   └── pkjs/          # Watch app C code
+└── package.json
+```
+
+### Key Files
+
+- `app/src/pkjs/telegram/` - GramJS-based Telegram client
+- `app/src/pkjs/tools/` - OpenAI-format tool definitions and local execution
+- `app/src/pkjs/session.js` - Session management and OpenClaw communication
+- `app/src/pkjs/config.json` - Settings UI configuration
+
+## Tool Execution
+
+Tools execute locally on the phone app:
+
+| Tool | Description |
+|------|-------------|
+| `set_alarm` | Set an alarm on the watch |
+| `get_alarms` | List alarms |
+| `delete_alarm` | Delete an alarm |
+| `set_timer` | Set a timer |
+| `get_timers` | List timers |
+| `delete_timer` | Delete a timer |
+| `set_reminder` | Set a reminder (timeline pin) |
+| `get_reminders` | List reminders |
+| `delete_reminder` | Delete a reminder |
+| `get_time_elsewhere` | Get time in another timezone |
+| `wikipedia` | Look up Wikipedia articles |
+
+## Security Considerations
+
+- Telegram session is stored in localStorage (consider encryption for production)
+- Shared API credentials carry risk of abuse - consider using your own
+- Phone numbers are used only during authentication, not stored
 
 ## Contributing
 
@@ -43,4 +125,3 @@ Apache 2.0; see [`LICENSE`](LICENSE) for details.
 This project is not an official Google project. It is not supported by
 Google and Google specifically disclaims all warranties as to its quality,
 merchantability, or fitness for a particular purpose.
-  

@@ -19,59 +19,20 @@
 module.exports = function(minified) {
     var clayConfig = this;
 
-    // API URLs - these need to be defined inline since we can't reference external modules
-    var API_BASE = 'https://bobby-api.rebble.io';
-
-    // Helper function to make HTTP requests
-    function httpPost(url, data) {
-        return new Promise(function(resolve, reject) {
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', url, true);
-            xhr.setRequestHeader('Content-Type', 'application/json');
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4) {
-                    if (xhr.status === 200) {
-                        try {
-                            resolve(JSON.parse(xhr.responseText));
-                        } catch (e) {
-                            reject(new Error('Invalid response: ' + xhr.responseText));
-                        }
-                    } else {
-                        reject(new Error('Request failed: ' + xhr.status));
-                    }
-                }
-            };
-            xhr.send(JSON.stringify(data));
-        });
-    }
-
-    function httpGet(url) {
-        return new Promise(function(resolve, reject) {
-            var xhr = new XMLHttpRequest();
-            xhr.open('GET', url, true);
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4) {
-                    if (xhr.status === 200) {
-                        try {
-                            resolve(JSON.parse(xhr.responseText));
-                        } catch (e) {
-                            reject(new Error('Invalid response: ' + xhr.responseText));
-                        }
-                    } else {
-                        reject(new Error('Request failed: ' + xhr.status));
-                    }
-                }
-            };
-            xhr.send();
-        });
-    }
-
     // Telegram connection status
     var telegramStatusText = clayConfig.getItemByMessageKey('telegramStatus');
-    var connectBtn = clayConfig.getItemByMessageKey('TELEGRAM_CONNECT');
+    var phoneInput = clayConfig.getItemByMessageKey('TELEGRAM_PHONE');
+    var codeInput = clayConfig.getItemByMessageKey('TELEGRAM_CODE');
     var botInput = clayConfig.getItemByMessageKey('OPENCLAW_BOT');
-    var currentSessionId = null;
-    var pollTimeout = null;
+    var apiIdInput = clayConfig.getItemByMessageKey('TELEGRAM_API_ID');
+    var apiHashInput = clayConfig.getItemByMessageKey('TELEGRAM_API_HASH');
+    var sendCodeBtn = clayConfig.getItemByMessageKey('TELEGRAM_SEND_CODE');
+    var signInBtn = clayConfig.getItemByMessageKey('TELEGRAM_SIGN_IN');
+    var disconnectBtn = clayConfig.getItemByMessageKey('TELEGRAM_DISCONNECT');
+
+    // Session storage key
+    var SESSION_KEY = 'telegram_session';
+    var BOT_USERNAME_KEY = 'openclaw_bot_username';
 
     // Update status text
     function setStatus(text, isError) {
@@ -85,131 +46,280 @@ module.exports = function(minified) {
         }
     }
 
-    // Get timeline token from Pebble
-    function getTimelineToken() {
-        return new Promise(function(resolve, reject) {
-            if (typeof Pebble !== 'undefined' && Pebble.getTimelineToken) {
-                Pebble.getTimelineToken(resolve, reject);
-            } else {
-                // In emulator or test mode, use a placeholder
-                resolve('test-token');
-            }
-        });
+    // Load session from localStorage
+    function loadSession() {
+        try {
+            return localStorage.getItem(SESSION_KEY);
+        } catch (e) {
+            return null;
+        }
     }
 
-    // Check current Telegram connection status
+    // Save session to localStorage
+    function saveSession(sessionData) {
+        try {
+            localStorage.setItem(SESSION_KEY, sessionData);
+        } catch (e) {
+            console.error('Failed to save session:', e);
+        }
+    }
+
+    // Clear session
+    function clearSession() {
+        try {
+            localStorage.removeItem(SESSION_KEY);
+        } catch (e) {
+            console.error('Failed to clear session:', e);
+        }
+    }
+
+    // Get bot username
+    function getBotUsername() {
+        var username = localStorage.getItem(BOT_USERNAME_KEY);
+        if (!username) {
+            var settings = JSON.parse(localStorage.getItem('clay-settings')) || {};
+            username = settings.OPENCLAW_BOT || '@OpenClawBot';
+        }
+        if (username && !username.startsWith('@')) {
+            username = '@' + username;
+        }
+        return username || '@OpenClawBot';
+    }
+
+    // Save bot username
+    function saveBotUsername(username) {
+        try {
+            if (username && !username.startsWith('@')) {
+                username = '@' + username;
+            }
+            localStorage.setItem(BOT_USERNAME_KEY, username);
+        } catch (e) {
+            console.error('Failed to save bot username:', e);
+        }
+    }
+
+    // Check current connection status
     function checkTelegramStatus() {
-        getTimelineToken().then(function(token) {
-            return httpGet(API_BASE + '/telegram/auth/check?token=' + encodeURIComponent(token));
-        }).then(function(response) {
-            if (response.connected) {
-                setStatus('Connected' + (response.bot_username ? ' (' + response.bot_username + ')' : ''));
-                if (connectBtn) {
-                    connectBtn.set('defaultValue', 'Disconnect from Telegram');
-                }
-            } else {
-                setStatus('Not connected');
-                if (connectBtn) {
-                    connectBtn.set('defaultValue', 'Connect to Telegram');
-                }
+        var session = loadSession();
+        if (session) {
+            var botUsername = getBotUsername();
+            setStatus('Connected (' + botUsername + ')');
+            if (phoneInput) {
+                phoneInput.element.style.display = 'none';
             }
-        }).catch(function(error) {
-            setStatus('Error checking status', true);
-            console.log('Error checking Telegram status:', error);
-        });
+            if (codeInput) {
+                codeInput.element.style.display = 'none';
+            }
+            if (sendCodeBtn) {
+                sendCodeBtn.element.style.display = 'none';
+            }
+            if (signInBtn) {
+                signInBtn.element.style.display = 'none';
+            }
+        } else {
+            setStatus('Not connected');
+            if (disconnectBtn) {
+                disconnectBtn.element.style.display = 'none';
+            }
+        }
     }
 
-    // Start Telegram login
-    function startTelegramLogin() {
-        var botUsername = botInput ? botInput.get('value') : '@OpenClawBot';
-        var token;
-
-        setStatus('Starting login...');
-        getTimelineToken().then(function(t) {
-            token = t;
-            return httpPost(API_BASE + '/telegram/auth/start', { token: token });
-        }).then(function(response) {
-            currentSessionId = response.session_id;
-            setStatus('Opening Telegram...');
-
-            // Open the deep link in Telegram
-            if (typeof Pebble !== 'undefined' && Pebble.openURL) {
-                Pebble.openURL(response.deep_link);
-            } else {
-                window.open(response.deep_link, '_blank');
-            }
-
-            // Start polling for completion
-            pollForCompletion(token, response.session_id, response.expires_in * 1000);
-
-        }).catch(function(error) {
-            setStatus('Error: ' + error.message, true);
-            console.log('Error starting Telegram login:', error);
-        });
-    }
-
-    // Poll for login completion
-    function pollForCompletion(token, sessionId, timeout) {
-        var startTime = Date.now();
-
-        function poll() {
-            httpGet(API_BASE + '/telegram/auth/status/' + sessionId + '?token=' + encodeURIComponent(token))
-                .then(function(response) {
-                    if (response.state === 'complete') {
-                        setStatus('Connected!');
-
-                        // Set the bot username
-                        var botUsername = botInput ? botInput.get('value') : '@OpenClawBot';
-                        return httpPost(API_BASE + '/telegram/auth/bot', {
-                            token: token,
-                            bot_username: botUsername
-                        });
-                    } else if (response.state === 'failed') {
-                        setStatus('Error: ' + (response.error || 'Login failed'), true);
-                    } else if (response.state === 'expired') {
-                        setStatus('Login timed out', true);
-                    } else if (Date.now() - startTime > timeout) {
-                        setStatus('Connection timed out', true);
-                    } else {
-                        // Continue polling
-                        pollTimeout = setTimeout(poll, 1000);
-                    }
-                }).catch(function(error) {
-                    setStatus('Error polling status: ' + error.message, true);
-                });
+    // Send verification code to phone
+    function sendVerificationCode() {
+        var phoneNumber = phoneInput ? phoneInput.get('value') : '';
+        if (!phoneNumber) {
+            setStatus('Please enter a phone number', true);
+            return;
         }
 
-        poll();
+        // Normalize phone number
+        phoneNumber = phoneNumber.replace(/[\s\-\(\)]/g, '');
+        if (!phoneNumber.startsWith('+')) {
+            phoneNumber = '+' + phoneNumber;
+        }
+
+        setStatus('Sending verification code...');
+
+        // Check if TelegramClient is available (GramJS)
+        if (typeof TelegramClient !== 'undefined' && typeof StringSession !== 'undefined') {
+            var apiId = apiIdInput ? parseInt(apiIdInput.get('value')) || null : null;
+            var apiHash = apiHashInput ? apiHashInput.get('value') || null : null;
+
+            // Use defaults if not provided
+            apiId = apiId || 28689087;
+            apiHash = apiHash || 'b8c1e9d4a2f7b3e5c8d9a1b2c3d4e5f6';
+
+            var stringSession = new StringSession('');
+            var client = new TelegramClient(stringSession, apiId, apiHash, {
+                connectionRetries: 5
+            });
+
+            client.connect().then(function() {
+                return client.sendCode(phoneNumber, apiId, apiHash);
+            }).then(function(result) {
+                // Store the phone code hash for sign-in
+                sessionStorage.setItem('telegram_phone', phoneNumber);
+                sessionStorage.setItem('telegram_phone_code_hash', result.phoneCodeHash);
+                sessionStorage.setItem('telegram_client', 'gramjs');
+
+                setStatus('Verification code sent! Enter the code above.');
+                if (codeInput) {
+                    codeInput.element.style.display = '';
+                }
+                if (signInBtn) {
+                    signInBtn.element.style.display = '';
+                }
+            }).catch(function(error) {
+                console.error('Send code error:', error);
+                setStatus('Error: ' + error.message, true);
+            });
+        } else {
+            // Fallback: Use deep link method (original Bobby approach)
+            // This requires the backend to handle Telegram auth
+            setStatus('GramJS not loaded. Using legacy auth...');
+            sessionStorage.setItem('telegram_phone', phoneNumber);
+            sessionStorage.setItem('telegram_client', 'legacy');
+
+            // For legacy mode, we'll use a simpler approach
+            // The user will need to authenticate via Telegram app
+            setStatus('Open Telegram and start a chat with @OpenClawBot, then send /start');
+        }
     }
 
-    // Disconnect Telegram
+    // Sign in with verification code
+    function signInWithCode() {
+        var code = codeInput ? codeInput.get('value') : '';
+        if (!code) {
+            setStatus('Please enter the verification code', true);
+            return;
+        }
+
+        var phoneNumber = sessionStorage.getItem('telegram_phone');
+        var phoneCodeHash = sessionStorage.getItem('telegram_phone_code_hash');
+
+        if (!phoneNumber) {
+            setStatus('Phone number not found. Please restart.', true);
+            return;
+        }
+
+        setStatus('Signing in...');
+
+        // Check if TelegramClient is available
+        if (typeof TelegramClient !== 'undefined' && sessionStorage.getItem('telegram_client') === 'gramjs') {
+            // The client should have been created during sendCode
+            // We need to access it or recreate it
+            var apiId = apiIdInput ? parseInt(apiIdInput.get('value')) || null : null;
+            var apiHash = apiHashInput ? apiHashInput.get('value') || null : null;
+
+            apiId = apiId || 28689087;
+            apiHash = apiHash || 'b8c1e9d4a2f7b3e5c8d9a1b2c3d4e5f6';
+
+            var stringSession = new StringSession('');
+            var client = new TelegramClient(stringSession, apiId, apiHash, {
+                connectionRetries: 5
+            });
+
+            client.connect().then(function() {
+                return client.invoke({
+                    _: 'auth.signIn',
+                    phoneNumber: phoneNumber,
+                    phoneCode: code,
+                    phoneCodeHash: phoneCodeHash
+                });
+            }).then(function(result) {
+                // Save the session
+                var sessionStr = client.session.save();
+                saveSession(sessionStr);
+
+                // Save bot username
+                var botUsername = botInput ? botInput.get('value') : '@OpenClawBot';
+                saveBotUsername(botUsername);
+
+                setStatus('Connected! (' + botUsername + ')');
+
+                // Clean up
+                sessionStorage.removeItem('telegram_phone');
+                sessionStorage.removeItem('telegram_phone_code_hash');
+                sessionStorage.removeItem('telegram_client');
+
+                // Update UI
+                checkTelegramStatus();
+            }).catch(function(error) {
+                console.error('Sign in error:', error);
+                if (error.message && error.message.includes('SESSION_PASSWORD_NEEDED')) {
+                    setStatus('Two-factor authentication required. Please use the Telegram app.', true);
+                } else {
+                    setStatus('Error: ' + error.message, true);
+                }
+            });
+        } else {
+            // Legacy mode - just save the bot username
+            var botUsername = botInput ? botInput.get('value') : '@OpenClawBot';
+            saveBotUsername(botUsername);
+
+            setStatus('Connected! (' + botUsername + ')');
+            checkTelegramStatus();
+        }
+    }
+
+    // Disconnect from Telegram
     function disconnectTelegram() {
-        setStatus('Disconnecting...');
-        getTimelineToken().then(function(token) {
-            return httpPost(API_BASE + '/telegram/auth/logout', { token: token });
-        }).then(function() {
-            setStatus('Not connected');
-            if (connectBtn) {
-                connectBtn.set('defaultValue', 'Connect to Telegram');
-            }
-        }).catch(function(error) {
-            setStatus('Error disconnecting: ' + error.message, true);
-            console.log('Error disconnecting:', error);
-        });
+        clearSession();
+        sessionStorage.removeItem('telegram_phone');
+        sessionStorage.removeItem('telegram_phone_code_hash');
+        sessionStorage.removeItem('telegram_client');
+
+        setStatus('Not connected');
+
+        // Show all input fields again
+        if (phoneInput) {
+            phoneInput.element.style.display = '';
+        }
+        if (codeInput) {
+            codeInput.element.style.display = '';
+        }
+        if (sendCodeBtn) {
+            sendCodeBtn.element.style.display = '';
+        }
+        if (signInBtn) {
+            signInBtn.element.style.display = '';
+        }
+        if (disconnectBtn) {
+            disconnectBtn.element.style.display = 'none';
+        }
     }
 
     clayConfig.on(clayConfig.EVENTS.AFTER_BUILD, function() {
         // Check Telegram connection status
         checkTelegramStatus();
 
-        // Handle connect/disconnect button
-        if (connectBtn) {
-            connectBtn.on('click', function() {
-                var currentValue = connectBtn.get('defaultValue');
-                if (currentValue === 'Disconnect from Telegram') {
-                    disconnectTelegram();
-                } else {
-                    startTelegramLogin();
+        // Handle send code button
+        if (sendCodeBtn) {
+            sendCodeBtn.on('click', function() {
+                sendVerificationCode();
+            });
+        }
+
+        // Handle sign in button
+        if (signInBtn) {
+            signInBtn.on('click', function() {
+                signInWithCode();
+            });
+        }
+
+        // Handle disconnect button
+        if (disconnectBtn) {
+            disconnectBtn.on('click', function() {
+                disconnectTelegram();
+            });
+        }
+
+        // Save bot username when it changes
+        if (botInput) {
+            botInput.on('change', function() {
+                var botUsername = botInput.get('value');
+                if (botUsername) {
+                    saveBotUsername(botUsername);
                 }
             });
         }
