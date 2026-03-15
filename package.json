@@ -126,12 +126,12 @@
           "type": "bitmap"
         },
         {
-          "file": "images/root_screen/pony.pdc",
+          "file": "data/images/root_screen/pony.pdc",
           "name": "ROOT_SCREEN_PONY",
           "type": "raw"
         },
         {
-          "file": "images/sleeping_pony.pdc",
+          "file": "data/images/sleeping_pony.pdc",
           "name": "SLEEPING_PONY",
           "type": "raw"
         },
@@ -186,7 +186,7 @@
           "type": "bitmap"
         },
         {
-          "file": "images/failed_pony.pdc",
+          "file": "data/images/failed_pony.pdc",
           "name": "FAILED_PONY",
           "type": "raw"
         },
@@ -417,7 +417,7 @@
           ]
         },
         {
-          "file": "images/skull.pdc",
+          "file": "data/images/skull.pdc",
           "name": "IMAGE_SKULL",
           "type": "raw"
         },
