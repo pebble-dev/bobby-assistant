@@ -1,3 +1,0 @@
-In order to provide contextually relevant information, Clawd would like to use your precise location. The name of the city you are in will be sent to your OpenClaw instance along with your requests. This decision can be changed later in the app's config page.
-
-Can Clawd access your location?
