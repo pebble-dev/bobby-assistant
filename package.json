@@ -100,23 +100,23 @@
     "resources": {
       "media": [
         {
-          "file": "icons/menu_icon_default.png",
+          "file": "images/icons/menu_icon_default.png",
           "menuIcon": true,
           "name": "IMAGE_MENU_ICON",
           "type": "bitmap"
         },
         {
-          "file": "icons/question_icon.png",
+          "file": "images/icons/question_icon.png",
           "name": "QUESTION_ICON",
           "type": "bitmap"
         },
         {
-          "file": "icons/dictation_icon.png",
+          "file": "images/icons/dictation_icon.png",
           "name": "DICTATION_ICON",
           "type": "bitmap"
         },
         {
-          "file": "icons/more_icon.png",
+          "file": "images/icons/more_icon.png",
           "name": "MORE_ICON",
           "type": "bitmap"
         },
@@ -176,12 +176,12 @@
           "type": "raw"
         },
         {
-          "file": "icons/action_bar_snooze.png",
+          "file": "images/icons/action_bar_snooze.png",
           "name": "ACTION_BAR_SNOOZE",
           "type": "bitmap"
         },
         {
-          "file": "icons/action_bar_x.png",
+          "file": "images/icons/action_bar_x.png",
           "name": "ACTION_BAR_X",
           "type": "bitmap"
         },
@@ -301,7 +301,7 @@
           "type": "raw"
         },
         {
-          "file": "icons/menu_about.png",
+          "file": "images/icons/menu_about.png",
           "name": "MENU_ICON_ABOUT",
           "type": "bitmap",
           "targetPlatforms": [
@@ -309,7 +309,7 @@
           ]
         },
         {
-          "file": "icons/menu_about_bw.png",
+          "file": "images/icons/menu_about_bw.png",
           "name": "MENU_ICON_ABOUT",
           "type": "bitmap",
           "memoryFormat": "1Bit",
@@ -318,7 +318,7 @@
           ]
         },
         {
-          "file": "icons/menu_alarms.png",
+          "file": "images/icons/menu_alarms.png",
           "name": "MENU_ICON_ALARMS",
           "type": "bitmap",
           "targetPlatforms": [
@@ -326,7 +326,7 @@
           ]
         },
         {
-          "file": "icons/menu_alarms_bw.png",
+          "file": "images/icons/menu_alarms_bw.png",
           "name": "MENU_ICON_ALARMS",
           "type": "bitmap",
           "memoryFormat": "1Bit",
@@ -335,7 +335,7 @@
           ]
         },
         {
-          "file": "icons/menu_reminders.png",
+          "file": "images/icons/menu_reminders.png",
           "name": "MENU_ICON_REMINDERS",
           "type": "bitmap",
           "targetPlatforms": [
@@ -343,7 +343,7 @@
           ]
         },
         {
-          "file": "icons/menu_reminders_bw.png",
+          "file": "images/icons/menu_reminders_bw.png",
           "name": "MENU_ICON_REMINDERS",
           "type": "bitmap",
           "memoryFormat": "1Bit",
@@ -352,7 +352,7 @@
           ]
         },
         {
-          "file": "icons/menu_timers.png",
+          "file": "images/icons/menu_timers.png",
           "name": "MENU_ICON_TIMERS",
           "type": "bitmap",
           "targetPlatforms": [
@@ -360,7 +360,7 @@
           ]
         },
         {
-          "file": "icons/menu_timers_bw.png",
+          "file": "images/icons/menu_timers_bw.png",
           "name": "MENU_ICON_TIMERS",
           "type": "bitmap",
           "memoryFormat": "1Bit",
