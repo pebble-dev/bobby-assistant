@@ -40,6 +40,44 @@ module.exports = function(minified) {
     var qrPollInterval = null;
     var qrClient = null;
 
+    // GramJS loaded promise
+    var gramJSLoaded = null;
+
+    // Load GramJS from CDN dynamically
+    function loadGramJS() {
+        if (gramJSLoaded) {
+            return gramJSLoaded;
+        }
+
+        gramJSLoaded = new Promise(function(resolve, reject) {
+            // Check if already loaded
+            if (typeof TelegramClient !== 'undefined' && typeof StringSession !== 'undefined') {
+                resolve();
+                return;
+            }
+
+            // Load GramJS from CDN
+            var script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/telegram@2.26.22/browser/telegram.min.js';
+            script.onload = function() {
+                // Wait a bit for the library to initialize
+                setTimeout(function() {
+                    if (typeof TelegramClient !== 'undefined') {
+                        resolve();
+                    } else {
+                        reject(new Error('GramJS loaded but TelegramClient not available'));
+                    }
+                }, 100);
+            };
+            script.onerror = function() {
+                reject(new Error('Failed to load GramJS from CDN'));
+            };
+            document.head.appendChild(script);
+        });
+
+        return gramJSLoaded;
+    }
+
     // Update status text
     function setStatus(text, isError) {
         if (telegramStatusText) {

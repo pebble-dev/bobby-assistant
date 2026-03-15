@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+// Load Telegram/GramJS bundle - this creates global TelegramClient, StringSession, NewMessage
+require('./lib/telegram-bundle.js');
+
 var location = require('./location');
 var session = require('./session');
 var Clay = require('pebble-clay');
