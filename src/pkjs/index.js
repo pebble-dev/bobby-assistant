@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-// Load Telegram/GramJS bundle - this creates global TelegramClient, StringSession, NewMessage
-require('./lib/telegram-bundle.js');
+// Telegram/GramJS bundle - loaded dynamically
+// require('./lib/telegram-bundle.js');
+// Note: TelegramClient, StringSession, NewMessage need to be available globally
+// This bundle is too large for webpack 1.x, will need alternative loading method
 
 var location = require('./location');
 var session = require('./session');
