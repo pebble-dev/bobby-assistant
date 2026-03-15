@@ -38,15 +38,18 @@ void *bmalloc(size_t size) {
       CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Low memory (%d byte free); trying to free some before allocating %d bytes.", heap_size, size);
     }
     if (!memory_pressure_try_free()) {
-      CLAWD_LOG(APP_LOG_LEVEL_ERROR, "Failed to allocate memory: couldn't free enough heap.");
       void *tried = malloc(size);
       if (tried) {
         CLAWD_LOG(APP_LOG_LEVEL_DEBUG, "malloc returned %p for caller %p", tried, saved_lr);
+        return tried;
       }
-      return tried;
+      // Keep trying - we can't return NULL as callers don't check for it
+      // Sleep briefly to avoid tight loop, then continue trying
+      CLAWD_LOG(APP_LOG_LEVEL_ERROR, "Critical: couldn't allocate %d bytes. Retrying...", size);
+      psleep(100);
+      continue;
     }
     int new_heap_size = heap_bytes_free();
     CLAWD_LOG(APP_LOG_LEVEL_INFO, "Freed %d bytes, heap size is now %d. Retrying allocation of %d bytes.", heap_size - new_heap_size, new_heap_size, size);
   }
-  return NULL;
 }

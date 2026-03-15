@@ -394,7 +394,8 @@ EntryType conversation_entry_get_type(ConversationEntry* entry) {
 
 void conversation_set_thread_id(Conversation* conversation, const char* thread_id) {
   CLAWD_LOG(APP_LOG_LEVEL_INFO, "Thread ID updated: %s", thread_id);
-  strncpy(conversation->thread_id, thread_id, 37);
+  strncpy(conversation->thread_id, thread_id, 36);
+  conversation->thread_id[36] = '\0';  // Ensure null termination
 }
 
 const char* conversation_get_thread_id(Conversation* conversation) {

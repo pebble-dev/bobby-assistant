@@ -179,8 +179,16 @@ static void prv_inbox_received(DictionaryIterator *iterator, void *context) {
 
 static void prv_handle_new_image(int image_id, size_t size, DictionaryIterator *iterator) {
   Tuple *tuple = dict_find(iterator, MESSAGE_KEY_IMAGE_WIDTH);
+  if (!tuple) {
+    CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Missing IMAGE_WIDTH in message");
+    return;
+  }
   int16_t width = tuple->value->int32;
   tuple = dict_find(iterator, MESSAGE_KEY_IMAGE_HEIGHT);
+  if (!tuple) {
+    CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Missing IMAGE_HEIGHT in message");
+    return;
+  }
   int16_t height = tuple->value->int32;
   CLAWD_LOG(APP_LOG_LEVEL_DEBUG, "New image: %d, size: %d, width: %d, height: %d", image_id, size, width, height);
   ManagedImage *image = bmalloc(sizeof(ManagedImage));
@@ -191,6 +199,8 @@ static void prv_handle_new_image(int image_id, size_t size, DictionaryIterator *
   image->data = bmalloc(size);
   if (!image->data) {
     CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Failed to allocate memory for image data");
+    free(image);  // Clean up the metadata allocation
+    return;
   }
   image->image_id = image_id;
   image->status = ImageStatusDestroyed;

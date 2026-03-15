@@ -239,16 +239,31 @@ static void prv_handle_app_message_inbox_received(DictionaryIterator *iter, void
   }
 }
 
+// Helper macro to safely get dict value or return early
+#define DICT_GET_INT32(iter, key, var, ret) do { \
+  Tuple *t = dict_find((iter), (key)); \
+  if (!t) { CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Missing key %d", (key)); return (ret); } \
+  (var) = t->value->int32; \
+} while(0)
+
+#define DICT_GET_CSTRING(iter, key, var, ret) do { \
+  Tuple *t = dict_find((iter), (key)); \
+  if (!t) { CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Missing key %d", (key)); return (ret); } \
+  (var) = t->value->cstring; \
+} while(0)
+
 static void prv_process_weather_widget(int widget_type, DictionaryIterator *iter, ConversationManager *manager) {
   switch (widget_type) {
     case 1: {
-      int high = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_HIGH)->value->int32;
-      int low = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_LOW)->value->int32;
-      int icon = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_ICON)->value->int32;
-      const char* summary = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_SUMMARY)->value->cstring;
-      const char* location = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_LOCATION)->value->cstring;
-      const char* temp_unit = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_TEMP_UNIT)->value->cstring;
-      const char* day = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_OF_WEEK)->value->cstring;
+      int high, low, icon;
+      const char *summary, *location, *temp_unit, *day;
+      DICT_GET_INT32(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_HIGH, high,);
+      DICT_GET_INT32(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_LOW, low,);
+      DICT_GET_INT32(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_ICON, icon,);
+      DICT_GET_CSTRING(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_SUMMARY, summary,);
+      DICT_GET_CSTRING(iter, MESSAGE_KEY_WEATHER_WIDGET_LOCATION, location,);
+      DICT_GET_CSTRING(iter, MESSAGE_KEY_WEATHER_WIDGET_TEMP_UNIT, temp_unit,);
+      DICT_GET_CSTRING(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_OF_WEEK, day,);
       char* summary_stored = bmalloc(strlen(summary) + 1);
       strcpy(summary_stored, summary);
       char* location_stored = bmalloc(strlen(location) + 1);
@@ -276,13 +291,15 @@ static void prv_process_weather_widget(int widget_type, DictionaryIterator *iter
       break;
     }
     case 2: {
-      int temp = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_CURRENT_TEMP)->value->int32;
-      int feels_like = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_FEELS_LIKE)->value->int32;
-      int icon = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_ICON)->value->int32;
-      int wind_speed = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_WIND_SPEED)->value->int32;
-      const char* location = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_LOCATION)->value->cstring;
-      const char* summary = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_SUMMARY)->value->cstring;
-      const char* wind_speed_unit = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_WIND_SPEED_UNIT)->value->cstring;
+      int temp, feels_like, icon, wind_speed;
+      const char *location, *summary, *wind_speed_unit;
+      DICT_GET_INT32(iter, MESSAGE_KEY_WEATHER_WIDGET_CURRENT_TEMP, temp,);
+      DICT_GET_INT32(iter, MESSAGE_KEY_WEATHER_WIDGET_FEELS_LIKE, feels_like,);
+      DICT_GET_INT32(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_ICON, icon,);
+      DICT_GET_INT32(iter, MESSAGE_KEY_WEATHER_WIDGET_WIND_SPEED, wind_speed,);
+      DICT_GET_CSTRING(iter, MESSAGE_KEY_WEATHER_WIDGET_LOCATION, location,);
+      DICT_GET_CSTRING(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_SUMMARY, summary,);
+      DICT_GET_CSTRING(iter, MESSAGE_KEY_WEATHER_WIDGET_WIND_SPEED_UNIT, wind_speed_unit,);
       char* location_stored = bmalloc(strlen(location) + 1);
       strcpy(location_stored, location);
       char* summary_stored = bmalloc(strlen(summary) + 1);
@@ -308,7 +325,8 @@ static void prv_process_weather_widget(int widget_type, DictionaryIterator *iter
       break;
     }
     case 3: {
-      const char* location = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_LOCATION)->value->cstring;
+      const char *location;
+      DICT_GET_CSTRING(iter, MESSAGE_KEY_WEATHER_WIDGET_LOCATION, location,);
       char *location_stored = bmalloc(strlen(location) + 1);
       strcpy(location_stored, location);
       ConversationWidget widget = {
@@ -321,10 +339,19 @@ static void prv_process_weather_widget(int widget_type, DictionaryIterator *iter
       };
       for (int i = 0; i < 3; ++i) {
         ConversationWidgetWeatherMultiDaySegment *s = &widget.widget.weather_multi_day.days[i];
-        s->high = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_MULTI_HIGH + i)->value->int32;
-        s->low = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_MULTI_LOW + i)->value->int32;
-        s->condition = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_MULTI_ICON + i)->value->int32;
-        const char* day = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_MULTI_DAY + i)->value->cstring;
+        Tuple *high_tuple = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_MULTI_HIGH + i);
+        Tuple *low_tuple = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_MULTI_LOW + i);
+        Tuple *icon_tuple = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_MULTI_ICON + i);
+        Tuple *day_tuple = dict_find(iter, MESSAGE_KEY_WEATHER_WIDGET_MULTI_DAY + i);
+        if (!high_tuple || !low_tuple || !icon_tuple || !day_tuple) {
+          CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Missing multi-day weather data for day %d", i);
+          free(location_stored);
+          return;
+        }
+        s->high = high_tuple->value->int32;
+        s->low = low_tuple->value->int32;
+        s->condition = icon_tuple->value->int32;
+        const char* day = day_tuple->value->cstring;
         strncpy(s->day, day, sizeof(s->day));
         s->day[sizeof(s->day) - 1] = '\0';
       }
@@ -336,7 +363,12 @@ static void prv_process_weather_widget(int widget_type, DictionaryIterator *iter
 }
 
 static void prv_process_timer_widget(int widget_type, DictionaryIterator *iter, ConversationManager *manager) {
-  time_t target_time = dict_find(iter, MESSAGE_KEY_TIMER_WIDGET_TARGET_TIME)->value->int32;
+  Tuple *time_tuple = dict_find(iter, MESSAGE_KEY_TIMER_WIDGET_TARGET_TIME);
+  if (!time_tuple) {
+    CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Missing TIMER_WIDGET_TARGET_TIME");
+    return;
+  }
+  time_t target_time = time_tuple->value->int32;
   char *name_stored = NULL;
   Tuple *tuple = dict_find(iter, MESSAGE_KEY_TIMER_WIDGET_NAME);
   if (tuple) {
@@ -361,7 +393,12 @@ static void prv_process_highlight_widget(int widget_type, DictionaryIterator *it
   if (widget_type != 1) {
     return;
   }
-  char *number = dict_find(iter, MESSAGE_KEY_HIGHLIGHT_WIDGET_PRIMARY)->value->cstring;
+  Tuple *number_tuple = dict_find(iter, MESSAGE_KEY_HIGHLIGHT_WIDGET_PRIMARY);
+  if (!number_tuple) {
+    CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Missing HIGHLIGHT_WIDGET_PRIMARY");
+    return;
+  }
+  char *number = number_tuple->value->cstring;
   char *number_stored = bmalloc(strlen(number) + 1);
   strcpy(number_stored, number);
   char *units_stored = NULL;
@@ -389,8 +426,14 @@ static void prv_process_map_widget(int widget_type, DictionaryIterator *iter, Co
   if (widget_type != 1) {
     return;
   }
-  int image_id = dict_find(iter, MESSAGE_KEY_MAP_WIDGET_IMAGE_ID)->value->int32;
-  int user_location = dict_find(iter, MESSAGE_KEY_MAP_WIDGET_USER_LOCATION)->value->int32;
+  Tuple *image_id_tuple = dict_find(iter, MESSAGE_KEY_MAP_WIDGET_IMAGE_ID);
+  Tuple *user_loc_tuple = dict_find(iter, MESSAGE_KEY_MAP_WIDGET_USER_LOCATION);
+  if (!image_id_tuple || !user_loc_tuple) {
+    CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Missing MAP_WIDGET keys");
+    return;
+  }
+  int image_id = image_id_tuple->value->int32;
+  int user_location = user_loc_tuple->value->int32;
   ConversationWidget widget = {
     .type = ConversationWidgetTypeMap,
     .widget = {
