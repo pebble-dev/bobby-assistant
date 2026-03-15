@@ -4,7 +4,9 @@ on:
   # Triggers the workflow on push or pull request events for any branch (see commented out `branches` lines for  master branch example)
   push:
     paths:
-      - 'app/**'
+      - 'src/**'
+      - 'resources/**'
+      - 'package.json'
       - '.github/workflows/build-pbw.yaml'
 
 jobs:
@@ -57,11 +59,11 @@ jobs:
       - name: fix whatever this git nonsense is
         run: git config --global --add safe.directory /__w/bobby-assistant/bobby-assistant;
       - name: pebble-build
-        run: cd app/ && yes | ~/sdk/bin/pebble build
+        run: yes | ~/sdk/bin/pebble build
       - name: rename-app
-        run: cp app/build/app.pbw Bobby-g${{ env.COMMIT_SHORT_SHA }}.pbw
+        run: cp build/app.pbw Bobby-g${{ env.COMMIT_SHORT_SHA }}.pbw
       - name: generate elf bundle
-        run: mkdir elfs && cp app/build/basalt/pebble-app.elf elfs/pebble-app-basalt.elf && cp app/build/diorite/pebble-app.elf elfs/pebble-app-diorite.elf && zip -r elfs.zip elfs
+        run: mkdir elfs && cp build/basalt/pebble-app.elf elfs/pebble-app-basalt.elf && cp build/diorite/pebble-app.elf elfs/pebble-app-diorite.elf && zip -r elfs.zip elfs
       - name: Upload PBW
         uses: actions/upload-artifact@v4
         with:

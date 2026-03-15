@@ -1,8 +1,0 @@
-.lock-waf*
-node_modules/
-build/
-sdk-include/
-cmake-build-debug/
-*.pyc
-# npm rewrites this lockfile during the build so clearly it's worthless anyway
-package-lock.json
