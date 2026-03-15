@@ -305,7 +305,8 @@
           "name": "MENU_ICON_ABOUT",
           "type": "bitmap",
           "targetPlatforms": [
-            "basalt"
+            "basalt",
+            "emery"
           ]
         },
         {
@@ -322,7 +323,8 @@
           "name": "MENU_ICON_ALARMS",
           "type": "bitmap",
           "targetPlatforms": [
-            "basalt"
+            "basalt",
+            "emery"
           ]
         },
         {
@@ -339,7 +341,8 @@
           "name": "MENU_ICON_REMINDERS",
           "type": "bitmap",
           "targetPlatforms": [
-            "basalt"
+            "basalt",
+            "emery"
           ]
         },
         {
@@ -356,7 +359,8 @@
           "name": "MENU_ICON_TIMERS",
           "type": "bitmap",
           "targetPlatforms": [
-            "basalt"
+            "basalt",
+            "emery"
           ]
         },
         {
@@ -404,7 +408,8 @@
           "type": "bitmap",
           "memoryFormat": "2BitPalette",
           "targetPlatforms": [
-            "basalt"
+            "basalt",
+            "emery"
           ]
         },
         {
