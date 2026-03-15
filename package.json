@@ -191,32 +191,32 @@
           "type": "raw"
         },
         {
-          "file": "text/legal.txt",
+          "file": "data/text/legal.txt",
           "name": "LEGAL_TEXT",
           "type": "raw"
         },
         {
-          "file": "text/about.txt",
+          "file": "data/text/about.txt",
           "name": "ABOUT_TEXT",
           "type": "raw"
         },
         {
-          "file": "text/openclaw_consent.txt",
+          "file": "data/text/openclaw_consent.txt",
           "name": "OPENCLAW_CONSENT_TEXT",
           "type": "raw"
         },
         {
-          "file": "text/llm_warning.txt",
+          "file": "data/text/llm_warning.txt",
           "name": "LLM_WARNING_TEXT",
           "type": "raw"
         },
         {
-          "file": "text/location_consent.txt",
+          "file": "data/text/location_consent.txt",
           "name": "LOCATION_CONSENT_TEXT",
           "type": "raw"
         },
         {
-          "file": "text/sample_prompts.txt",
+          "file": "data/text/sample_prompts.txt",
           "name": "SAMPLE_PROMPTS",
           "type": "raw"
         },
@@ -422,7 +422,7 @@
           "type": "raw"
         },
         {
-          "file": "text/changelog/1.4.txt",
+          "file": "data/text/changelog/1.4.txt",
           "name": "CHANGELOG_1_4",
           "type": "raw"
         }
