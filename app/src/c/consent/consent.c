@@ -28,7 +28,7 @@
 
 
 #define STAGE_LLM_WARNING 0
-#define STAGE_GEMINI_CONSENT 1
+#define STAGE_OPENCLAW_CONSENT 1
 #define STAGE_LOCATION_CONSENT 2
 
 typedef struct {
@@ -81,13 +81,13 @@ void consent_migrate() {
     // If we're updating from version 1.1 or older, consent agreement was implied by LOCATION_ENABLED being set
     // (either true or false).
     if (version_info_compare(version_get_last_launch(), (VersionInfo) {1, 1}) <= 0) {
-      BOBBY_LOG(APP_LOG_LEVEL_INFO, "Performing consent migration from version 1.1.");
+      CLAWD_LOG(APP_LOG_LEVEL_INFO, "Performing consent migration from version 1.1.");
       // If the location enabled state is set, that's equivalent to consent agreement version 1.
       if (persist_exists(PERSIST_KEY_LOCATION_ENABLED)) {
-        BOBBY_LOG(APP_LOG_LEVEL_INFO, "Marking consent as 1.");;
+        CLAWD_LOG(APP_LOG_LEVEL_INFO, "Marking consent as 1.");;
         persist_write_int(PERSIST_KEY_CONSENTS_COMPLETED, 1);
       } else {
-        BOBBY_LOG(APP_LOG_LEVEL_INFO, "Not marking consent.");;
+        CLAWD_LOG(APP_LOG_LEVEL_INFO, "Not marking consent.");;
       }
     }
   }
@@ -166,8 +166,8 @@ static void prv_set_stage(Window* window, int stage) {
     res_handle = resource_get_handle(RESOURCE_ID_LLM_WARNING_TEXT);
     data->title_text = "Important";
     break;
-  case STAGE_GEMINI_CONSENT:
-    res_handle = resource_get_handle(RESOURCE_ID_GEMINI_CONSENT_TEXT);
+  case STAGE_OPENCLAW_CONSENT:
+    res_handle = resource_get_handle(RESOURCE_ID_OPENCLAW_CONSENT_TEXT);
     data->title_text = "Privacy";
     break;
   case STAGE_LOCATION_CONSENT:
@@ -175,7 +175,7 @@ static void prv_set_stage(Window* window, int stage) {
     data->title_text = "Location";
     break;
   default:
-    BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Unknown consent stage: %d", stage);
+    CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Unknown consent stage: %d", stage);
     return;
   }
   if (res_handle != NULL) {
@@ -211,14 +211,14 @@ static void prv_select_click_handler(ClickRecognizerRef recognizer, void *contex
   Window* window = context;
   ConsentWindowData *data = window_get_user_data(window);
   if (!prv_did_scroll_to_bottom(window)) {
-    BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "User clicked select but hasn't scrolled to bottom; ignoring.");
+    CLAWD_LOG(APP_LOG_LEVEL_DEBUG, "User clicked select but hasn't scrolled to bottom; ignoring.");
     return;
   }
   switch (data->stage) {
     case STAGE_LLM_WARNING:
-      prv_set_stage(window, STAGE_GEMINI_CONSENT);
+      prv_set_stage(window, STAGE_OPENCLAW_CONSENT);
       break;
-    case STAGE_GEMINI_CONSENT:
+    case STAGE_OPENCLAW_CONSENT:
       prv_set_stage(window, STAGE_LOCATION_CONSENT);
       break;
     case STAGE_LOCATION_CONSENT:
@@ -262,7 +262,7 @@ static void prv_app_message_handler(DictionaryIterator *iter, void *context) {
   Window* window = context;
   ConsentWindowData* data = window_get_user_data(window);
   if (data->expected_app_response != STAGE_LOCATION_CONSENT) {
-    BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Ignoring unexpected location consent response.");
+    CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Ignoring unexpected location consent response.");
     return;
   }
   Tuple *tuple = dict_find(iter, MESSAGE_KEY_LOCATION_ENABLED);
@@ -270,7 +270,7 @@ static void prv_app_message_handler(DictionaryIterator *iter, void *context) {
     return;
   }
   data->expected_app_response = 0;
-  BOBBY_LOG(APP_LOG_LEVEL_INFO, "Got location enabled reply, dismissing dialog.");
+  CLAWD_LOG(APP_LOG_LEVEL_INFO, "Got location enabled reply, dismissing dialog.");
   events_app_message_unsubscribe(data->app_message_handle);
   bool location_enabled = tuple->value->int16;
   persist_write_bool(PERSIST_KEY_LOCATION_ENABLED, location_enabled);

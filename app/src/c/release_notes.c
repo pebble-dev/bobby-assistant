@@ -49,10 +49,10 @@ void prv_release_notes_push() {
 
 void release_notes_maybe_push() {
   if (version_is_updated() && !version_is_first_launch()) {
-    BOBBY_LOG(APP_LOG_LEVEL_INFO, "Showing release notes");
+    CLAWD_LOG(APP_LOG_LEVEL_INFO, "Showing release notes");
     prv_release_notes_push();
   } else {
-    BOBBY_LOG(APP_LOG_LEVEL_INFO, "Not showing release notes. Is updated: %d, Is first launch: %d", version_is_updated(), version_is_first_launch());
+    CLAWD_LOG(APP_LOG_LEVEL_INFO, "Not showing release notes. Is updated: %d, Is first launch: %d", version_is_updated(), version_is_first_launch());
   }
 }
 

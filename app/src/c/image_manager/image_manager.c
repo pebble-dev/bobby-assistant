@@ -159,7 +159,7 @@ static void prv_inbox_received(DictionaryIterator *iterator, void *context) {
     return;
   }
   int image_id = tuple->value->int32;
-  BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "handling something for image_id: %d", image_id);
+  CLAWD_LOG(APP_LOG_LEVEL_DEBUG, "handling something for image_id: %d", image_id);
   tuple = dict_find(iterator, MESSAGE_KEY_IMAGE_START_BYTE_SIZE);
   if (tuple) {
     prv_handle_new_image(image_id, tuple->value->int32, iterator);
@@ -182,15 +182,15 @@ static void prv_handle_new_image(int image_id, size_t size, DictionaryIterator *
   int16_t width = tuple->value->int32;
   tuple = dict_find(iterator, MESSAGE_KEY_IMAGE_HEIGHT);
   int16_t height = tuple->value->int32;
-  BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "New image: %d, size: %d, width: %d, height: %d", image_id, size, width, height);
+  CLAWD_LOG(APP_LOG_LEVEL_DEBUG, "New image: %d, size: %d, width: %d, height: %d", image_id, size, width, height);
   ManagedImage *image = bmalloc(sizeof(ManagedImage));
   if (!image) {
-    BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Failed to allocate memory for image metadata");
+    CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Failed to allocate memory for image metadata");
     return;
   }
   image->data = bmalloc(size);
   if (!image->data) {
-    BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Failed to allocate memory for image data");
+    CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Failed to allocate memory for image data");
   }
   image->image_id = image_id;
   image->status = ImageStatusDestroyed;
@@ -202,38 +202,38 @@ static void prv_handle_new_image(int image_id, size_t size, DictionaryIterator *
 }
 
 static void prv_handle_image_chunk(int image_id, size_t offset, DictionaryIterator *iterator) {
-  BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Handling image chunk for image_id: %d, offset: %d", image_id, offset);
+  CLAWD_LOG(APP_LOG_LEVEL_DEBUG, "Handling image chunk for image_id: %d, offset: %d", image_id, offset);
   ManagedImage *image = prv_find_image(image_id);
   if (!image) {
-    BOBBY_LOG(APP_LOG_LEVEL_INFO, "Got data for unknown image id %d", image_id);
+    CLAWD_LOG(APP_LOG_LEVEL_INFO, "Got data for unknown image id %d", image_id);
     return;
   }
   if (!image->data) {
-    BOBBY_LOG(APP_LOG_LEVEL_INFO, "Got data for image we couldn't allocate; discarding.");
+    CLAWD_LOG(APP_LOG_LEVEL_INFO, "Got data for image we couldn't allocate; discarding.");
     return;
   }
   Tuple *tuple = dict_find(iterator, MESSAGE_KEY_IMAGE_CHUNK_DATA);
   if (!tuple) {
-    BOBBY_LOG(APP_LOG_LEVEL_INFO, "Got data for image id %d with no chunk data!", image_id);
+    CLAWD_LOG(APP_LOG_LEVEL_INFO, "Got data for image id %d with no chunk data!", image_id);
     return;
   }
   if (offset + tuple->length > image->size) {
-    BOBBY_LOG(APP_LOG_LEVEL_INFO, "Image data chunk too large: %d + %d > %d", offset, tuple->length, image->size);
+    CLAWD_LOG(APP_LOG_LEVEL_INFO, "Image data chunk too large: %d + %d > %d", offset, tuple->length, image->size);
     return;
   }
-  BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Got %d bytes for image id %d; copying to %p", tuple->length, image_id, image->data + offset);
+  CLAWD_LOG(APP_LOG_LEVEL_DEBUG, "Got %d bytes for image id %d; copying to %p", tuple->length, image_id, image->data + offset);
   memcpy(image->data + offset, tuple->value->data, tuple->length);
 }
 
 static void prv_handle_image_complete(int image_id) {
-  BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Handling image complete for image_id: %d", image_id);
+  CLAWD_LOG(APP_LOG_LEVEL_DEBUG, "Handling image complete for image_id: %d", image_id);
   ManagedImage *image = prv_find_image(image_id);
   if (!image) {
-    BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Got complete for unknown image id %d", image_id);
+    CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Got complete for unknown image id %d", image_id);
     return;
   }
   if (!image->data) {
-    BOBBY_LOG(APP_LOG_LEVEL_INFO, "Got complete for image we couldn't allocate; destroying.");
+    CLAWD_LOG(APP_LOG_LEVEL_INFO, "Got complete for image we couldn't allocate; destroying.");
     prv_destroy_image(image);
     linked_list_remove(s_image_list, prv_find_image_index(image_id));
     return;
@@ -241,16 +241,16 @@ static void prv_handle_image_complete(int image_id) {
   if (!image->bitmap) {
     image->bitmap = gbitmap_create_with_data(image->data);
     if (!image->bitmap) {
-      BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Failed to create bitmap from data");
+      CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Failed to create bitmap from data");
       return;
     }
     GRect bounds = gbitmap_get_bounds(image->bitmap);
     GBitmapFormat format = gbitmap_get_format(image->bitmap);
     int bytes_per_row = gbitmap_get_bytes_per_row(image->bitmap);
     GColor *palette = gbitmap_get_palette(image->bitmap);
-    BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Bitmap created: %d x %d, format: %d, bytes_per_row: %d", bounds.size.w, bounds.size.h, format, bytes_per_row);
+    CLAWD_LOG(APP_LOG_LEVEL_DEBUG, "Bitmap created: %d x %d, format: %d, bytes_per_row: %d", bounds.size.w, bounds.size.h, format, bytes_per_row);
     if (format == GBitmapFormat2BitPalette) {
-      BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Palette: %d, %d, %d, %d", palette[0], palette[1], palette[2], palette[3]);
+      CLAWD_LOG(APP_LOG_LEVEL_DEBUG, "Palette: %d, %d, %d, %d", palette[0], palette[1], palette[2], palette[3]);
     }
     image->status = ImageStatusCompleted;
   }
@@ -264,7 +264,7 @@ static bool prv_handle_memory_pressure(void *context) {
   if (linked_list_count(s_image_list) == 0) {
     return false;
   }
-  BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Memory pressure! Destroying the oldest image.");
+  CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Memory pressure! Destroying the oldest image.");
   ManagedImage *image = linked_list_get(s_image_list, 0);
   prv_destroy_image(image);
   linked_list_remove(s_image_list, 0);

@@ -15,12 +15,10 @@
  */
 
 #include "root_menu.h"
-#include "quota_window.h"
 #include "alarm_menu.h"
 #include "about_window.h"
 #include "legal_window.h"
 #include "reminders_menu.h"
-#include "feedback_window.h"
 #include "../util/style.h"
 #include "../util/memory/malloc.h"
 #include "../util/memory/sdk.h"
@@ -30,18 +28,16 @@
 
 static void prv_window_load(Window* window);
 static void prv_window_unload(Window* window);
-static void prv_push_quota_screen(int index, void* context);
 static void prv_push_alarm_screen(int index, void* context);
 static void prv_push_timer_screen(int index, void* context);
 static void prv_push_about_screen(int index, void* context);
 static void prv_push_legal_screen(int index, void* context);
 static void prv_push_reminders_screen(int index, void* context);
-static void prv_push_feedback_screen(int index, void* context);
 
 static SimpleMenuSection s_menu_section = {
   .num_items = 0,
 };
-static SimpleMenuItem s_menu_items[7];
+static SimpleMenuItem s_menu_items[4];
 
 typedef struct {
   SimpleMenuLayer *menu_layer;
@@ -61,7 +57,7 @@ void root_menu_window_push() {
 }
 
 static void prv_window_load(Window* window) {
-  BOBBY_LOG(APP_LOG_LEVEL_DEBUG_VERBOSE, "Loading root menu window...");
+  CLAWD_LOG(APP_LOG_LEVEL_DEBUG_VERBOSE, "Loading root menu window...");
   // This setup has to be done separately because otherwise the initializer isn't constant.
   if (s_menu_section.num_items == 0) {
     s_menu_items[0] = (SimpleMenuItem) {
@@ -80,26 +76,11 @@ static void prv_window_load(Window* window) {
       .icon = bgbitmap_create_with_resource(RESOURCE_ID_MENU_ICON_REMINDERS),
     };
     s_menu_items[3] = (SimpleMenuItem) {
-      .title = "Quota",
-      .callback = prv_push_quota_screen,
-      .icon = bgbitmap_create_with_resource(RESOURCE_ID_MENU_ICON_QUOTA),
-    };
-    s_menu_items[4] = (SimpleMenuItem) {
-      .title = "Feedback",
-      .callback = prv_push_feedback_screen,
-      .icon = bgbitmap_create_with_resource(RESOURCE_ID_MENU_ICON_FEEDBACK),
-    };
-    s_menu_items[5] = (SimpleMenuItem) {
       .title = "About",
       .callback = prv_push_about_screen,
       .icon = bgbitmap_create_with_resource(RESOURCE_ID_MENU_ICON_ABOUT),
     };
-    s_menu_items[6] = (SimpleMenuItem) {
-      .title = "Legal",
-      .callback = prv_push_legal_screen,
-      .icon = bgbitmap_create_with_resource(RESOURCE_ID_MENU_ICON_LEGAL),
-    };
-    s_menu_section.num_items = 7;
+    s_menu_section.num_items = 4;
     s_menu_section.items = s_menu_items;
   }
 
@@ -107,12 +88,12 @@ static void prv_window_load(Window* window) {
   Layer* root_layer = window_get_root_layer(window);
   GRect window_bounds = layer_get_frame(root_layer);
   data->status_bar = bstatus_bar_layer_create();
-  bobby_status_bar_config(data->status_bar);
+  clawd_status_bar_config(data->status_bar);
   layer_add_child(root_layer, status_bar_layer_get_layer(data->status_bar));
   data->menu_layer = bsimple_menu_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT, window_bounds.size.w, window_bounds.size.h - STATUS_BAR_LAYER_HEIGHT), window, &s_menu_section, 1, window);
   menu_layer_set_highlight_colors(simple_menu_layer_get_menu_layer(data->menu_layer), SELECTION_HIGHLIGHT_COLOUR, gcolor_legible_over(SELECTION_HIGHLIGHT_COLOUR));
   layer_add_child(root_layer, simple_menu_layer_get_layer(data->menu_layer));
-  BOBBY_LOG(APP_LOG_LEVEL_DEBUG_VERBOSE, "Root menu window loaded");
+  CLAWD_LOG(APP_LOG_LEVEL_DEBUG_VERBOSE, "Root menu window loaded");
 }
 
 static void prv_window_unload(Window* window) {
@@ -130,10 +111,6 @@ static void prv_window_unload(Window* window) {
   window_destroy(window);
 }
 
-static void prv_push_quota_screen(int index, void* context) {
-  push_quota_window();
-}
-
 static void prv_push_alarm_screen(int index, void* context) {
   alarm_menu_window_push(false);
 }
@@ -148,10 +125,6 @@ static void prv_push_legal_screen(int index, void* context) {
 
 static void prv_push_reminders_screen(int index, void* context) {
   reminders_menu_push();
-}
-
-static void prv_push_feedback_screen(int index, void* context) {
-  feedback_window_push();
 }
 
 static void prv_push_about_screen(int index, void* context) {

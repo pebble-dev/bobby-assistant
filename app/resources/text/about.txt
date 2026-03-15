@@ -1,8 +1,14 @@
-# Bobby
+# Clawd
 ## Version %d.%d
-The Rebble AI Assistant Pony
+A fork of Bobby, the Rebble AI Assistant Pony
+
+## Original Project
+Based on Bobby by Katharine Berry
+https://github.com/jmsunseri/bobby-assistant
 
 ## Programming
 Katharine Berry
+Justin Sunseri
+
 ## Iconography
 Stasia Michalska <lcp.world>

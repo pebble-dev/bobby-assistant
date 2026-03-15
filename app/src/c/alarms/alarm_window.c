@@ -110,7 +110,7 @@ static void prv_window_load(Window *window) {
   if (data->is_timer) {
     data->status_bar = bstatus_bar_layer_create();
     layer_set_frame(status_bar_layer_get_layer(data->status_bar), GRect(0, 0, rect.size.w - ACTION_BAR_WIDTH, STATUS_BAR_LAYER_HEIGHT));
-    bobby_status_bar_result_pane_config(data->status_bar);
+    clawd_status_bar_result_pane_config(data->status_bar);
     layer_add_child(root_layer, (Layer *)data->status_bar);
   } else {
     data->status_bar = NULL;

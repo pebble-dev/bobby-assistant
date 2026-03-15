@@ -101,7 +101,7 @@ static void prv_show_empty(Window *window) {
   }
 
   window_set_background_color(window, BRANDED_BACKGROUND_COLOUR);
-  bobby_status_bar_result_pane_config(data->status_bar);
+  clawd_status_bar_result_pane_config(data->status_bar);
   layer_add_child(root_layer, text_layer_get_layer(data->empty_text_layer));
   layer_add_child(root_layer, vector_layer_get_layer(data->sleeping_horse_layer));
 }
@@ -114,7 +114,7 @@ static void prv_window_load(Window *window) {
   window_set_background_color(window, BRANDED_BACKGROUND_COLOUR);
 
   data->status_bar = bstatus_bar_layer_create();
-  bobby_status_bar_result_pane_config(data->status_bar);
+  clawd_status_bar_result_pane_config(data->status_bar);
   layer_add_child(root_layer, status_bar_layer_get_layer(data->status_bar));
 
   // Create menu layer but don't add it yet
@@ -220,7 +220,7 @@ static void prv_app_message_received(DictionaryIterator *iter, void *context) {
     // If we've received all reminders, show the menu
     if (data->num_reminders == data->reminders_capacity) {
       window_set_background_color(window, GColorWhite);
-      bobby_status_bar_config(data->status_bar);
+      clawd_status_bar_config(data->status_bar);
       data->loading = false;
       vector_sequence_layer_stop(data->loading_layer);
       layer_remove_from_parent(data->loading_layer);

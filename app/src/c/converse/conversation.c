@@ -193,9 +193,9 @@ static void prv_append_to_response(ConversationResponse *response, const char* f
   while (response->len + len >= response->allocated) {
     response->allocated *= 2;
     char* new_resp = bmalloc(response->allocated);
-    BOBBY_LOG(APP_LOG_LEVEL_INFO, "Expanding buffer to %d bytes. New buffer: %p. Old buffer: %p.", response->allocated, new_resp, response->response);
+    CLAWD_LOG(APP_LOG_LEVEL_INFO, "Expanding buffer to %d bytes. New buffer: %p. Old buffer: %p.", response->allocated, new_resp, response->response);
     strcpy(new_resp, response->response);
-    BOBBY_LOG(APP_LOG_LEVEL_INFO, "Copied %d bytes.", strlen(response->response) + 1);
+    CLAWD_LOG(APP_LOG_LEVEL_INFO, "Copied %d bytes.", strlen(response->response) + 1);
     free(response->response);
     response->response = new_resp;
   }
@@ -231,7 +231,7 @@ bool conversation_add_response_fragment(Conversation* conversation, const char* 
 void conversation_complete_response(Conversation *conversation) {
   ConversationResponse* response = prv_find_last_open_response(conversation);
   if (response == NULL) {
-    BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Trying to complete a response, but couldn't find any.");
+    CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Trying to complete a response, but couldn't find any.");
     return;
   }
   response->complete = true;
@@ -284,11 +284,11 @@ void conversation_delete_first_entry(Conversation* conversation) {
 
 
 void conversation_delete_last_thought(Conversation* conversation) {
-  BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Deleting last thought");
+  CLAWD_LOG(APP_LOG_LEVEL_DEBUG, "Deleting last thought");
   for (int i = conversation->entry_count - 2; i >= conversation->deleted_entries; --i) {
     ConversationEntry* entry = &conversation->entries[i];
     if (entry->type == EntryTypeThought) {
-      BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Deleting thought %d", i);
+      CLAWD_LOG(APP_LOG_LEVEL_DEBUG, "Deleting thought %d", i);
       prv_destroy_entry(entry);
       return;
     }
@@ -297,7 +297,7 @@ void conversation_delete_last_thought(Conversation* conversation) {
 
 ConversationEntry* conversation_entry_at_index(Conversation* conversation, int index) {
   if (index >= conversation->entry_count) {
-    BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Caller asked for entry %d, but only %d exist.", index, conversation->entry_count);
+    CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Caller asked for entry %d, but only %d exist.", index, conversation->entry_count);
     return NULL;
   }
   return &conversation->entries[index];
@@ -305,7 +305,7 @@ ConversationEntry* conversation_entry_at_index(Conversation* conversation, int i
 
 ConversationEntry* conversation_peek(Conversation* conversation) {
   if (conversation->entry_count == conversation->deleted_entries) {
-    BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Tried to peek at conversation, but no entries yet.");
+    CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Tried to peek at conversation, but no entries yet.");
     return NULL;
   }
   return &conversation->entries[conversation->entry_count-1];
@@ -343,7 +343,7 @@ const char* prv_type_to_string(EntryType type) {
 
 ConversationPrompt* conversation_entry_get_prompt(ConversationEntry* entry) {
   if (entry->type != EntryTypePrompt) {
-    BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Asked for prompt %p, but it's actually a %s.", entry, prv_type_to_string(entry->type));
+    CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Asked for prompt %p, but it's actually a %s.", entry, prv_type_to_string(entry->type));
     return NULL;
   }
   return entry->content.prompt;
@@ -351,7 +351,7 @@ ConversationPrompt* conversation_entry_get_prompt(ConversationEntry* entry) {
 
 ConversationResponse* conversation_entry_get_response(ConversationEntry* entry) {
   if (entry->type != EntryTypeResponse) {
-    BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Asked for response %p, but it's actually a %s.", entry, prv_type_to_string(entry->type));
+    CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Asked for response %p, but it's actually a %s.", entry, prv_type_to_string(entry->type));
     return NULL;
   }
   return entry->content.response;
@@ -359,7 +359,7 @@ ConversationResponse* conversation_entry_get_response(ConversationEntry* entry) 
 
 ConversationThought* conversation_entry_get_thought(ConversationEntry* entry) {
   if (entry->type != EntryTypeThought) {
-    BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Asked for thought %p, but it's actually a %s.", entry, prv_type_to_string(entry->type));
+    CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Asked for thought %p, but it's actually a %s.", entry, prv_type_to_string(entry->type));
     return NULL;
   }
   return entry->content.thought;
@@ -367,7 +367,7 @@ ConversationThought* conversation_entry_get_thought(ConversationEntry* entry) {
 
 ConversationError* conversation_entry_get_error(ConversationEntry* entry) {
   if (entry->type != EntryTypeError) {
-    BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Asked for error %p, but it's actually a %s.", entry, prv_type_to_string(entry->type));
+    CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Asked for error %p, but it's actually a %s.", entry, prv_type_to_string(entry->type));
     return NULL;
   }
   return entry->content.error;
@@ -375,7 +375,7 @@ ConversationError* conversation_entry_get_error(ConversationEntry* entry) {
 
 ConversationAction* conversation_entry_get_action(ConversationEntry* action) {
   if (action->type != EntryTypeAction) {
-    BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Asked for action %p, but it's actually a %s.", action, prv_type_to_string(action->type));
+    CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Asked for action %p, but it's actually a %s.", action, prv_type_to_string(action->type));
     return NULL;
   }
   return action->content.action;
@@ -383,7 +383,7 @@ ConversationAction* conversation_entry_get_action(ConversationEntry* action) {
 
 ConversationWidget* conversation_entry_get_widget(ConversationEntry* widget) {
   if (widget->type != EntryTypeWidget) {
-    BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Asked for widget %p, but it's actually a %s.", widget, prv_type_to_string(widget->type));
+    CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Asked for widget %p, but it's actually a %s.", widget, prv_type_to_string(widget->type));
     return NULL;
   }
   return widget->content.widget;
@@ -394,7 +394,7 @@ EntryType conversation_entry_get_type(ConversationEntry* entry) {
 }
 
 void conversation_set_thread_id(Conversation* conversation, const char* thread_id) {
-  BOBBY_LOG(APP_LOG_LEVEL_INFO, "Thread ID updated: %s", thread_id);
+  CLAWD_LOG(APP_LOG_LEVEL_INFO, "Thread ID updated: %s", thread_id);
   strncpy(conversation->thread_id, thread_id, 37);
 }
 

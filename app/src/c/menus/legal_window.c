@@ -53,7 +53,7 @@ static void prv_window_load(Window* window) {
  Layer *root_layer = window_get_root_layer(window);
  GRect window_bounds = layer_get_bounds(root_layer);
  data->status_bar = bstatus_bar_layer_create();
- bobby_status_bar_config(data->status_bar);
+ clawd_status_bar_config(data->status_bar);
  layer_add_child(root_layer, status_bar_layer_get_layer(data->status_bar));
  data->scroll_layer = bscroll_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT, window_bounds.size.w, window_bounds.size.h - STATUS_BAR_LAYER_HEIGHT));
  scroll_layer_set_shadow_hidden(data->scroll_layer, true);

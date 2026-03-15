@@ -102,7 +102,7 @@ void session_window_push(int timeout, char *starting_prompt) {
 }
 
 static void prv_destroy(SessionWindow *sw) {
-  BOBBY_LOG(APP_LOG_LEVEL_INFO, "destroying SessionWindow %p.", sw);
+  CLAWD_LOG(APP_LOG_LEVEL_INFO, "destroying SessionWindow %p.", sw);
   prv_cancel_timeout(sw);
   dictation_session_destroy(sw->dictation);
   for (int i = sw->segments_deleted; i < sw->segment_count; ++i) {
@@ -131,7 +131,7 @@ static void prv_window_load(Window *window) {
   GSize window_size = layer_get_frame(window_get_root_layer(window)).size;
   SessionWindow *sw = window_get_user_data(window);
   sw->dictation_pending = true;
-  BOBBY_LOG(APP_LOG_LEVEL_INFO, "created SessionWindow %p.", sw);
+  CLAWD_LOG(APP_LOG_LEVEL_INFO, "created SessionWindow %p.", sw);
   sw->manager = conversation_manager_create();
   conversation_manager_set_handler(sw->manager, prv_conversation_manager_handler, sw);
   conversation_manager_set_deletion_handler(sw->manager, prv_conversation_entry_deleted_handler);
@@ -144,7 +144,7 @@ static void prv_window_load(Window *window) {
   sw->segment_layers = bmalloc(sizeof(SegmentLayer*) * sw->segment_space);
 
   sw->status_layer = bstatus_bar_layer_create();
-  bobby_status_bar_config(sw->status_layer);
+  clawd_status_bar_config(sw->status_layer);
   layer_add_child(root_layer, (Layer *)sw->status_layer);
 
   sw->content_height = 0;
@@ -329,7 +329,7 @@ static void prv_conversation_manager_handler(bool entry_added, void* context) {
   ConversationEntry* entry = conversation_peek(conversation);
   if (entry == NULL) {
     // ??????
-    BOBBY_LOG(APP_LOG_LEVEL_ERROR, "We were told a new entry was added, but no entries actually exist????");
+    CLAWD_LOG(APP_LOG_LEVEL_ERROR, "We were told a new entry was added, but no entries actually exist????");
     return;
   }
   if (sw->segment_count == sw->segment_space) {
@@ -386,7 +386,7 @@ static void prv_conversation_manager_handler(bool entry_added, void* context) {
 
 static void prv_conversation_entry_deleted_handler(int index, void* context) {
   if (index != 0) {
-    BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Invalid index %d", index);
+    CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Invalid index %d", index);
     return;
   }
   SessionWindow* sw = context;
@@ -395,7 +395,7 @@ static void prv_conversation_entry_deleted_handler(int index, void* context) {
   int16_t removed_height = layer_get_frame(to_delete).size.h;
   for (int i = sw->segments_deleted + 1; i < sw->segment_count; ++i) {
     if (sw->segment_layers[i] == NULL) {
-      BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Segment layer %d is NULL (not possible!?)", i);
+      CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Segment layer %d is NULL (not possible!?)", i);
       continue;
     }
     SegmentLayer *layer = sw->segment_layers[i];
@@ -416,7 +416,7 @@ static void prv_conversation_entry_deleted_handler(int index, void* context) {
   segment_layer_destroy(sw->segment_layers[sw->segments_deleted]);
   sw->segment_layers[sw->segments_deleted] = NULL;
   sw->segments_deleted++;
-  BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Removed top segment; adjusted upward by %d pixels.", removed_height);
+  CLAWD_LOG(APP_LOG_LEVEL_DEBUG, "Removed top segment; adjusted upward by %d pixels.", removed_height);
 }
 
 static void prv_click_config_provider(void *context) {
@@ -511,7 +511,7 @@ static void prv_refresh_timeout(SessionWindow* sw) {
   if (sw->timeout_handle) {
     app_timer_cancel(sw->timeout_handle);
   }
-  BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Refreshed timeout");
+  CLAWD_LOG(APP_LOG_LEVEL_DEBUG, "Refreshed timeout");
   sw->timeout_handle = app_timer_register(sw->timeout, prv_timed_out, sw);
 }
 
@@ -519,12 +519,12 @@ static void prv_cancel_timeout(SessionWindow* sw) {
   if (sw->timeout_handle) {
     app_timer_cancel(sw->timeout_handle);
     sw->timeout_handle = NULL;
-  BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Canceled timeout");
+  CLAWD_LOG(APP_LOG_LEVEL_DEBUG, "Canceled timeout");
   }
 }
 
 static void prv_timed_out(void *ctx) {
-  BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Timed out");
+  CLAWD_LOG(APP_LOG_LEVEL_DEBUG, "Timed out");
   window_stack_pop(true);
 }
 

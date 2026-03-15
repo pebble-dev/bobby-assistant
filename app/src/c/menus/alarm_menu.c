@@ -87,7 +87,7 @@ static void prv_window_load(Window* window) {
     prv_show_empty(window);
   } else {
     window_set_background_color(window, GColorWhite);
-    bobby_status_bar_config(data->status_bar);
+    clawd_status_bar_config(data->status_bar);
     layer_add_child(root_layer, menu_layer_get_layer(data->menu_layer));
     menu_layer_set_click_config_onto_window(data->menu_layer, window);
   }
@@ -107,7 +107,7 @@ static void prv_show_empty(Window *window) {
   data->sleeping_horse_layer = vector_layer_create(GRect(window_bounds.size.w / 2 - 25, window_bounds.size.h - 55, 50, 50));
   vector_layer_set_vector(data->sleeping_horse_layer, data->sleeping_horse_image);
   window_set_background_color(window, BRANDED_BACKGROUND_COLOUR);
-  bobby_status_bar_result_pane_config(data->status_bar);
+  clawd_status_bar_result_pane_config(data->status_bar);
   layer_add_child(root_layer, text_layer_get_layer(data->empty_text_layer));
   layer_add_child(root_layer, vector_layer_get_layer(data->sleeping_horse_layer));
 

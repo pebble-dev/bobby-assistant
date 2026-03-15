@@ -138,7 +138,7 @@ static void prv_window_appear(Window* window) {
   if (!rw->app_message_handle) {
     rw->app_message_handle = events_app_message_register_inbox_received(prv_app_message_handler, rw);
   }
-  BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Window appeared. Heap usage increased %d bytes", heap_size - heap_bytes_free());
+  CLAWD_LOG(APP_LOG_LEVEL_DEBUG, "Window appeared. Heap usage increased %d bytes", heap_size - heap_bytes_free());
 }
 
 static void prv_window_disappear(Window* window) {
@@ -158,7 +158,7 @@ static void prv_window_disappear(Window* window) {
   text_layer_destroy(rw->time_layer);
   text_layer_destroy(rw->version_layer);
   talking_horse_layer_destroy(rw->talking_horse_layer);
-  BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Window disappeared. Heap usage decreased %d bytes", heap_bytes_free() - heap_size);
+  CLAWD_LOG(APP_LOG_LEVEL_DEBUG, "Window disappeared. Heap usage decreased %d bytes", heap_bytes_free() - heap_size);
 }
 
 static void prv_app_message_handler(DictionaryIterator *iter, void *context) {

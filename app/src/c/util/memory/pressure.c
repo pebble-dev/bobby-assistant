@@ -50,7 +50,7 @@ void memory_pressure_register_callback(MemoryPressureHandler handler, int priori
   if (entry->priority > s_max_priority) {
     s_max_priority = entry->priority;
   }
-  BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "memory_pressure_register_callback: %p, priority %d", handler, priority);
+  CLAWD_LOG(APP_LOG_LEVEL_DEBUG, "memory_pressure_register_callback: %p, priority %d", handler, priority);
 }
 
 void memory_pressure_unregister_callback(MemoryPressureHandler handler) {
@@ -67,25 +67,25 @@ void memory_pressure_unregister_callback(MemoryPressureHandler handler) {
 }
 
 bool memory_pressure_try_free() {
-  BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Memory emergency! Trying to free memory.");
+  CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Memory emergency! Trying to free memory.");
   int count = linked_list_count(s_callback_list);
   if (count == 0) {
-    BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "No memory freeing callbacks registered");
+    CLAWD_LOG(APP_LOG_LEVEL_DEBUG, "No memory freeing callbacks registered");
     return false;
   }
   for (int p = 0; p <= s_max_priority; ++p) {
-    BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Trying priority level %d", p);
+    CLAWD_LOG(APP_LOG_LEVEL_DEBUG, "Trying priority level %d", p);
     for (int i = 0; i < count; ++i) {
       MemoryPressureCallbackEntry *entry = linked_list_get(s_callback_list, i);
       if (entry->priority != p) {
         continue;
       }
-      BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Calling memory pressure callback %p with priority %d", entry->handler, entry->priority);
+      CLAWD_LOG(APP_LOG_LEVEL_DEBUG, "Calling memory pressure callback %p with priority %d", entry->handler, entry->priority);
       if (entry->handler(entry->context)) {
-        BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "Freed some memory!");
+        CLAWD_LOG(APP_LOG_LEVEL_DEBUG, "Freed some memory!");
         return true;
       }
-      BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "No joy.");
+      CLAWD_LOG(APP_LOG_LEVEL_DEBUG, "No joy.");
     }
   }
   return false;
