@@ -352,8 +352,8 @@ Session.prototype.handleToolCall = function(toolCallStr) {
 
     try {
         var toolCall = JSON.parse(toolCallStr);
-        var toolName = toolCall.name || toolCall.function?.name;
-        var toolArgs = toolCall.arguments || toolCall.function?.arguments || {};
+        var toolName = toolCall.name || (toolCall.function && toolCall.function.name);
+        var toolArgs = toolCall.arguments || (toolCall.function && toolCall.function.arguments) || {};
         var toolCallId = toolCall.id || 'call_' + Date.now();
 
         // Parse arguments if string

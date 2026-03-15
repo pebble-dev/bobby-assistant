@@ -239,16 +239,16 @@ static void prv_handle_app_message_inbox_received(DictionaryIterator *iter, void
   }
 }
 
-// Helper macro to safely get dict value or return early
-#define DICT_GET_INT32(iter, key, var, ret) do { \
+// Helper macro to safely get dict value or return early (for void functions)
+#define DICT_GET_INT32(iter, key, var) do { \
   Tuple *t = dict_find((iter), (key)); \
-  if (!t) { CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Missing key %d", (key)); return (ret); } \
+  if (!t) { CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Missing key %d", (key)); return; } \
   (var) = t->value->int32; \
 } while(0)
 
-#define DICT_GET_CSTRING(iter, key, var, ret) do { \
+#define DICT_GET_CSTRING(iter, key, var) do { \
   Tuple *t = dict_find((iter), (key)); \
-  if (!t) { CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Missing key %d", (key)); return (ret); } \
+  if (!t) { CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Missing key %d", (key)); return; } \
   (var) = t->value->cstring; \
 } while(0)
 
@@ -257,13 +257,13 @@ static void prv_process_weather_widget(int widget_type, DictionaryIterator *iter
     case 1: {
       int high, low, icon;
       const char *summary, *location, *temp_unit, *day;
-      DICT_GET_INT32(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_HIGH, high,);
-      DICT_GET_INT32(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_LOW, low,);
-      DICT_GET_INT32(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_ICON, icon,);
-      DICT_GET_CSTRING(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_SUMMARY, summary,);
-      DICT_GET_CSTRING(iter, MESSAGE_KEY_WEATHER_WIDGET_LOCATION, location,);
-      DICT_GET_CSTRING(iter, MESSAGE_KEY_WEATHER_WIDGET_TEMP_UNIT, temp_unit,);
-      DICT_GET_CSTRING(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_OF_WEEK, day,);
+      DICT_GET_INT32(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_HIGH, high);
+      DICT_GET_INT32(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_LOW, low);
+      DICT_GET_INT32(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_ICON, icon);
+      DICT_GET_CSTRING(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_SUMMARY, summary);
+      DICT_GET_CSTRING(iter, MESSAGE_KEY_WEATHER_WIDGET_LOCATION, location);
+      DICT_GET_CSTRING(iter, MESSAGE_KEY_WEATHER_WIDGET_TEMP_UNIT, temp_unit);
+      DICT_GET_CSTRING(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_OF_WEEK, day);
       char* summary_stored = bmalloc(strlen(summary) + 1);
       strcpy(summary_stored, summary);
       char* location_stored = bmalloc(strlen(location) + 1);
@@ -293,13 +293,13 @@ static void prv_process_weather_widget(int widget_type, DictionaryIterator *iter
     case 2: {
       int temp, feels_like, icon, wind_speed;
       const char *location, *summary, *wind_speed_unit;
-      DICT_GET_INT32(iter, MESSAGE_KEY_WEATHER_WIDGET_CURRENT_TEMP, temp,);
-      DICT_GET_INT32(iter, MESSAGE_KEY_WEATHER_WIDGET_FEELS_LIKE, feels_like,);
-      DICT_GET_INT32(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_ICON, icon,);
-      DICT_GET_INT32(iter, MESSAGE_KEY_WEATHER_WIDGET_WIND_SPEED, wind_speed,);
-      DICT_GET_CSTRING(iter, MESSAGE_KEY_WEATHER_WIDGET_LOCATION, location,);
-      DICT_GET_CSTRING(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_SUMMARY, summary,);
-      DICT_GET_CSTRING(iter, MESSAGE_KEY_WEATHER_WIDGET_WIND_SPEED_UNIT, wind_speed_unit,);
+      DICT_GET_INT32(iter, MESSAGE_KEY_WEATHER_WIDGET_CURRENT_TEMP, temp);
+      DICT_GET_INT32(iter, MESSAGE_KEY_WEATHER_WIDGET_FEELS_LIKE, feels_like);
+      DICT_GET_INT32(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_ICON, icon);
+      DICT_GET_INT32(iter, MESSAGE_KEY_WEATHER_WIDGET_WIND_SPEED, wind_speed);
+      DICT_GET_CSTRING(iter, MESSAGE_KEY_WEATHER_WIDGET_LOCATION, location);
+      DICT_GET_CSTRING(iter, MESSAGE_KEY_WEATHER_WIDGET_DAY_SUMMARY, summary);
+      DICT_GET_CSTRING(iter, MESSAGE_KEY_WEATHER_WIDGET_WIND_SPEED_UNIT, wind_speed_unit);
       char* location_stored = bmalloc(strlen(location) + 1);
       strcpy(location_stored, location);
       char* summary_stored = bmalloc(strlen(summary) + 1);
@@ -326,7 +326,7 @@ static void prv_process_weather_widget(int widget_type, DictionaryIterator *iter
     }
     case 3: {
       const char *location;
-      DICT_GET_CSTRING(iter, MESSAGE_KEY_WEATHER_WIDGET_LOCATION, location,);
+      DICT_GET_CSTRING(iter, MESSAGE_KEY_WEATHER_WIDGET_LOCATION, location);
       char *location_stored = bmalloc(strlen(location) + 1);
       strcpy(location_stored, location);
       ConversationWidget widget = {
