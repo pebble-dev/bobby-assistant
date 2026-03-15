@@ -3387,3 +3387,8 @@ if (typeof Telegram !== 'undefined') {
         var NewMessage = Telegram.events.NewMessage;
     }
 }
+
+// Export for CommonJS/webpack
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = Telegram;
+}
