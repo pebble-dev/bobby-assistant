@@ -8,7 +8,8 @@
   "private": true,
   "dependencies": {
     "pebble-clay": "^1.0.4",
-    "pebble-events": "^1.2.0"
+    "pebble-events": "^1.2.0",
+    "telegram": "^2.26.22"
   },
   "pebble": {
     "displayName": "Clawd",

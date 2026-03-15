@@ -14,10 +14,18 @@
  * limitations under the License.
  */
 
-// Telegram/GramJS bundle - loaded dynamically
-// require('./lib/telegram-bundle.js');
-// Note: TelegramClient, StringSession, NewMessage need to be available globally
-// This bundle is too large for webpack 1.x, will need alternative loading method
+// Import Telegram/GramJS directly - CloudPebble will bundle via webpack
+var Telegram = require('telegram');
+var TelegramClient = Telegram.TelegramClient;
+var StringSession = Telegram.sessions.StringSession;
+var NewMessage = Telegram.events.NewMessage;
+
+// Make available globally for other modules
+if (typeof global !== 'undefined') {
+    global.TelegramClient = TelegramClient;
+    global.StringSession = StringSession;
+    global.NewMessage = NewMessage;
+}
 
 var location = require('./location');
 var session = require('./session');
