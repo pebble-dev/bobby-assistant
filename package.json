@@ -369,32 +369,32 @@
           ]
         },
         {
-          "file": "vibes/haptic_feedback.vibe",
+          "file": "data/vibes/haptic_feedback.vibe",
           "name": "VIBE_HAPTIC_FEEDBACK",
           "type": "raw"
         },
         {
-          "file": "vibes/jackhammer.vibe",
+          "file": "data/vibes/jackhammer.vibe",
           "name": "VIBE_JACKHAMMER",
           "type": "raw"
         },
         {
-          "file": "vibes/mario.vibe",
+          "file": "data/vibes/mario.vibe",
           "name": "VIBE_MARIO",
           "type": "raw"
         },
         {
-          "file": "vibes/nudge_nudge.vibe",
+          "file": "data/vibes/nudge_nudge.vibe",
           "name": "VIBE_NUDGE_NUDGE",
           "type": "raw"
         },
         {
-          "file": "vibes/reveille.vibe",
+          "file": "data/vibes/reveille.vibe",
           "name": "VIBE_REVEILLE",
           "type": "raw"
         },
         {
-          "file": "vibes/standard_long_high.vibe",
+          "file": "data/vibes/standard_long_high.vibe",
           "name": "VIBE_STANDARD",
           "type": "raw"
         },
