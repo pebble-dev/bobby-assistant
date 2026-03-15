@@ -1,0 +1,31 @@
+/**
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * URLs module for Clawd.
+ * All communication now goes directly through Telegram to OpenClaw.
+ * No backend URLs are needed - the phone app communicates directly.
+ */
+
+// No backend URLs needed - direct Telegram communication
+exports.QUERY_URL = '';
+
+// URL overrides (for development/testing)
+var override = require('./urls_override');
+
+if (override.QUERY_URL) {
+    exports.QUERY_URL = override.QUERY_URL;
+}

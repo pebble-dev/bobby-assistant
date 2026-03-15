@@ -1,0 +1,443 @@
+{
+  "name": "Clawd",
+  "author": "Justin Sunseri",
+  "version": "1.4.0",
+  "keywords": [
+    "pebble-app"
+  ],
+  "private": true,
+  "dependencies": {
+    "buffer": "^6.0.3",
+    "events": "^3.3.0",
+    "pebble-clay": "^1.0.4",
+    "pebble-events": "^1.2.0",
+    "process": "^0.11.10",
+    "stream-browserify": "^3.0.0",
+    "telegram": "^2.26.22",
+    "util": "^0.12.5"
+  },
+  "pebble": {
+    "displayName": "Clawd",
+    "uuid": "1d272bb4-cf00-4e3e-a7f3-7394309e0341",
+    "sdkVersion": "3",
+    "enableMultiJS": true,
+    "capabilities": [
+      "configurable",
+      "location"
+    ],
+    "targetPlatforms": [
+      "basalt",
+      "diorite"
+    ],
+    "watchapp": {
+      "watchface": false
+    },
+    "messageKeys": [
+      "CHAT",
+      "FUNCTION",
+      "PROMPT",
+      "PROMPT_CONTEXT",
+      "CLOSE_CODE",
+      "CLOSE_REASON",
+      "CLOSE_WAS_CLEAN",
+      "CHAT_DONE",
+      "THREAD_ID",
+      "SET_ALARM_TIME",
+      "SET_ALARM_IS_TIMER",
+      "SET_ALARM_RESULT",
+      "GET_ALARM_OR_TIMER",
+      "GET_ALARM_RESULT[9]",
+      "ACTION_REMINDER_WAS_SET",
+      "CURRENT_TIME",
+      "CANCEL_ALARM_TIME",
+      "CANCEL_ALARM_IS_TIMER",
+      "LANGUAGE_CODE",
+      "UNIT_PREFERENCE",
+      "LOCATION_ENABLED",
+      "WARNING",
+      "WEATHER_WIDGET",
+      "WEATHER_WIDGET_DAY_HIGH",
+      "WEATHER_WIDGET_DAY_LOW",
+      "WEATHER_WIDGET_DAY_ICON",
+      "WEATHER_WIDGET_LOCATION",
+      "WEATHER_WIDGET_DAY_SUMMARY",
+      "WEATHER_WIDGET_TEMP_UNIT",
+      "WEATHER_WIDGET_DAY_OF_WEEK",
+      "WEATHER_WIDGET_CURRENT_TEMP",
+      "WEATHER_WIDGET_FEELS_LIKE",
+      "WEATHER_WIDGET_WIND_SPEED",
+      "WEATHER_WIDGET_WIND_SPEED_UNIT",
+      "WEATHER_WIDGET_MULTI_DAY[3]",
+      "WEATHER_WIDGET_MULTI_ICON[3]",
+      "WEATHER_WIDGET_MULTI_HIGH[3]",
+      "WEATHER_WIDGET_MULTI_LOW[3]",
+      "REMINDER_LIST_REQUEST",
+      "REMINDER_COUNT",
+      "REMINDER_TEXT",
+      "REMINDER_ID",
+      "REMINDER_TIME",
+      "REMINDER_DELETE",
+      "ACTION_REMINDER_DELETED",
+      "SET_ALARM_NAME",
+      "GET_ALARM_NAME[9]",
+      "TIMER_WIDGET",
+      "TIMER_WIDGET_TARGET_TIME",
+      "TIMER_WIDGET_NAME",
+      "HIGHLIGHT_WIDGET",
+      "HIGHLIGHT_WIDGET_PRIMARY",
+      "HIGHLIGHT_WIDGET_SECONDARY",
+      "QUICK_LAUNCH_BEHAVIOUR",
+      "TIMER_VIBE_PATTERN",
+      "ALARM_VIBE_PATTERN",
+      "COBBLE_WARNING",
+      "IMAGE_WIDTH",
+      "IMAGE_HEIGHT",
+      "IMAGE_START_BYTE_SIZE",
+      "IMAGE_CHUNK_OFFSET",
+      "IMAGE_CHUNK_DATA",
+      "IMAGE_COMPLETE",
+      "IMAGE_ID",
+      "MAP_WIDGET",
+      "MAP_WIDGET_IMAGE_ID",
+      "MAP_WIDGET_USER_LOCATION",
+      "CONFIRM_TRANSCRIPTS",
+      "ACTION_SETTINGS_UPDATED"
+    ],
+    "resources": {
+      "media": [
+        {
+          "file": "images_icons_menu_icon_default.png",
+          "menuIcon": true,
+          "name": "IMAGE_MENU_ICON",
+          "type": "bitmap"
+        },
+        {
+          "file": "images_icons_question_icon.png",
+          "name": "QUESTION_ICON",
+          "type": "bitmap"
+        },
+        {
+          "file": "images_icons_dictation_icon.png",
+          "name": "DICTATION_ICON",
+          "type": "bitmap"
+        },
+        {
+          "file": "images_icons_more_icon.png",
+          "name": "MORE_ICON",
+          "type": "bitmap"
+        },
+        {
+          "file": "images_button_indicator.png",
+          "name": "BUTTON_INDICATOR",
+          "type": "bitmap"
+        },
+        {
+          "file": "images_root_screen_pony.pdc",
+          "name": "ROOT_SCREEN_PONY",
+          "type": "raw"
+        },
+        {
+          "file": "images_sleeping_pony.pdc",
+          "name": "SLEEPING_PONY",
+          "type": "raw"
+        },
+        {
+          "file": "icons_clock.pdc",
+          "name": "CLOCK_ICON",
+          "type": "raw"
+        },
+        {
+          "file": "icons_cog.pdc",
+          "name": "COG_ICON",
+          "type": "raw"
+        },
+        {
+          "file": "icons_lightbulb.pdc",
+          "name": "LIGHTBULB_ICON",
+          "type": "raw"
+        },
+        {
+          "file": "icons_reminder.pdc",
+          "name": "REMINDER_ICON",
+          "type": "raw"
+        },
+        {
+          "file": "icons_skull.pdc",
+          "name": "SKULL_ICON",
+          "type": "raw"
+        },
+        {
+          "file": "icons_timer.pdc",
+          "name": "TIMER_ICON",
+          "type": "raw"
+        },
+        {
+          "file": "animations_tired_pony.pdcs",
+          "name": "TIRED_PONY",
+          "type": "raw"
+        },
+        {
+          "file": "animations_running_pony.pdcs",
+          "name": "RUNNING_PONY",
+          "type": "raw"
+        },
+        {
+          "file": "images_icons_action_bar_snooze.png",
+          "name": "ACTION_BAR_SNOOZE",
+          "type": "bitmap"
+        },
+        {
+          "file": "images_icons_action_bar_x.png",
+          "name": "ACTION_BAR_X",
+          "type": "bitmap"
+        },
+        {
+          "file": "images_failed_pony.pdc",
+          "name": "FAILED_PONY",
+          "type": "raw"
+        },
+        {
+          "file": "text_legal.txt",
+          "name": "LEGAL_TEXT",
+          "type": "raw"
+        },
+        {
+          "file": "text_about.txt",
+          "name": "ABOUT_TEXT",
+          "type": "raw"
+        },
+        {
+          "file": "text_openclaw_consent.txt",
+          "name": "OPENCLAW_CONSENT_TEXT",
+          "type": "raw"
+        },
+        {
+          "file": "text_llm_warning.txt",
+          "name": "LLM_WARNING_TEXT",
+          "type": "raw"
+        },
+        {
+          "file": "text_location_consent.txt",
+          "name": "LOCATION_CONSENT_TEXT",
+          "type": "raw"
+        },
+        {
+          "file": "text_sample_prompts.txt",
+          "name": "SAMPLE_PROMPTS",
+          "type": "raw"
+        },
+        {
+          "file": "weather_medium_generic.pdc",
+          "name": "WEATHER_MEDIUM_GENERIC",
+          "type": "raw"
+        },
+        {
+          "file": "weather_medium_heavy_rain.pdc",
+          "name": "WEATHER_MEDIUM_HEAVY_RAIN",
+          "type": "raw"
+        },
+        {
+          "file": "weather_medium_heavy_snow.pdc",
+          "name": "WEATHER_MEDIUM_HEAVY_SNOW",
+          "type": "raw"
+        },
+        {
+          "file": "weather_medium_light_rain.pdc",
+          "name": "WEATHER_MEDIUM_LIGHT_RAIN",
+          "type": "raw"
+        },
+        {
+          "file": "weather_medium_light_snow.pdc",
+          "name": "WEATHER_MEDIUM_LIGHT_SNOW",
+          "type": "raw"
+        },
+        {
+          "file": "weather_medium_partly_cloudy.pdc",
+          "name": "WEATHER_MEDIUM_PARTLY_CLOUDY",
+          "type": "raw"
+        },
+        {
+          "file": "weather_medium_cloudy.pdc",
+          "name": "WEATHER_MEDIUM_CLOUDY",
+          "type": "raw"
+        },
+        {
+          "file": "weather_medium_sunny.pdc",
+          "name": "WEATHER_MEDIUM_SUNNY",
+          "type": "raw"
+        },
+        {
+          "file": "weather_small_generic.pdc",
+          "name": "WEATHER_SMALL_GENERIC",
+          "type": "raw"
+        },
+        {
+          "file": "weather_small_heavy_rain.pdc",
+          "name": "WEATHER_SMALL_HEAVY_RAIN",
+          "type": "raw"
+        },
+        {
+          "file": "weather_small_heavy_snow.pdc",
+          "name": "WEATHER_SMALL_HEAVY_SNOW",
+          "type": "raw"
+        },
+        {
+          "file": "weather_small_light_rain.pdc",
+          "name": "WEATHER_SMALL_LIGHT_RAIN",
+          "type": "raw"
+        },
+        {
+          "file": "weather_small_light_snow.pdc",
+          "name": "WEATHER_SMALL_LIGHT_SNOW",
+          "type": "raw"
+        },
+        {
+          "file": "weather_small_partly_cloudy.pdc",
+          "name": "WEATHER_SMALL_PARTLY_CLOUDY",
+          "type": "raw"
+        },
+        {
+          "file": "weather_small_cloudy.pdc",
+          "name": "WEATHER_SMALL_CLOUDY",
+          "type": "raw"
+        },
+        {
+          "file": "weather_small_sunny.pdc",
+          "name": "WEATHER_SMALL_SUNNY",
+          "type": "raw"
+        },
+        {
+          "file": "images_icons_menu_about.png",
+          "name": "MENU_ICON_ABOUT",
+          "type": "bitmap",
+          "targetPlatforms": [
+            "basalt",
+            "emery"
+          ]
+        },
+        {
+          "file": "images_icons_menu_about_bw.png",
+          "name": "MENU_ICON_ABOUT",
+          "type": "bitmap",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "diorite"
+          ]
+        },
+        {
+          "file": "images_icons_menu_alarms.png",
+          "name": "MENU_ICON_ALARMS",
+          "type": "bitmap",
+          "targetPlatforms": [
+            "basalt",
+            "emery"
+          ]
+        },
+        {
+          "file": "images_icons_menu_alarms_bw.png",
+          "name": "MENU_ICON_ALARMS",
+          "type": "bitmap",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "diorite"
+          ]
+        },
+        {
+          "file": "images_icons_menu_reminders.png",
+          "name": "MENU_ICON_REMINDERS",
+          "type": "bitmap",
+          "targetPlatforms": [
+            "basalt",
+            "emery"
+          ]
+        },
+        {
+          "file": "images_icons_menu_reminders_bw.png",
+          "name": "MENU_ICON_REMINDERS",
+          "type": "bitmap",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "diorite"
+          ]
+        },
+        {
+          "file": "images_icons_menu_timers.png",
+          "name": "MENU_ICON_TIMERS",
+          "type": "bitmap",
+          "targetPlatforms": [
+            "basalt",
+            "emery"
+          ]
+        },
+        {
+          "file": "images_icons_menu_timers_bw.png",
+          "name": "MENU_ICON_TIMERS",
+          "type": "bitmap",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "diorite"
+          ]
+        },
+        {
+          "file": "vibes_haptic_feedback.vibe",
+          "name": "VIBE_HAPTIC_FEEDBACK",
+          "type": "raw"
+        },
+        {
+          "file": "vibes_jackhammer.vibe",
+          "name": "VIBE_JACKHAMMER",
+          "type": "raw"
+        },
+        {
+          "file": "vibes_mario.vibe",
+          "name": "VIBE_MARIO",
+          "type": "raw"
+        },
+        {
+          "file": "vibes_nudge_nudge.vibe",
+          "name": "VIBE_NUDGE_NUDGE",
+          "type": "raw"
+        },
+        {
+          "file": "vibes_reveille.vibe",
+          "name": "VIBE_REVEILLE",
+          "type": "raw"
+        },
+        {
+          "file": "vibes_standard_long_high.vibe",
+          "name": "VIBE_STANDARD",
+          "type": "raw"
+        },
+        {
+          "file": "images_fence_pony_color.png",
+          "name": "FENCE_PONY_BITMAP",
+          "type": "bitmap",
+          "memoryFormat": "2BitPalette",
+          "targetPlatforms": [
+            "basalt",
+            "emery"
+          ]
+        },
+        {
+          "file": "images_fence_pony_bw.png",
+          "name": "FENCE_PONY_BITMAP",
+          "type": "bitmap",
+          "memoryFormat": "1BitPalette",
+          "targetPlatforms": [
+            "diorite"
+          ]
+        },
+        {
+          "file": "images_skull.pdc",
+          "name": "IMAGE_SKULL",
+          "type": "raw"
+        },
+        {
+          "file": "text_changelog_1.4.txt",
+          "name": "CHANGELOG_1_4",
+          "type": "raw"
+        }
+      ]
+    }
+  }
+}

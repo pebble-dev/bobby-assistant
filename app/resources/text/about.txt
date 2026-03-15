@@ -1,8 +1,0 @@
-# Bobby
-## Version %d.%d
-The Rebble AI Assistant Pony
-
-## Programming
-Katharine Berry
-## Iconography
-Stasia Michalska <lcp.world>
