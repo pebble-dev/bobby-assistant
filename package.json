@@ -7,9 +7,14 @@
   ],
   "private": true,
   "dependencies": {
+    "buffer": "^6.0.3",
+    "events": "^3.3.0",
     "pebble-clay": "^1.0.4",
     "pebble-events": "^1.2.0",
-    "telegram": "^2.26.22"
+    "process": "^0.11.10",
+    "stream-browserify": "^3.0.0",
+    "telegram": "^2.26.22",
+    "util": "^0.12.5"
   },
   "pebble": {
     "displayName": "Clawd",
