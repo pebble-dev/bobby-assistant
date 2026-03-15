@@ -177,6 +177,34 @@
             },
             {
                 "type": "button",
+                "id": "qrLoginBtn",
+                "messageKey": "TELEGRAM_QR_LOGIN",
+                "defaultValue": "Login with QR Code"
+            },
+            {
+                "type": "text",
+                "id": "qrCodeDisplay",
+                "label": "QR Code",
+                "defaultValue": ""
+            },
+            {
+                "type": "text",
+                "id": "telegramPhone",
+                "messageKey": "TELEGRAM_PHONE",
+                "label": "Phone Number (alternative)",
+                "description": "Or enter your Telegram phone number in international format (e.g., +1234567890)",
+                "defaultValue": ""
+            },
+            {
+                "type": "text",
+                "id": "telegramCode",
+                "messageKey": "TELEGRAM_CODE",
+                "label": "Verification Code",
+                "description": "Enter the code sent to your Telegram app after clicking 'Send Code'",
+                "defaultValue": ""
+            },
+            {
+                "type": "button",
                 "id": "sendCodeBtn",
                 "messageKey": "TELEGRAM_SEND_CODE",
                 "defaultValue": "Send Code"
