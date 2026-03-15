@@ -1,0 +1,13 @@
+{
+  "comments": "Haptic Feedback",
+  "notes": [
+    {
+      "id": "medium_pulse",
+      "vibe_duration_ms": 30,
+      "brake_duration_ms": 18,
+      "strength": 100
+    }
+  ],
+  "pattern": ["medium_pulse"],
+  "repeat_delay_ms": 0
+}

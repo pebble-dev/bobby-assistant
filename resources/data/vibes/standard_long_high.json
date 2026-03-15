@@ -1,0 +1,13 @@
+{
+  "comments": "Standard (Long Pulse) - High",
+  "notes": [
+    {
+      "id": "long_pulse",
+      "vibe_duration_ms": 500,
+      "brake_duration_ms": 0,
+      "strength": 100
+    }
+  ],
+  "pattern": ["long_pulse"],
+  "repeat_delay_ms": 1000
+}

@@ -1,0 +1,20 @@
+{
+  "comments": "Jackhammer",
+  "notes": [
+    {
+      "id": "forward_backward",
+      "vibe_duration_ms": 50,
+      "brake_duration_ms": 50,
+      "strength": 100
+    },
+    {
+      "id": "sleep_500ms",
+      "vibe_duration_ms": 500,
+      "brake_duration_ms": 0,
+      "strength": 0
+    }
+  ],
+  "pattern": ["forward_backward", "forward_backward", "forward_backward",
+              "forward_backward", "forward_backward", "forward_backward"],
+  "repeat_delay_ms": 1000
+}

@@ -1,0 +1,9 @@
+Clawd connects to your OpenClaw bot via Telegram to process requests.
+
+Important:
+- All your messages and requests are sent through Telegram to your OpenClaw instance
+- This app does not control the OpenClaw server - it is self-hosted by you or a third party
+- Data handling, retention, and privacy depend on your OpenClaw configuration
+- Your Telegram account and OpenClaw bot username are stored locally on this device
+
+By continuing to use Clawd, you agree to these terms.
