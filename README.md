@@ -26,7 +26,6 @@ OpenClaw instances behind home firewalls.
   - Alarms and timers
   - Reminders
   - Time zone lookups
-  - Wikipedia lookups
 - Session stored in localStorage
 - No backend required
 
@@ -70,23 +69,23 @@ You can use shared API credentials (built into the app) or get your own from
 ### Project Structure
 
 ```
-app/
-├── src/
-│   ├── pkjs/           # Phone app JavaScript
-│   │   ├── telegram/   # Telegram MTProto client
-│   │   ├── tools/     # Tool definitions and execution
-│   │   ├── actions/   # Action handlers (alarms, reminders)
-│   │   └── session.js # Main session management
-│   └── pkjs/          # Watch app C code
-└── package.json
+src/
+├── c/                 # Watch app C code
+├── pkjs/              # Phone app JavaScript
+│   ├── telegram/      # Telegram MTProto client
+│   ├── tools/         # Tool definitions and execution
+│   ├── actions/       # Action handlers (alarms, reminders)
+│   └── session.js     # Main session management
+resources/             # Watch app resources (icons, images, etc.)
+package.json           # Pebble app configuration
 ```
 
 ### Key Files
 
-- `app/src/pkjs/telegram/` - GramJS-based Telegram client
-- `app/src/pkjs/tools/` - OpenAI-format tool definitions and local execution
-- `app/src/pkjs/session.js` - Session management and OpenClaw communication
-- `app/src/pkjs/config.json` - Settings UI configuration
+- `src/pkjs/telegram/` - GramJS-based Telegram client
+- `src/pkjs/tools/` - OpenAI-format tool definitions and local execution
+- `src/pkjs/session.js` - Session management and OpenClaw communication
+- `src/pkjs/config.json` - Settings UI configuration
 
 ## Tool Execution
 
