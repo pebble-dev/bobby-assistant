@@ -100,208 +100,208 @@
     "resources": {
       "media": [
         {
-          "file": "images/icons/menu_icon_default.png",
+          "file": "images_icons_menu_icon_default.png",
           "menuIcon": true,
           "name": "IMAGE_MENU_ICON",
           "type": "bitmap"
         },
         {
-          "file": "images/icons/question_icon.png",
+          "file": "images_icons_question_icon.png",
           "name": "QUESTION_ICON",
           "type": "bitmap"
         },
         {
-          "file": "images/icons/dictation_icon.png",
+          "file": "images_icons_dictation_icon.png",
           "name": "DICTATION_ICON",
           "type": "bitmap"
         },
         {
-          "file": "images/icons/more_icon.png",
+          "file": "images_icons_more_icon.png",
           "name": "MORE_ICON",
           "type": "bitmap"
         },
         {
-          "file": "images/button_indicator.png",
+          "file": "images_button_indicator.png",
           "name": "BUTTON_INDICATOR",
           "type": "bitmap"
         },
         {
-          "file": "data/images/root_screen/pony.pdc",
+          "file": "images_root_screen_pony.pdc",
           "name": "ROOT_SCREEN_PONY",
           "type": "raw"
         },
         {
-          "file": "data/images/sleeping_pony.pdc",
+          "file": "images_sleeping_pony.pdc",
           "name": "SLEEPING_PONY",
           "type": "raw"
         },
         {
-          "file": "icons/clock.pdc",
+          "file": "icons_clock.pdc",
           "name": "CLOCK_ICON",
           "type": "raw"
         },
         {
-          "file": "icons/cog.pdc",
+          "file": "icons_cog.pdc",
           "name": "COG_ICON",
           "type": "raw"
         },
         {
-          "file": "icons/lightbulb.pdc",
+          "file": "icons_lightbulb.pdc",
           "name": "LIGHTBULB_ICON",
           "type": "raw"
         },
         {
-          "file": "icons/reminder.pdc",
+          "file": "icons_reminder.pdc",
           "name": "REMINDER_ICON",
           "type": "raw"
         },
         {
-          "file": "icons/skull.pdc",
+          "file": "icons_skull.pdc",
           "name": "SKULL_ICON",
           "type": "raw"
         },
         {
-          "file": "icons/timer.pdc",
+          "file": "icons_timer.pdc",
           "name": "TIMER_ICON",
           "type": "raw"
         },
         {
-          "file": "data/animations/tired_pony.pdcs",
+          "file": "animations_tired_pony.pdcs",
           "name": "TIRED_PONY",
           "type": "raw"
         },
         {
-          "file": "data/animations/running_pony.pdcs",
+          "file": "animations_running_pony.pdcs",
           "name": "RUNNING_PONY",
           "type": "raw"
         },
         {
-          "file": "images/icons/action_bar_snooze.png",
+          "file": "images_icons_action_bar_snooze.png",
           "name": "ACTION_BAR_SNOOZE",
           "type": "bitmap"
         },
         {
-          "file": "images/icons/action_bar_x.png",
+          "file": "images_icons_action_bar_x.png",
           "name": "ACTION_BAR_X",
           "type": "bitmap"
         },
         {
-          "file": "data/images/failed_pony.pdc",
+          "file": "images_failed_pony.pdc",
           "name": "FAILED_PONY",
           "type": "raw"
         },
         {
-          "file": "data/text/legal.txt",
+          "file": "text_legal.txt",
           "name": "LEGAL_TEXT",
           "type": "raw"
         },
         {
-          "file": "data/text/about.txt",
+          "file": "text_about.txt",
           "name": "ABOUT_TEXT",
           "type": "raw"
         },
         {
-          "file": "data/text/openclaw_consent.txt",
+          "file": "text_openclaw_consent.txt",
           "name": "OPENCLAW_CONSENT_TEXT",
           "type": "raw"
         },
         {
-          "file": "data/text/llm_warning.txt",
+          "file": "text_llm_warning.txt",
           "name": "LLM_WARNING_TEXT",
           "type": "raw"
         },
         {
-          "file": "data/text/location_consent.txt",
+          "file": "text_location_consent.txt",
           "name": "LOCATION_CONSENT_TEXT",
           "type": "raw"
         },
         {
-          "file": "data/text/sample_prompts.txt",
+          "file": "text_sample_prompts.txt",
           "name": "SAMPLE_PROMPTS",
           "type": "raw"
         },
         {
-          "file": "weather/medium/generic.pdc",
+          "file": "weather_medium_generic.pdc",
           "name": "WEATHER_MEDIUM_GENERIC",
           "type": "raw"
         },
         {
-          "file": "weather/medium/heavy_rain.pdc",
+          "file": "weather_medium_heavy_rain.pdc",
           "name": "WEATHER_MEDIUM_HEAVY_RAIN",
           "type": "raw"
         },
         {
-          "file": "weather/medium/heavy_snow.pdc",
+          "file": "weather_medium_heavy_snow.pdc",
           "name": "WEATHER_MEDIUM_HEAVY_SNOW",
           "type": "raw"
         },
         {
-          "file": "weather/medium/light_rain.pdc",
+          "file": "weather_medium_light_rain.pdc",
           "name": "WEATHER_MEDIUM_LIGHT_RAIN",
           "type": "raw"
         },
         {
-          "file": "weather/medium/light_snow.pdc",
+          "file": "weather_medium_light_snow.pdc",
           "name": "WEATHER_MEDIUM_LIGHT_SNOW",
           "type": "raw"
         },
         {
-          "file": "weather/medium/partly_cloudy.pdc",
+          "file": "weather_medium_partly_cloudy.pdc",
           "name": "WEATHER_MEDIUM_PARTLY_CLOUDY",
           "type": "raw"
         },
         {
-          "file": "weather/medium/cloudy.pdc",
+          "file": "weather_medium_cloudy.pdc",
           "name": "WEATHER_MEDIUM_CLOUDY",
           "type": "raw"
         },
         {
-          "file": "weather/medium/sunny.pdc",
+          "file": "weather_medium_sunny.pdc",
           "name": "WEATHER_MEDIUM_SUNNY",
           "type": "raw"
         },
         {
-          "file": "weather/small/generic.pdc",
+          "file": "weather_small_generic.pdc",
           "name": "WEATHER_SMALL_GENERIC",
           "type": "raw"
         },
         {
-          "file": "weather/small/heavy_rain.pdc",
+          "file": "weather_small_heavy_rain.pdc",
           "name": "WEATHER_SMALL_HEAVY_RAIN",
           "type": "raw"
         },
         {
-          "file": "weather/small/heavy_snow.pdc",
+          "file": "weather_small_heavy_snow.pdc",
           "name": "WEATHER_SMALL_HEAVY_SNOW",
           "type": "raw"
         },
         {
-          "file": "weather/small/light_rain.pdc",
+          "file": "weather_small_light_rain.pdc",
           "name": "WEATHER_SMALL_LIGHT_RAIN",
           "type": "raw"
         },
         {
-          "file": "weather/small/light_snow.pdc",
+          "file": "weather_small_light_snow.pdc",
           "name": "WEATHER_SMALL_LIGHT_SNOW",
           "type": "raw"
         },
         {
-          "file": "weather/small/partly_cloudy.pdc",
+          "file": "weather_small_partly_cloudy.pdc",
           "name": "WEATHER_SMALL_PARTLY_CLOUDY",
           "type": "raw"
         },
         {
-          "file": "weather/small/cloudy.pdc",
+          "file": "weather_small_cloudy.pdc",
           "name": "WEATHER_SMALL_CLOUDY",
           "type": "raw"
         },
         {
-          "file": "weather/small/sunny.pdc",
+          "file": "weather_small_sunny.pdc",
           "name": "WEATHER_SMALL_SUNNY",
           "type": "raw"
         },
         {
-          "file": "images/icons/menu_about.png",
+          "file": "images_icons_menu_about.png",
           "name": "MENU_ICON_ABOUT",
           "type": "bitmap",
           "targetPlatforms": [
@@ -309,7 +309,7 @@
           ]
         },
         {
-          "file": "images/icons/menu_about_bw.png",
+          "file": "images_icons_menu_about_bw.png",
           "name": "MENU_ICON_ABOUT",
           "type": "bitmap",
           "memoryFormat": "1Bit",
@@ -318,7 +318,7 @@
           ]
         },
         {
-          "file": "images/icons/menu_alarms.png",
+          "file": "images_icons_menu_alarms.png",
           "name": "MENU_ICON_ALARMS",
           "type": "bitmap",
           "targetPlatforms": [
@@ -326,7 +326,7 @@
           ]
         },
         {
-          "file": "images/icons/menu_alarms_bw.png",
+          "file": "images_icons_menu_alarms_bw.png",
           "name": "MENU_ICON_ALARMS",
           "type": "bitmap",
           "memoryFormat": "1Bit",
@@ -335,7 +335,7 @@
           ]
         },
         {
-          "file": "images/icons/menu_reminders.png",
+          "file": "images_icons_menu_reminders.png",
           "name": "MENU_ICON_REMINDERS",
           "type": "bitmap",
           "targetPlatforms": [
@@ -343,7 +343,7 @@
           ]
         },
         {
-          "file": "images/icons/menu_reminders_bw.png",
+          "file": "images_icons_menu_reminders_bw.png",
           "name": "MENU_ICON_REMINDERS",
           "type": "bitmap",
           "memoryFormat": "1Bit",
@@ -352,7 +352,7 @@
           ]
         },
         {
-          "file": "images/icons/menu_timers.png",
+          "file": "images_icons_menu_timers.png",
           "name": "MENU_ICON_TIMERS",
           "type": "bitmap",
           "targetPlatforms": [
@@ -360,7 +360,7 @@
           ]
         },
         {
-          "file": "images/icons/menu_timers_bw.png",
+          "file": "images_icons_menu_timers_bw.png",
           "name": "MENU_ICON_TIMERS",
           "type": "bitmap",
           "memoryFormat": "1Bit",
@@ -369,37 +369,37 @@
           ]
         },
         {
-          "file": "data/vibes/haptic_feedback.vibe",
+          "file": "vibes_haptic_feedback.vibe",
           "name": "VIBE_HAPTIC_FEEDBACK",
           "type": "raw"
         },
         {
-          "file": "data/vibes/jackhammer.vibe",
+          "file": "vibes_jackhammer.vibe",
           "name": "VIBE_JACKHAMMER",
           "type": "raw"
         },
         {
-          "file": "data/vibes/mario.vibe",
+          "file": "vibes_mario.vibe",
           "name": "VIBE_MARIO",
           "type": "raw"
         },
         {
-          "file": "data/vibes/nudge_nudge.vibe",
+          "file": "vibes_nudge_nudge.vibe",
           "name": "VIBE_NUDGE_NUDGE",
           "type": "raw"
         },
         {
-          "file": "data/vibes/reveille.vibe",
+          "file": "vibes_reveille.vibe",
           "name": "VIBE_REVEILLE",
           "type": "raw"
         },
         {
-          "file": "data/vibes/standard_long_high.vibe",
+          "file": "vibes_standard_long_high.vibe",
           "name": "VIBE_STANDARD",
           "type": "raw"
         },
         {
-          "file": "images/fence_pony_color.png",
+          "file": "images_fence_pony_color.png",
           "name": "FENCE_PONY_BITMAP",
           "type": "bitmap",
           "memoryFormat": "2BitPalette",
@@ -408,7 +408,7 @@
           ]
         },
         {
-          "file": "images/fence_pony_bw.png",
+          "file": "images_fence_pony_bw.png",
           "name": "FENCE_PONY_BITMAP",
           "type": "bitmap",
           "memoryFormat": "1BitPalette",
@@ -417,12 +417,12 @@
           ]
         },
         {
-          "file": "data/images/skull.pdc",
+          "file": "images_skull.pdc",
           "name": "IMAGE_SKULL",
           "type": "raw"
         },
         {
-          "file": "data/text/changelog/1.4.txt",
+          "file": "text_changelog_1.4.txt",
           "name": "CHANGELOG_1_4",
           "type": "raw"
         }
