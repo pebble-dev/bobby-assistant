@@ -166,12 +166,12 @@
           "type": "raw"
         },
         {
-          "file": "animations/tired_pony.pdcs",
+          "file": "data/animations/tired_pony.pdcs",
           "name": "TIRED_PONY",
           "type": "raw"
         },
         {
-          "file": "animations/running_pony.pdcs",
+          "file": "data/animations/running_pony.pdcs",
           "name": "RUNNING_PONY",
           "type": "raw"
         },
