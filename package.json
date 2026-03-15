@@ -301,11 +301,6 @@
           "type": "raw"
         },
         {
-          "file": "images/sent.pdc",
-          "name": "SENT_IMAGE",
-          "type": "raw"
-        },
-        {
           "file": "icons/menu_about.png",
           "name": "MENU_ICON_ABOUT",
           "type": "bitmap",
@@ -333,23 +328,6 @@
         {
           "file": "icons/menu_alarms_bw.png",
           "name": "MENU_ICON_ALARMS",
-          "type": "bitmap",
-          "memoryFormat": "1Bit",
-          "targetPlatforms": [
-            "diorite"
-          ]
-        },
-        {
-          "file": "icons/menu_legal.png",
-          "name": "MENU_ICON_LEGAL",
-          "type": "bitmap",
-          "targetPlatforms": [
-            "basalt"
-          ]
-        },
-        {
-          "file": "icons/menu_legal_bw.png",
-          "name": "MENU_ICON_LEGAL",
           "type": "bitmap",
           "memoryFormat": "1Bit",
           "targetPlatforms": [
