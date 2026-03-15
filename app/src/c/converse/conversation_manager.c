@@ -200,12 +200,6 @@ static void prv_handle_app_message_inbox_received(DictionaryIterator *iter, void
         .action = {},
       };
       conversation_manager_add_action(manager, &action);
-    } else if (tuple->key == MESSAGE_KEY_ACTION_FEEDBACK_SENT) {
-      ConversationAction action = {
-        .type = ConversationActionTypeSendFeedback,
-        .action = {}
-      };
-      conversation_manager_add_action(manager, &action);
     } else if (tuple->key == MESSAGE_KEY_ACTION_SETTINGS_UPDATED) {
       char *sentence = bmalloc(strlen(tuple->value->cstring) + 1);
       strcpy(sentence, tuple->value->cstring);

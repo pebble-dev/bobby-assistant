@@ -31,8 +31,6 @@
 
 #include <pebble.h>
 
-#include "report_window.h"
-
 #define PADDING 5
 
 struct SessionWindow {
@@ -78,7 +76,6 @@ static void prv_timed_out(void *ctx);
 static void prv_cancel_timeout(SessionWindow* sw);
 static void prv_action_menu_query(ActionMenu *action_menu, const ActionMenuItem *action, void *context);
 static void prv_action_menu_input(ActionMenu *action_menu, const ActionMenuItem *action, void *context);
-static void prv_action_menu_report_thread(ActionMenu *action_menu, const ActionMenuItem *action, void *context);
 static void prv_start_dictation(SessionWindow *sw);
 
 void session_window_push(int timeout, char *starting_prompt) {
@@ -464,7 +461,6 @@ static void prv_select_long_pressed(ClickRecognizerRef recognizer, void *context
   }
   action_menu_level_add_action(action_menu, "Dictate", prv_action_menu_query, NULL);
   action_menu_level_set_separator_index(action_menu, separator_index);
-  action_menu_level_add_action(action_menu, "Report conversation", prv_action_menu_report_thread, NULL);
   ActionMenuConfig config = (ActionMenuConfig) {
     .root_level = action_menu,
     .colors = {
@@ -492,11 +488,6 @@ static void prv_action_menu_input(ActionMenu *action_menu, const ActionMenuItem 
   const char* input = action_menu_item_get_action_data(action);
   conversation_manager_add_input(sw->manager, input);
   sw->query_time = time(NULL);
-}
-
-static void prv_action_menu_report_thread(ActionMenu *action_menu, const ActionMenuItem *action, void *context) {
-  SessionWindow* sw = context;
-  report_window_push(conversation_get_thread_id(conversation_manager_get_conversation(sw->manager)));
 }
 
 static void prv_scrolled_handler(ScrollLayer* scroll_layer, void* context) {

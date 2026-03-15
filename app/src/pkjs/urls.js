@@ -21,31 +21,11 @@
  */
 
 // No backend URLs needed - direct Telegram communication
-// These are kept for backwards compatibility but are not used
 exports.QUERY_URL = '';
-exports.QUOTA_URL = '';
-exports.FEEDBACK_URL = '';
-exports.REPORT_URL = '';
-
-// Telegram auth URLs - no longer needed, auth is handled client-side
-exports.TELEGRAM_AUTH_START_URL = '';
-exports.TELEGRAM_AUTH_STATUS_URL = '';
-exports.TELEGRAM_AUTH_CHECK_URL = '';
-exports.TELEGRAM_AUTH_LOGOUT_URL = '';
-exports.TELEGRAM_SET_BOT_URL = '';
 
 // URL overrides (for development/testing)
 var override = require('./urls_override');
 
 if (override.QUERY_URL) {
     exports.QUERY_URL = override.QUERY_URL;
-}
-if (override.QUOTA_URL) {
-    exports.QUOTA_URL = override.QUOTA_URL;
-}
-if (override.FEEDBACK_URL) {
-    exports.FEEDBACK_URL = override.FEEDBACK_URL;
-}
-if (override.REPORT_URL) {
-    exports.REPORT_URL = override.REPORT_URL;
 }

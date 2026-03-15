@@ -14,5 +14,5 @@
  * limitations under the License.
  */
 
-// You can set exports.QUERY_URL or exports.QUOTA_URL in this file to override them without
+// You can set exports.QUERY_URL in this file to override it without
 // needing to edit the main urls.js.

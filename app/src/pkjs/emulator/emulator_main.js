@@ -1,9 +1,7 @@
 var location = require("../location");
 var reminders = require("../reminders");
 var emulatorSession = require("./emulator_session");
-var quota = require("../quota");
 var config = require("../config");
-var feedback = require("../lib/feedback");
 
 function main() {
     location.update();
@@ -26,10 +24,6 @@ function handleAppMessage(e) {
         return;
     }
 
-    if (data.QUOTA_REQUEST) {
-        console.log("Requesting quota...");
-        quota.handleQuotaRequest();
-    }
     if ('LOCATION_ENABLED' in data) {
         config.setSetting("LOCATION_ENABLED", !!data.LOCATION_ENABLED);
         console.log("Location enabled: " + config.isLocationEnabled());
@@ -37,14 +31,6 @@ function handleAppMessage(e) {
         Pebble.sendAppMessage({
             LOCATION_ENABLED: data.LOCATION_ENABLED,
         });
-    }
-    if ('FEEDBACK_TEXT' in data) {
-        console.log("Handling feedback...");
-        feedback.handleFeedbackRequest(data);
-    }
-    if ('REPORT_THREAD_UUID' in data) {
-        console.log("Handling report...");
-        feedback.handleReportRequest(data);
     }
 }
 

@@ -50,8 +50,6 @@ add_executable(tiny_assistant_app
         src/c/assistant.c
         src/c/root_window.c
         src/c/menus/root_menu.c
-        src/c/menus/quota_window.c
-        src/c/menus/usage_layer.c
         src/c/menus/alarm_menu.c
         src/c/menus/alarm_menu.h
         src/c/menus/legal_window.c
@@ -70,12 +68,10 @@ add_executable(tiny_assistant_app
         src/c/util/time.c
         src/c/converse/segments/widgets/timer.c
         src/c/converse/segments/widgets/number.c
-        src/c/menus/feedback_window.c
         src/c/settings/settings.c
         src/c/vibes/sad_vibe_score.c
         src/c/util/formatted_text_layer.c
         src/c/menus/about_window.c
-        src/c/converse/report_window.c
         src/c/vibes/haptic_feedback.c
         src/c/util/action_menu_crimes.c
         src/c/image_manager/image_manager.c

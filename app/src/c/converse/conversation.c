@@ -98,7 +98,6 @@ void prv_destroy_entry(ConversationEntry *entry) {
           break;
         case ConversationActionTypeSetReminder:
         case ConversationActionTypeDeleteReminder:
-        case ConversationActionTypeSendFeedback:
         case ConversationActionTypeUpdateChecklist:
           // These have nothing to clean up.
           break;

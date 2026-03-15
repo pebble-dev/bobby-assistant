@@ -201,9 +201,6 @@ static char* prv_generate_action_text(ConversationAction* action) {
     case ConversationActionTypeDeleteReminder:
       strncpy(buffer, "Reminder deleted.", 50);
       break;
-    case ConversationActionTypeSendFeedback:
-      strncpy(buffer, "Feedback sent.", 50);
-      break;
     case ConversationActionTypeUpdateChecklist:
       strncpy(buffer, "Checklist updated.", 50);
       break;
@@ -233,8 +230,6 @@ static uint32_t prv_get_icon_resource(ConversationEntry* entry) {
         case ConversationActionTypeSetReminder:
         case ConversationActionTypeDeleteReminder:
           return RESOURCE_ID_REMINDER_ICON;
-        case ConversationActionTypeSendFeedback:
-          return RESOURCE_ID_LIGHTBULB_ICON;
         default:
           return RESOURCE_ID_COG_ICON;
       }
