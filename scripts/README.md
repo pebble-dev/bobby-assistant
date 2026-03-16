@@ -5,7 +5,8 @@ This directory contains scripts for building the Telegram/GramJS bundle that's u
 ## Files
 
 - `package.json` - Dependencies needed to build the Telegram bundle
-- `build-gramjs.js` - esbuild script to bundle Telegram with browser polyfills
+- `build-gramjs.js` - Build script using esbuild + Babel
+- `babel.config.json` - Babel configuration for ES5 transpilation
 
 ## Rebuilding the Bundle
 
@@ -21,7 +22,12 @@ This will regenerate `src/pkjs/lib/telegram-bundle.js`.
 
 ## How It Works
 
-The build script uses esbuild to bundle GramJS (the `telegram` npm package) with all necessary browser polyfills. The bundle creates global variables:
+The build process has two steps:
+
+1. **esbuild** - Bundles the `telegram` npm package with browser polyfills
+2. **Babel** - Transpiles to ES5 for compatibility with older JavaScript runtimes
+
+The bundle creates global variables:
 
 - `Telegram` - The main GramJS object
 - `TelegramClient` - The client class
@@ -29,6 +35,10 @@ The build script uses esbuild to bundle GramJS (the `telegram` npm package) with
 - `NewMessage` - Event handler for messages
 
 These globals are used by `src/pkjs/session.js` and `src/pkjs/custom_config.js` to communicate with Telegram.
+
+## Why ES5?
+
+The Pebble app's JavaScript runtime (PebbleKit JS) runs on mobile devices and may have limited ES6+ support. Transpiling to ES5 ensures maximum compatibility.
 
 ## Dependencies
 
