@@ -26,6 +26,7 @@
 #include "../util/logging.h"
 #include "../util/memory/malloc.h"
 #include "../util/memory/sdk.h"
+#include "../util/result_window.h"
 #include "../vibes/haptic_feedback.h"
 #include "../features.h"
 
@@ -79,6 +80,13 @@ static void prv_action_menu_input(ActionMenu *action_menu, const ActionMenuItem 
 static void prv_start_dictation(SessionWindow *sw);
 
 void session_window_push(int timeout, char *starting_prompt) {
+  // Check if Telegram is connected
+  if (!settings_is_telegram_connected()) {
+    // Show error message telling user to configure Telegram
+    result_window_push("Not Connected", "Please configure Telegram in the app settings to use Clawd.", NULL, GColorWhite);
+    return;
+  }
+
   Window *window = bwindow_create();
   SessionWindow *sw = bmalloc(sizeof(SessionWindow));
   memset(sw, 0, sizeof(SessionWindow));
