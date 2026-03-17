@@ -75,35 +75,46 @@ static void prv_window_load(Window* window) {
 #endif
   layer_add_child(root_layer, status_bar_layer_get_layer(data->status_bar));
 
-  data->title_layer = btext_layer_create(GRect(0, 15, bounds.size.w, 35));
+  data->title_layer = btext_layer_create(GRect(5, 15, bounds.size.w - 10, 40));
   text_layer_set_background_color(data->title_layer, GColorClear);
   text_layer_set_font(data->title_layer, fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD));
   text_layer_set_text(data->title_layer, data->title_text);
   text_layer_set_text_alignment(data->title_layer, GTextAlignmentCenter);
+  text_layer_set_overflow_mode(data->title_layer, GTextOverflowModeWordWrap);
   layer_add_child(root_layer, text_layer_get_layer(data->title_layer));
 
-  data->text_layer = btext_layer_create(GRect(0, 50, bounds.size.w, bounds.size.h - 105));
+  // Calculate available height for text (account for status bar, title, and bottom margin)
+  int16_t text_height = bounds.size.h - STATUS_BAR_LAYER_HEIGHT - 60;
+  data->text_layer = btext_layer_create(GRect(5, 55, bounds.size.w - 10, text_height));
   text_layer_set_background_color(data->text_layer, GColorClear);
   text_layer_set_text_alignment(data->text_layer, GTextAlignmentCenter);
-  text_layer_set_font(data->text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
+  text_layer_set_font(data->text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
   text_layer_set_text(data->text_layer, data->text_text);
+  text_layer_set_overflow_mode(data->text_layer, GTextOverflowModeWordWrap);
   layer_add_child(root_layer, text_layer_get_layer(data->text_layer));
 
-  GSize image_size = gdraw_command_image_get_bounds_size(data->image);
-
-  data->image_layer = vector_layer_create(GRect(bounds.size.w / 2 - image_size.w / 2, bounds.size.h - image_size.h - 5, image_size.w, image_size.h));
-  vector_layer_set_vector(data->image_layer, data->image);
-  layer_add_child(root_layer, vector_layer_get_layer(data->image_layer));
+  if (data->image) {
+    GSize image_size = gdraw_command_image_get_bounds_size(data->image);
+    data->image_layer = vector_layer_create(GRect(bounds.size.w / 2 - image_size.w / 2, bounds.size.h - image_size.h - 5, image_size.w, image_size.h));
+    vector_layer_set_vector(data->image_layer, data->image);
+    layer_add_child(root_layer, vector_layer_get_layer(data->image_layer));
+  } else {
+    data->image_layer = NULL;
+  }
 }
 
 static void prv_window_unload(Window* window) {
   ResultWindowData* data = window_get_user_data(window);
   text_layer_destroy(data->title_layer);
   text_layer_destroy(data->text_layer);
-  vector_layer_destroy(data->image_layer);
+  if (data->image_layer) {
+    vector_layer_destroy(data->image_layer);
+  }
+  if (data->image) {
+    gdraw_command_image_destroy(data->image);
+  }
   status_bar_layer_destroy(data->status_bar);
   app_timer_cancel(data->timer);
-  gdraw_command_image_destroy(data->image);
   free(data->title_text);
   free(data->text_text);
   free(data);
