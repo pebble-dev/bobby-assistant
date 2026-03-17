@@ -15,15 +15,7 @@
  */
 
 // Telegram/GramJS bundle - creates global TelegramClient, StringSession, NewMessage
-// Uses eval to prevent webpack 1.x from parsing the bundle (its parser can't handle ES6+)
-(function() {
-    try {
-        var loadBundle = eval('require');
-        loadBundle('./lib/telegram-bundle.js');
-    } catch (e) {
-        console.log('Note: Telegram bundle not loaded in this context');
-    }
-})();
+require('./lib/telegram-bundle.js');
 
 var location = require('./location');
 var session = require('./session');
