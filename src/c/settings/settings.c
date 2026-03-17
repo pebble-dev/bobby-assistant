@@ -19,6 +19,7 @@
 #include <pebble-events/pebble-events.h>
 
 #include "../util/persist_keys.h"
+#include "../util/logging.h"
 
 static EventHandle s_event_handle;
 
@@ -61,6 +62,10 @@ bool settings_get_should_confirm_transcripts() {
   return persist_read_bool(PERSIST_KEY_CONFIRM_TRANSCRIPTS);
 }
 
+bool settings_is_telegram_connected() {
+  return persist_read_bool(PERSIST_KEY_TELEGRAM_CONNECTED);
+}
+
 static void prv_app_message_handler(DictionaryIterator *iter, void *context) {
   for (Tuple *tuple = dict_read_first(iter); tuple; tuple = dict_read_next(iter)) {
     if (tuple->key == MESSAGE_KEY_QUICK_LAUNCH_BEHAVIOUR) {
@@ -72,6 +77,9 @@ static void prv_app_message_handler(DictionaryIterator *iter, void *context) {
       persist_write_int(PERSIST_KEY_TIMER_VIBE_PATTERN, atoi(tuple->value->cstring));
     } else if (tuple->key == MESSAGE_KEY_CONFIRM_TRANSCRIPTS) {
       persist_write_bool(PERSIST_KEY_CONFIRM_TRANSCRIPTS, tuple->value->int8);
+    } else if (tuple->key == MESSAGE_KEY_TELEGRAM_CONNECTED) {
+      persist_write_bool(PERSIST_KEY_TELEGRAM_CONNECTED, tuple->value->int8);
+      CLAWD_LOG(APP_LOG_LEVEL_INFO, "Telegram connected: %s", tuple->value->int8 ? "true" : "false");
     }
   }
 }

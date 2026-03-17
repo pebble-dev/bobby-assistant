@@ -19,6 +19,7 @@ require('./lib/telegram-bundle.js');
 
 var location = require('./location');
 var session = require('./session');
+var telegram = require('./telegram');
 var Clay = require('pebble-clay');
 var clayConfig = require('./config.json');
 var customConfigFunction = require('./custom_config');
@@ -31,7 +32,16 @@ var clay = new Clay(clayConfig, customConfigFunction);
 
 function main() {
     location.update();
+    sendTelegramStatus();
     Pebble.addEventListener('appmessage', handleAppMessage);
+}
+
+function sendTelegramStatus() {
+    var isConnected = telegram.hasSession();
+    console.log('Telegram connected: ' + isConnected);
+    Pebble.sendAppMessage({
+        TELEGRAM_CONNECTED: isConnected ? 1 : 0
+    });
 }
 
 function handleAppMessage(e) {
@@ -87,3 +97,8 @@ Pebble.addEventListener("ready",
         })
     }
 );
+
+// Export function to notify watch of Telegram status changes
+exports.updateTelegramStatus = function() {
+    sendTelegramStatus();
+};

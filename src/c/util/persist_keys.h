@@ -46,4 +46,7 @@
 #define PERSIST_KEY_TIMER_VIBE_PATTERN 11
 #define PERSIST_KEY_CONFIRM_TRANSCRIPTS 13
 
+// Store whether Telegram is connected
+#define PERSIST_KEY_TELEGRAM_CONNECTED 14
+
 #endif //APP_PERSIST_KEYS_H

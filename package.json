@@ -107,7 +107,8 @@
       "MAP_WIDGET_IMAGE_ID",
       "MAP_WIDGET_USER_LOCATION",
       "CONFIRM_TRANSCRIPTS",
-      "ACTION_SETTINGS_UPDATED"
+      "ACTION_SETTINGS_UPDATED",
+      "TELEGRAM_CONNECTED"
     ],
     "resources": {
       "media": [

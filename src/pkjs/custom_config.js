@@ -121,11 +121,25 @@ module.exports = function(minified) {
             var botUsername = getBotUsername();
             setStatus('Connected (' + botUsername + ')');
             hideLoginFields();
+            notifyWatchTelegramStatus(true);
         } else {
             setStatus('Not connected');
             if (disconnectBtn) {
                 disconnectBtn.element.style.display = 'none';
             }
+            notifyWatchTelegramStatus(false);
+        }
+    }
+
+    // Notify watch app of Telegram connection status
+    function notifyWatchTelegramStatus(connected) {
+        try {
+            Pebble.sendAppMessage({
+                TELEGRAM_CONNECTED: connected ? 1 : 0
+            });
+            console.log('Notified watch: Telegram connected = ' + connected);
+        } catch (e) {
+            console.log('Could not notify watch: ' + e.message);
         }
     }
 
@@ -415,6 +429,7 @@ module.exports = function(minified) {
 
         setStatus('Not connected');
         showLoginFields();
+        notifyWatchTelegramStatus(false);
 
         if (qrCodeDisplay) {
             qrCodeDisplay.element.style.display = 'none';
