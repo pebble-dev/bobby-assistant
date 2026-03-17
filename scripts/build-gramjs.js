@@ -10,7 +10,8 @@ const bundlePath = path.join(rootDir, 'src/pkjs/lib/telegram-bundle.js');
 const tempPath = path.join(rootDir, 'src/pkjs/lib/telegram-bundle.temp.js');
 
 esbuild.build({
-    entryPoints: [path.join(__dirname, 'node_modules/telegram/index.js')],
+    // Use minimal entry point for tree-shaking
+    entryPoints: [path.join(__dirname, 'telegram-entry.js')],
     bundle: true,
     format: 'iife',
     globalName: 'Telegram',
@@ -21,6 +22,17 @@ esbuild.build({
     },
     platform: 'browser',
     target: ['es2020'],
+    // Enable tree-shaking
+    treeShaking: true,
+    // Ignore source maps for smaller output
+    sourcemap: false,
+    // Minify identifiers for smaller output (but still readable)
+    minifyIdentifiers: false,
+    minifySyntax: true,
+    // Drop debug info
+    drop: ['debugger'],
+    // Analyze bundle composition (uncomment for debugging)
+    // metafile: true,
     plugins: [
         NodeModulesPolyfillPlugin(),
         NodeGlobalsPolyfillPlugin({
@@ -36,6 +48,15 @@ esbuild.build({
         cwd: __dirname,
         stdio: 'inherit'
     });
+
+    // Prune unused TL schema definitions
+    console.log('Pruning unused TL definitions...');
+    const pruneScript = path.join(__dirname, 'prune-telegram-bundle.js');
+    try {
+        execSync(`node ${pruneScript} ${bundlePath}`, { stdio: 'inherit' });
+    } catch (e) {
+        console.log('Warning: Pruning failed, continuing with full bundle');
+    }
 
     // Prepend banner
     const banner = `// Telegram/GramJS bundle for Clawd
@@ -59,11 +80,11 @@ if (typeof Telegram !== 'undefined') {
     if (typeof TelegramClient === 'undefined' && Telegram.TelegramClient) {
         var TelegramClient = Telegram.TelegramClient;
     }
-    if (typeof StringSession === 'undefined' && Telegram.sessions && Telegram.sessions.StringSession) {
-        var StringSession = Telegram.sessions.StringSession;
+    if (typeof StringSession === 'undefined' && Telegram.StringSession) {
+        var StringSession = Telegram.StringSession;
     }
-    if (typeof NewMessage === 'undefined' && Telegram.events && Telegram.events.NewMessage) {
-        var NewMessage = Telegram.events.NewMessage;
+    if (typeof NewMessage === 'undefined' && Telegram.NewMessage) {
+        var NewMessage = Telegram.NewMessage;
     }
 }
 `;
