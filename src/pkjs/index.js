@@ -82,19 +82,20 @@ Pebble.addEventListener("ready",
         // given how many things bizarrely don't work.
         doCobbleWarning();
         console.log("Clawd " + package_json['version']);
-        if (Pebble.platform === 'pypkjs') {
+
+        // Timeline token only available on real devices, not emulator
+        if (Pebble.platform !== 'pypkjs' && Pebble.getTimelineToken) {
+            Pebble.getTimelineToken(function(token) {
+                session.userToken = token;
+                main();
+            }, function(e) {
+                console.log("Get timeline token failed???", e);
+                main(); // Continue anyway
+            });
+        } else {
             console.log("Entering emulator mode.");
-            var emulator_main = require('./emulator/emulator_main');
-            emulator_main.main();
-            return;
-        }
-        Pebble.getTimelineToken(function(token) {
-            console.log("Entering real mode.");
-            session.userToken = token;
             main();
-        }, function(e) {
-            console.log("Get timeline token failed???", e);
-        })
+        }
     }
 );
 
