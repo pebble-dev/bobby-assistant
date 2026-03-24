@@ -15,12 +15,18 @@
  */
 
 // Telegram/GramJS bundle - creates global TelegramClient, StringSession, NewMessage
-require('./lib/telegram-bundle.js');
+// Set USE_MOCK_TELEGRAM to true to use mock implementation for testing
+var USE_MOCK_TELEGRAM = true;
+if (USE_MOCK_TELEGRAM) {
+    require('./lib/telegram-bundle-mock.js');
+} else {
+    require('./lib/telegram-bundle.js');
+}
 
 var location = require('./location');
 var session = require('./session');
 var telegram = require('./telegram');
-var Clay = require('pebble-clay');
+var Clay = require('@rebble/clay');
 var clayConfig = require('./config.json');
 var customConfigFunction = require('./custom_config');
 var config = require('./config');

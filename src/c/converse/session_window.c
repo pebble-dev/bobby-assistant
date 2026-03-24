@@ -83,7 +83,7 @@ void session_window_push(int timeout, char *starting_prompt) {
   // Check if Telegram is connected
   if (!settings_is_telegram_connected()) {
     // Show error message telling user to configure Telegram
-    result_window_push("Not Connected", "Please configure Telegram in the app settings to use Clawd.", NULL, GColorWhite);
+    result_window_push("Oops!", "Please configure Telegram in the app settings to use Clawd.", NULL, GColorWhite);
     return;
   }
 

@@ -78,7 +78,7 @@ int alarm_manager_add_alarm(time_t when, bool is_timer, char* name, bool convers
     return id;
   }
   if (id < 0) {
-    CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Scheduling alarm failed: %d (Pebble internal error)");
+    CLAWD_LOG(APP_LOG_LEVEL_WARNING, "Scheduling alarm failed: %d (Pebble internal error)", id);
     return id;
   }
   Alarm* alarm = bmalloc(sizeof(Alarm));

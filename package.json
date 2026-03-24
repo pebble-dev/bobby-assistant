@@ -7,7 +7,7 @@
   ],
   "private": true,
   "dependencies": {
-    "pebble-clay": "^1.0.4",
+    "@rebble/clay": "1.0.8",
     "pebble-events": "^1.2.0"
   },
   "pebble": {
@@ -21,7 +21,9 @@
     ],
     "targetPlatforms": [
       "basalt",
-      "diorite"
+      "chalk",
+      "diorite",
+      "emery"
     ],
     "watchapp": {
       "watchface": false
@@ -319,6 +321,7 @@
           "type": "bitmap",
           "targetPlatforms": [
             "basalt",
+            "chalk",
             "emery"
           ]
         },
@@ -337,6 +340,7 @@
           "type": "bitmap",
           "targetPlatforms": [
             "basalt",
+            "chalk",
             "emery"
           ]
         },
@@ -355,6 +359,7 @@
           "type": "bitmap",
           "targetPlatforms": [
             "basalt",
+            "chalk",
             "emery"
           ]
         },
@@ -373,6 +378,7 @@
           "type": "bitmap",
           "targetPlatforms": [
             "basalt",
+            "chalk",
             "emery"
           ]
         },
@@ -422,6 +428,7 @@
           "memoryFormat": "2BitPalette",
           "targetPlatforms": [
             "basalt",
+            "chalk",
             "emery"
           ]
         },

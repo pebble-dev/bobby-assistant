@@ -70,36 +70,46 @@ static void prv_update_layer(Layer *layer, GContext *ctx) {
   GSize size = bounds.size;
 
   const int text_height = data->text_size.h + 5;
-  const int speech_bubble_top = 1;
   const int available_space = bounds.size.w - 18 - data->text_size.w - 10;
   const int bubble_width = size.w - 16 - available_space;
   const int corner_offset = 6;
 
-  GPoint tail_origin = GPoint(55 - available_space, size.h - 30 - speech_bubble_top);
-  // When the text is three lines long, the tail runs into the bubble, so we need to move it.
-  if (tail_origin.y < text_height + corner_offset) {
-    tail_origin = GPoint(55 - available_space, size.h - 20 - speech_bubble_top);
-  }
+  // Pony is drawn at bottom-left of layer
+  const int pony_height = 59;
+  const int pony_y = size.h - pony_height;
+
+#ifdef PBL_PLATFORM_EMERY
+  // On emery (large screen), position bubble above the pony's mouth
+  const int bubble_bottom_margin = 35;
+  const int speech_bubble_top = pony_y - text_height - bubble_bottom_margin;
+#else
+  // On smaller screens, bubble at top of layer
+  const int speech_bubble_top = 1;
+#endif
+
+  // Tail tip points to pony's mouth area
+  GPoint tail_tip = GPoint(55 - available_space, pony_y + 30 - speech_bubble_top);
 
   GPath bubble_path = {
     .num_points = 11,
     .offset = GPoint(8 + available_space, speech_bubble_top),
     .rotation = 0,
     .points = (GPoint[]) {
-      // top left
+      // top left rounded
       {0, corner_offset},
       {corner_offset, 0},
-      // top right
+      // top right rounded
       {bubble_width - corner_offset, 0},
       {bubble_width, corner_offset},
-      // bottom right
+      // bottom right rounded
       {bubble_width, text_height},
       {bubble_width - corner_offset, text_height + corner_offset},
-      // tail
-      {bubble_width - 20, text_height + corner_offset},
-      tail_origin,
-      {bubble_width - 30, text_height + corner_offset},
-      // bottom left
+      // bottom edge going left toward tail
+      {tail_tip.x + 15, text_height + corner_offset},
+      // tail pointing down to pony
+      tail_tip,
+      {tail_tip.x - 5, text_height + corner_offset},
+      // bottom left rounded
       {corner_offset, text_height + corner_offset},
       {0, text_height},
     }
@@ -113,7 +123,7 @@ static void prv_update_layer(Layer *layer, GContext *ctx) {
   graphics_context_set_text_color(ctx, GColorBlack);
   GRect text_bounds = GRect(8 + corner_offset + available_space, speech_bubble_top + corner_offset - 5, data->text_size.w, data->text_size.h);
   graphics_draw_text(ctx, data->text, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), text_bounds, GTextOverflowModeWordWrap, GTextAlignmentLeft, data->text_attributes);
-  gdraw_command_image_draw(ctx, data->pony, GPoint(0, size.h - 59));
+  gdraw_command_image_draw(ctx, data->pony, GPoint(0, pony_y));
 }
 
 static GTextAttributes* prv_create_text_attributes(TalkingHorseLayer *layer) {
@@ -130,7 +140,7 @@ static GRangeHorizontal prv_perimeter_callback(const GPerimeter *perimeter, cons
   // the top of the struct, we can make this cast and get away with it.
   TalkingHorseLayerData *data = (TalkingHorseLayerData*)perimeter;
   Layer *layer = data->layer;
-  // the top right of the pony is 59 pixels from the bottom of the layer, and we need it in screen space
+  // the pony is drawn at the bottom-left of the layer
   const int16_t pony_size = 59;
   GRect bounds = layer_get_bounds(layer);
   GPoint wrap_point = layer_convert_point_to_screen(layer, GPoint(pony_size, bounds.size.h - pony_size));

@@ -18,7 +18,9 @@ var reminders = require('./lib/reminders');
 
 function handleReminderMessage(data) {
   if (data.REMINDER_LIST_REQUEST) {
+    console.log('REMINDER_LIST_REQUEST received');
     var allReminders = reminders.getAllReminders();
+    console.log('Found ' + allReminders.length + ' reminders');
     
     // Convert from storage format to menu format
     var menuReminders = allReminders.map(function(r) {
@@ -30,8 +32,13 @@ function handleReminderMessage(data) {
     });
 
     // First send the count
+    console.log('Sending REMINDER_COUNT: ' + menuReminders.length);
     Pebble.sendAppMessage({
       'REMINDER_COUNT': menuReminders.length
+    }, function() {
+      console.log('REMINDER_COUNT sent successfully');
+    }, function(err) {
+      console.log('Failed to send REMINDER_COUNT: ' + JSON.stringify(err));
     });
 
     // Then send each reminder

@@ -32,7 +32,7 @@ include_directories(build/include)
 include_directories(build/basalt)  # this is only going to work for basalt, but what can you do?
 
 # Each of the Pebble Packages we install needs an entry like this.
-include_directories(node_modules/pebble-clay/dist/include)
+include_directories(node_modules/@rebble/clay/dist/include)
 include_directories(node_modules/pebble-events/dist/include)
 include_directories(node_modules/@smallstoneapps/linked-list/dist/include)
 

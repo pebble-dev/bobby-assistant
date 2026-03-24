@@ -82,7 +82,7 @@ static void prv_window_load(Window* window) {
   text_layer_set_background_color(data->empty_text_layer, GColorClear);
   text_layer_set_font(data->empty_text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
   text_layer_set_text_alignment(data->empty_text_layer, GTextAlignmentCenter);
-  text_layer_set_text(data->empty_text_layer, data->for_timers ? "No timers set. Ask Bobby to set some." : "No alarms set. Ask Bobby to set some.");
+  text_layer_set_text(data->empty_text_layer, data->for_timers ? "No timers set. Ask Clawd to set some." : "No alarms set. Ask Clawd to set some.");
   if (prv_get_num_rows(data->menu_layer, 0, window) == 0) {
     prv_show_empty(window);
   } else {

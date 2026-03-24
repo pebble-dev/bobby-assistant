@@ -1,6 +1,6 @@
 # Clawd
 ## Version %d.%d
-A fork of Bobby, the Rebble AI Assistant Pony
+Your AI assistant lobster (forked from Bobby for more claw powers)
 
 ## Original Project
 Based on Bobby by Katharine Berry
