@@ -42,14 +42,14 @@ func init() {
 	registerFunction(Registration{
 		Definition: genai.FunctionDeclaration{
 			Name:        "lua",
-			Description: "Runs the provided Lua 5.2 script, and returns the result. ONLY STANDARD LIBRARY FUNCTIONS ARE AVAILABLE. DO NOT CALL ANYTHING ELSE.",
+			Description: "Runs the provided Lua 5.2 script, and gives the value returned in a return statement. ONLY STANDARD LIBRARY FUNCTIONS ARE AVAILABLE. DO NOT CALL ANYTHING ELSE. Do not use `print` to return a result -- instead, use `return`.",
 			Parameters: &genai.Schema{
 				Type:     genai.TypeObject,
 				Nullable: &f,
 				Properties: map[string]*genai.Schema{
 					"script": {
 						Type:        genai.TypeString,
-						Description: "The Lua 5.2 script to run. Remember the return statements!",
+						Description: "The Lua 5.2 script to run. Remember the return statements -- don't use print!",
 						Nullable:    &f,
 					},
 					"timezone": {
