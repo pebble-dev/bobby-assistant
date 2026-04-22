@@ -183,11 +183,22 @@ func generateRouteMap(ctx context.Context, polyline string) (image.Image, error)
 	}
 
 	screenWidth := query.ScreenWidthFromContext(ctx)
+	screenHeight := query.ScreenHeightFromContext(ctx)
 	if screenWidth == 0 {
 		screenWidth = 144
 	}
+
+	widgetHeight := 100
+	if screenWidth >= 168 {
+		widgetHeight = 140
+	}
+	// Assuming that screen with equal width and height is round
+	if screenWidth == screenHeight {
+		widgetHeight = screenHeight
+	}
+
 	request := gmaps.StaticMapRequest{
-		Size:    fmt.Sprintf("%dx100", screenWidth),
+		Size:    fmt.Sprintf("%dx%d", screenWidth, screenHeight),
 		Format:  "png8",
 		MapType: "roadmap",
 		MapId:   config.GetConfig().GoogleMapsStaticMapId,

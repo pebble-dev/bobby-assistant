@@ -27,6 +27,7 @@
 #include <pebble.h>
 #include <pebble-events/pebble-events.h>
 
+#include "util/fonts.h"
 #include "util/logging.h"
 #include "util/memory/pressure.h"
 
@@ -46,6 +47,7 @@ static void prv_init(void) {
 #endif
   events_app_message_open();
   alarm_manager_init();
+  fonts_load();
 }
 
 static void prv_deinit(void) {
@@ -55,6 +57,7 @@ static void prv_deinit(void) {
 #ifdef ENABLE_FEATURE_IMAGE_MANAGER
   image_manager_deinit();
 #endif
+  fonts_unload();
 }
 
 int main(void) {

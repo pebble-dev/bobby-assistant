@@ -16,7 +16,7 @@
 
 #include <pebble.h>
 #include <pebble-events/pebble-events.h>
-#include <@smallstoneapps/linked-list/linked-list.h>
+#include <@rebble/linked-list/linked-list.h>
 
 #include "../util/memory/malloc.h"
 #include "../util/memory/pressure.h"

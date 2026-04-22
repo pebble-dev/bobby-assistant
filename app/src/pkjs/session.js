@@ -96,6 +96,16 @@ Session.prototype.run = function() {
                 screenWidth = 200;
                 screenHeight = 228;
                 break;
+            case 'flint':
+                supportsColour = false;
+                screenWidth = 144;
+                screenHeight = 168;
+                break;
+            case 'gabbro':
+                supportsColour = true;
+                screenWidth = 260;
+                screenHeight = 260;
+                break;
             default:
                 console.log('Unknown platform: ' + platform);
                 // generally a safe bet.

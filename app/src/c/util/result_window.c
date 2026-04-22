@@ -16,6 +16,7 @@
 
 #include "result_window.h"
 #include "vector_layer.h"
+#include "fonts.h"
 #include "style.h"
 #include "../util/memory/malloc.h"
 #include <pebble.h>
@@ -67,6 +68,7 @@ static void prv_window_load(Window* window) {
   ResultWindowData* data = window_get_user_data(window);
   Layer* root_layer = window_get_root_layer(window);
   GRect bounds = layer_get_bounds(root_layer);
+  const FontsConfig *fonts = fonts_get_config();
 
   data->status_bar = bstatus_bar_layer_create();
   bobby_status_bar_result_pane_config(data->status_bar);
@@ -77,7 +79,7 @@ static void prv_window_load(Window* window) {
 
   data->title_layer = btext_layer_create(GRect(0, 15, bounds.size.w, 35));
   text_layer_set_background_color(data->title_layer, GColorClear);
-  text_layer_set_font(data->title_layer, fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD));
+  text_layer_set_font(data->title_layer, fonts->title_font);
   text_layer_set_text(data->title_layer, data->title_text);
   text_layer_set_text_alignment(data->title_layer, GTextAlignmentCenter);
   layer_add_child(root_layer, text_layer_get_layer(data->title_layer));
@@ -85,7 +87,7 @@ static void prv_window_load(Window* window) {
   data->text_layer = btext_layer_create(GRect(0, 50, bounds.size.w, bounds.size.h - 105));
   text_layer_set_background_color(data->text_layer, GColorClear);
   text_layer_set_text_alignment(data->text_layer, GTextAlignmentCenter);
-  text_layer_set_font(data->text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
+  text_layer_set_font(data->text_layer, fonts->text_font);
   text_layer_set_text(data->text_layer, data->text_text);
   layer_add_child(root_layer, text_layer_get_layer(data->text_layer));
 
