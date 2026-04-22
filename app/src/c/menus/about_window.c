@@ -81,7 +81,11 @@ static void prv_window_load(Window* window) {
 
   data->bobby_image = bgbitmap_create_with_resource(RESOURCE_ID_FENCE_PONY_BITMAP);
   GSize image_size = gbitmap_get_bounds(data->bobby_image).size;
-  image_size.h += 40; // add back the space at the top
+#if PBL_DISPLAY_WIDTH >= 200
+  image_size.h += 108; // add back the space at the top
+#else
+  image_size.h += 52; // add back the space at the top
+#endif
   data->bitmap_layer = bitmap_layer_create(GRect((window_bounds.size.w - image_size.w) / 2, text_size.h, image_size.w, image_size.h));
   bitmap_layer_set_bitmap(data->bitmap_layer, data->bobby_image);
   bitmap_layer_set_alignment(data->bitmap_layer, GAlignBottom);

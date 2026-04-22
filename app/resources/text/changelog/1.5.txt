@@ -1,0 +1,6 @@
+# New Features
+Bobby has been updated! We have some new features:
+## Support for Content Size
+Bobby will now follow the same scale setting as your system notifications! You can change the scale in Settings -> Notiications -> Text Size.
+## Native Core Time 2 resolution
+With new hardware comes new Bobby! The interface has been adapted to work with the new Core Time 2 hardware, to make it easier and more pleasant to use your favourite assistant on it. Huge thanks to AmberW who provided the fonts needed for the large text size option and the title screen!

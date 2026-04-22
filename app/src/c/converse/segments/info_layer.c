@@ -15,11 +15,11 @@
  */
 
 #include "info_layer.h"
+#include "../../util/fonts.h"
 #include "../../util/memory/malloc.h"
 #include "../../util/memory/sdk.h"
 #include <pebble.h>
 
-#define CONTENT_FONT FONT_KEY_GOTHIC_24
 #define STRIPE_WIDTH 24
 #define TEXT_PADDING_LEFT 2
 #define TEXT_PADDING_RIGHT 5
@@ -44,6 +44,7 @@ static GColor prv_get_stripe_color(ConversationEntry* entry);
 InfoLayer* info_layer_create(GRect rect, ConversationEntry* entry) {
     Layer* layer = blayer_create_with_data(rect, sizeof(InfoLayerData));
     InfoLayerData* data = layer_get_data(layer);
+    const FontsConfig *fonts = fonts_get_config();
     data->entry = entry;
     data->icon = NULL;
     data->content_text = NULL;
@@ -51,7 +52,7 @@ InfoLayer* info_layer_create(GRect rect, ConversationEntry* entry) {
     data->content_height = prv_get_content_height(layer);
     data->content_layer = btext_layer_create(GRect(STRIPE_WIDTH + TEXT_PADDING_LEFT, 1, rect.size.w - UNAVAILABLE_WIDTH, data->content_height));
     text_layer_set_text(data->content_layer, prv_get_content_text(layer));
-    text_layer_set_font(data->content_layer, fonts_get_system_font(CONTENT_FONT));
+    text_layer_set_font(data->content_layer, fonts->text_font);
     text_layer_set_background_color(data->content_layer, GColorClear);
     text_layer_set_text_alignment(data->content_layer, GTextAlignmentLeft);
     data->content_height = text_layer_get_content_size(data->content_layer).h;
@@ -119,7 +120,8 @@ static char *prv_get_content_text(InfoLayer *layer) {
 
 static int prv_get_content_height(InfoLayer* layer) {
   char* text = prv_get_content_text(layer);
-  const GFont font = fonts_get_system_font(CONTENT_FONT);
+  const FontsConfig *fonts = fonts_get_config();
+  const GFont font = fonts->text_font;
   const GRect rect = GRect(0, 0, layer_get_frame(layer).size.w - UNAVAILABLE_WIDTH, 10000);
   GTextAlignment alignment = GTextAlignmentCenter;
   return graphics_text_layout_get_content_size(text, font, rect, GTextOverflowModeTrailingEllipsis, alignment).h;

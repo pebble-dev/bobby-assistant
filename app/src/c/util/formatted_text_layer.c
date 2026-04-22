@@ -16,6 +16,7 @@
 
 
 #include "formatted_text_layer.h"
+#include "fonts.h"
 #include "memory/malloc.h"
 
 #include <pebble.h>
@@ -56,10 +57,11 @@ static void prv_layout(FormattedTextLayer* layer);
 FormattedTextLayer* formatted_text_layer_create(GRect frame) {
   Layer *layer = blayer_create_with_data(frame, sizeof(FormattedTextLayerData));
   FormattedTextLayerData *data = layer_get_data(layer);
+  const FontsConfig *fonts = fonts_get_config();
   memset(data, 0, sizeof(FormattedTextLayerData));
-  data->title_font = fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD);
-  data->subtitle_font = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
-  data->body_font = fonts_get_system_font(FONT_KEY_GOTHIC_24);
+  data->title_font = fonts->title_font;
+  data->subtitle_font = fonts-> small_font;
+  data->body_font = fonts->text_font;
   data->alignment = GTextAlignmentLeft;
   layer_set_update_proc(layer, prv_layer_update);
   return layer;
@@ -121,7 +123,7 @@ static void prv_layer_update(Layer *layer, GContext *ctx) {
       continue;
     }
     // If we're off the bottom of the screen, stop - there's no more work to do.
-    if (layer_convert_point_to_screen(layer, GPoint(0, fragment->vertical_offset)).y > 168) {
+    if (layer_convert_point_to_screen(layer, GPoint(0, fragment->vertical_offset)).y > PBL_DISPLAY_HEIGHT) {
       break;
     }
     // If the next fragment starts before the beginning of the screen, skip ahead.

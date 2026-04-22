@@ -16,6 +16,7 @@
 
 #include "quota_window.h"
 #include "usage_layer.h"
+#include "../util/fonts.h"
 #include "../util/vector_sequence_layer.h"
 #include "../util/style.h"
 #include "../util/memory/malloc.h"
@@ -56,6 +57,7 @@ static void prv_window_load(Window* window) {
   QuotaWindowData* data = window_get_user_data(window);
   Layer* root_layer = window_get_root_layer(window);
   GRect bounds = layer_get_bounds(root_layer);
+  const FontsConfig *fonts = fonts_get_config();
   data->status_bar = bstatus_bar_layer_create();
   bobby_status_bar_config(data->status_bar);
   data->scroll_layer = bscroll_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT, bounds.size.w, bounds.size.h - STATUS_BAR_LAYER_HEIGHT));
@@ -63,8 +65,8 @@ static void prv_window_load(Window* window) {
   scroll_layer_set_click_config_onto_window(data->scroll_layer, window);
   scroll_layer_set_shadow_hidden(data->scroll_layer, true);
   data->usage_layer = usage_layer_create(GRect(10, 5, bounds.size.w - 20, 20));
-  data->explanation_layer = btext_layer_create(GRect(10, 25, bounds.size.w - 20, 275));
-  text_layer_set_font(data->explanation_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24));
+  data->explanation_layer = btext_layer_create(GRect(10, 25, bounds.size.w - 20, 750));
+  text_layer_set_font(data->explanation_layer, fonts->text_font);
   scroll_layer_add_child(data->scroll_layer, (Layer *)data->explanation_layer);
   scroll_layer_add_child(data->scroll_layer, (Layer *)data->usage_layer);
   // We need to look up the quota, so we'll show a running pony while we do that.
@@ -103,6 +105,7 @@ static void prv_app_message_received(DictionaryIterator* iter, void* context) {
   Window *window = (Window *)context;
   QuotaWindowData* data = window_get_user_data(window);
   Layer* root_layer = window_get_root_layer(window);
+  GRect bounds = layer_get_bounds(root_layer);
   Tuple* tuple = dict_find(iter, MESSAGE_KEY_QUOTA_RESPONSE_USED);
   if(!tuple) {
     return;
@@ -123,6 +126,10 @@ static void prv_app_message_received(DictionaryIterator* iter, void* context) {
     snprintf(data->explanation, sizeof(data->explanation), "You've used %d%% of your Bobby quota for this month. Once you've used 100%%, Bobby will stop working until next month. Quota resets on the first day of each month.", display_percent);
   }
   text_layer_set_text(data->explanation_layer, data->explanation);
+  GSize text_size = text_layer_get_content_size(data->explanation_layer);
+  text_size.h += 5;
+  text_layer_set_size(data->explanation_layer, text_size);
+  scroll_layer_set_content_size(data->scroll_layer, GSize(bounds.size.w, text_size.h + 25));
   usage_layer_set_percentage(data->usage_layer, (int16_t)percentage);
   vector_sequence_layer_stop(data->loading_layer);
   layer_remove_from_parent(data->loading_layer);

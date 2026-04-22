@@ -15,14 +15,12 @@
  */
 
 #include "message_layer.h"
+#include "../../util/fonts.h"
 #include "../../util/memory/sdk.h"
 #include "../../util/logging.h"
 
 #include <pebble.h>
 
-
-#define CONTENT_FONT FONT_KEY_GOTHIC_24_BOLD
-#define NAME_HEIGHT 15
 
 typedef struct {
   ConversationEntry* entry;
@@ -38,21 +36,22 @@ static int prv_get_content_height(MessageLayer* layer);
 MessageLayer* message_layer_create(GRect rect, ConversationEntry* entry) {
     Layer* layer = blayer_create_with_data(rect, sizeof(MessageLayerData));
     MessageLayerData* data = layer_get_data(layer);
+    const FontsConfig *fonts = fonts_get_config();
     data->entry = entry;
-    data->speaker_layer = btext_layer_create(GRect(5, 0, rect.size.w, NAME_HEIGHT));
+    data->speaker_layer = btext_layer_create(GRect(5, 0, rect.size.w, fonts->small_font_cap * 1.75));
     size_t content_origin_y = -5;
     EntryType type = conversation_entry_get_type(entry);
     if (type == EntryTypePrompt) {
       text_layer_set_text(data->speaker_layer, "You");
-      content_origin_y = NAME_HEIGHT;
+      content_origin_y = fonts->small_font_cap * 1.75;
     }
+    text_layer_set_font(data->speaker_layer, fonts->small_font);
     layer_add_child(layer, (Layer *)data->speaker_layer);
     data->last_newline_offset = 0;
-    data->content_height = 24;
     data->content_height = prv_get_content_height(layer);
     data->content_layer = btext_layer_create(GRect(5, content_origin_y, rect.size.w - 10, data->content_height));
     text_layer_set_text(data->content_layer, prv_get_content_text(layer));
-    text_layer_set_font(data->content_layer, fonts_get_system_font(CONTENT_FONT));
+    text_layer_set_font(data->content_layer, fonts->text_font);
     data->content_height = text_layer_get_content_size(data->content_layer).h;
     layer_add_child(layer, (Layer *)data->content_layer);
     message_layer_update(layer);
@@ -70,6 +69,7 @@ void message_layer_destroy(MessageLayer* layer) {
 
 void message_layer_update(MessageLayer* layer) {
   MessageLayerData* data = layer_get_data(layer);
+  const FontsConfig *fonts = fonts_get_config();
   // The text pointer can change out underneath us.
   text_layer_set_text(data->content_layer, prv_get_content_text(layer));
   data->content_height = prv_get_content_height(layer);
@@ -77,7 +77,7 @@ void message_layer_update(MessageLayer* layer) {
   GRect frame = layer_get_frame(layer);
   frame.size.h = data->content_height + 5;
   if (conversation_entry_get_type(data->entry) == EntryTypePrompt) {
-    frame.size.h += NAME_HEIGHT;
+    frame.size.h += fonts->small_font_cap * 1.75;
   }
   text_layer_set_size(data->content_layer, GSize(width - 10, data->content_height + 5));
   layer_set_frame(layer, frame);
@@ -98,6 +98,7 @@ static char *prv_get_content_text(MessageLayer *layer) {
 
 static int prv_get_content_height(MessageLayer* layer) {
   MessageLayerData* data = layer_get_data(layer);
+  const FontsConfig *fonts = fonts_get_config();
   // Measuring the whole field every time we add text is way too expensive.
   // Instead, just try to figure out where we are line breaking. We don't get enough information
   // from the text layout engine to do this in any particularly clever way, so instead we try
@@ -105,7 +106,7 @@ static int prv_get_content_height(MessageLayer* layer) {
   // Then we figure out (guess) exactly what spilled over and repeat from there.
   size_t offset = data->last_newline_offset;
   char* text = prv_get_content_text(layer);
-  const GFont font = fonts_get_system_font(CONTENT_FONT);
+  const GFont font = fonts->text_font;
   const GRect rect = GRect(0, 0, layer_get_frame(layer).size.w - 10, 10000);
   // This algorithm is somewhat buggy (it can't cope with words getting broken; it assumes only one break per
   // fragment), so for content where speed is less important just actually measure the thing.
@@ -116,7 +117,7 @@ static int prv_get_content_height(MessageLayer* layer) {
   int height = graphics_text_layout_get_content_size(text + offset, font, rect, GTextOverflowModeTrailingEllipsis, alignment).h;
   int content_height = data->content_height;
 
-  if (height > 35) {
+  if (height > fonts->text_font_cap * 2) {
     int h2 = 0;
     // we broke to a new line. see if we can figure out where.
     size_t len = strlen(text + offset);

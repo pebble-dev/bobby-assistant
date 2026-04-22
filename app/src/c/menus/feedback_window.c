@@ -115,7 +115,9 @@ static void prv_window_load(Window *window) {
   scroll_layer_set_content_size(data->scroll_layer, GSize(bounds.size.w, text_size.h + 10));
 
   data->select_indicator = bgbitmap_create_with_resource(RESOURCE_ID_BUTTON_INDICATOR);
-  data->select_indicator_layer = bbitmap_layer_create(GRect(bounds.size.w - 5, bounds.size.h / 2 - 10, 5, 20));
+  GRect select_indicator_size = gbitmap_get_bounds(data->select_indicator);
+  grect_align(&select_indicator_size, &bounds, GAlignRight, false);
+  data->select_indicator_layer = bbitmap_layer_create(select_indicator_size);
   layer_add_child(layer, bitmap_layer_get_layer(data->select_indicator_layer));
   bitmap_layer_set_bitmap(data->select_indicator_layer, data->select_indicator);
   bitmap_layer_set_compositing_mode(data->select_indicator_layer, GCompOpSet);

@@ -15,6 +15,7 @@
  */
 
 #include "consent.h"
+#include "../util/fonts.h"
 #include "../util/persist_keys.h"
 #include "../util/style.h"
 #include "../util/logging.h"
@@ -97,16 +98,18 @@ static void prv_window_load(Window *window) {
   ConsentWindowData *data = window_get_user_data(window);
   Layer *root_layer = window_get_root_layer(window);
   GRect window_bounds = layer_get_frame(root_layer);
+  const FontsConfig *fonts = fonts_get_config();
   data->scroll_layer = bscroll_layer_create(window_bounds);
   scroll_layer_set_click_config_onto_window(data->scroll_layer, window);
-  data->title_layer = btext_layer_create(GRect(0, 0, window_bounds.size.w, 30));
+  data->title_layer = btext_layer_create(GRect(0, 0, window_bounds.size.w, 60));
   text_layer_set_text_alignment(data->title_layer, GTextAlignmentCenter);
-  text_layer_set_font(data->title_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
+  text_layer_set_font(data->title_layer, fonts->title_font);
   data->text_layer = btext_layer_create(GRect(10, 30, window_bounds.size.w - 20, window_bounds.size.h - 30));
-  text_layer_set_font(data->text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24));
+  text_layer_set_font(data->text_layer, fonts->text_font);
   data->select_indicator_bitmap = bgbitmap_create_with_resource(RESOURCE_ID_BUTTON_INDICATOR);
-  data->select_indicator_layer = bbitmap_layer_create(
-    GRect(window_bounds.size.w - 5, window_bounds.size.h / 2 - 10, 5, 20));
+  GRect select_indicator_size = gbitmap_get_bounds(data->select_indicator_bitmap);
+  grect_align(&select_indicator_size, &window_bounds, GAlignRight, false);
+  data->select_indicator_layer = bbitmap_layer_create(select_indicator_size);
   bitmap_layer_set_bitmap(data->select_indicator_layer, data->select_indicator_bitmap);
   bitmap_layer_set_compositing_mode(data->select_indicator_layer, GCompOpSet);
   data->content_indicator_layer = blayer_create(
@@ -185,18 +188,18 @@ static void prv_set_stage(Window* window, int stage) {
     data->current_text[res_size] = '\0';
   }
   data->stage = stage;
-  text_layer_set_text(data->title_layer, data->title_text);
-  text_layer_set_text(data->text_layer, data->current_text);
   GSize window_size = layer_get_frame(window_get_root_layer(window)).size;
-  GSize text_size = graphics_text_layout_get_content_size(
-    data->current_text,
-    fonts_get_system_font(FONT_KEY_GOTHIC_24),
-    GRect(10, 30, window_size.w - 20, 1000),
-    GTextOverflowModeWordWrap,
-    GTextAlignmentLeft);
-  text_size.h += 5;
-  text_layer_set_size(data->text_layer, text_size);
-  scroll_layer_set_content_size(data->scroll_layer, GSize(window_size.w, 33 + text_size.h));
+  text_layer_set_text(data->title_layer, data->title_text);
+  text_layer_set_size(data->title_layer, GSize(window_size.w, 100));
+  GSize title_size = text_layer_get_content_size(data->title_layer);
+  title_size.h += 10;
+  text_layer_set_size(data->title_layer, GSize(window_size.w, title_size.h));
+  text_layer_set_text(data->text_layer, data->current_text);
+  text_layer_set_size(data->text_layer, GSize(window_size.w - 20, 1000));
+  GSize text_size = text_layer_get_content_size(data->text_layer);
+  text_size.h += 10;
+  layer_set_frame(text_layer_get_layer(data->text_layer), GRect(10, title_size.h, window_size.w - 20, text_size.h));
+  scroll_layer_set_content_size(data->scroll_layer, GSize(window_size.w, title_size.h + text_size.h));
   scroll_layer_set_content_offset(data->scroll_layer, GPoint(0, 0), false);
 }
 
