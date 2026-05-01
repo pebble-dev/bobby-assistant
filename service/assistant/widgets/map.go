@@ -198,7 +198,7 @@ func generateRouteMap(ctx context.Context, polyline string) (image.Image, error)
 	}
 
 	request := gmaps.StaticMapRequest{
-		Size:    fmt.Sprintf("%dx%d", screenWidth, screenHeight),
+		Size:    fmt.Sprintf("%dx%d", screenWidth, widgetHeight),
 		Format:  "png8",
 		MapType: "roadmap",
 		MapId:   config.GetConfig().GoogleMapsStaticMapId,
