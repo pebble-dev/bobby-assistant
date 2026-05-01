@@ -128,7 +128,8 @@ static void prv_destroy(SessionWindow *sw) {
 
 static void prv_window_load(Window *window) {
   Layer* root_layer = window_get_root_layer(window);
-  GSize window_size = layer_get_frame(window_get_root_layer(window)).size;
+  GRect window_bounds = layer_get_frame(window_get_root_layer(window));
+  GSize window_size = window_bounds.size;
   SessionWindow *sw = window_get_user_data(window);
   sw->dictation_pending = true;
   BOBBY_LOG(APP_LOG_LEVEL_INFO, "created SessionWindow %p.", sw);
@@ -183,7 +184,9 @@ static void prv_window_load(Window *window) {
 
   // This must be added after the scroll layer, to always appear on top.
   sw->button_bitmap = bgbitmap_create_with_resource(RESOURCE_ID_BUTTON_INDICATOR);
-  sw->button_layer = bbitmap_layer_create(GRect(window_size.w - 5, window_size.h / 2 - 10, 5, 20));
+  GRect select_indicator_size = gbitmap_get_bounds(sw->button_bitmap);
+  grect_align(&select_indicator_size, &window_bounds, GAlignRight, false);
+  sw->button_layer = bbitmap_layer_create(select_indicator_size);
   bitmap_layer_set_bitmap(sw->button_layer, sw->button_bitmap);
   bitmap_layer_set_compositing_mode(sw->button_layer, GCompOpSet);
   layer_add_child(root_layer, (Layer *)sw->button_layer);

@@ -16,6 +16,7 @@
 
 #include "timer.h"
 #include "../../conversation.h"
+#include "../../../util/fonts.h"
 #include "../../../util/style.h"
 #include "../../../util/memory/sdk.h"
 #include <pebble.h>
@@ -33,7 +34,8 @@ static void prv_handle_tick(struct tm *tick_time, TimeUnits units_changed, void 
 static void prv_update_text_buffer(TimerWidgetData* data);
 
 TimerWidget* timer_widget_create(GRect rect, ConversationEntry* entry) {
-  Layer *layer = blayer_create_with_data(GRect(rect.origin.x, rect.origin.y, rect.size.w, 53), sizeof(TimerWidgetData));
+  const FontsConfig *fonts = fonts_get_config();
+  Layer *layer = blayer_create_with_data(GRect(rect.origin.x, rect.origin.y, rect.size.w, fonts->title_font_cap * 1.5 + fonts->content_font_cap * 1.75), sizeof(TimerWidgetData));
   TimerWidgetData* data = layer_get_data(layer);
 
   data->entry = entry;
@@ -63,6 +65,7 @@ void timer_widget_update(TimerWidget* layer) {
 
 static void prv_layer_update(Layer *layer, GContext *ctx) {
   TimerWidgetData* data = layer_get_data(layer);
+  const FontsConfig *fonts = fonts_get_config();
   ConversationWidgetTimer *widget = &conversation_entry_get_widget(data->entry)->widget.timer;
   GRect bounds = layer_get_bounds(layer);
 #if defined(PBL_COLOR)
@@ -76,16 +79,12 @@ static void prv_layer_update(Layer *layer, GContext *ctx) {
   graphics_draw_line(ctx, GPoint(0, 0), GPoint(bounds.size.w, 0));
   graphics_draw_line(ctx, GPoint(0, bounds.size.h - 1), GPoint(bounds.size.w, bounds.size.h - 1));
 
-  gdraw_command_image_draw(ctx, data->icon, GPoint(5, 3));
+  gdraw_command_image_draw(ctx, data->icon, GPoint(5, (fonts->title_font_cap * 2 - gdraw_command_image_get_bounds_size(data->icon).h) / 2));
 
   const int16_t icon_space = 26;
-  const GRect title_rect = GRect(icon_space, bounds.origin.y, bounds.size.w - icon_space, 20);
-  const GRect time_rect = GRect(5, bounds.origin.y + 16, bounds.size.w - 5, bounds.size.h);
 
-  GFont time_font = fonts_get_system_font(FONT_KEY_LECO_32_BOLD_NUMBERS);
-  GFont title_font = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
-  graphics_draw_text(ctx, widget->name ? widget->name : "Timer", title_font, title_rect, GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);
-  graphics_draw_text(ctx, data->text, time_font, time_rect, GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);
+  graphics_draw_text(ctx, widget->name ? widget->name : "Timer", fonts->title_font, GRect(icon_space, bounds.origin.y, bounds.size.w - icon_space, fonts->title_font_cap * 1.75), GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);
+  graphics_draw_text(ctx, data->text, fonts->content_font, GRect(5, bounds.origin.y + fonts->title_font_cap * 1.5, bounds.size.w - 5, fonts->content_font_cap * 1.75), GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);
 }
 
 static void prv_handle_tick(struct tm *tick_time, TimeUnits units_changed, void *context) {

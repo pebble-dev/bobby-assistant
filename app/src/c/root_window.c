@@ -105,13 +105,22 @@ static void prv_window_appear(Window* window) {
   action_bar_layer_set_icon(rw->action_bar, BUTTON_ID_DOWN, rw->more_icon);
   action_bar_layer_add_to_window(rw->action_bar, window);
   action_bar_layer_set_click_config_provider(rw->action_bar, prv_click_config_provider);
-  rw->time_layer = btext_layer_create(GRect(0, 5, 144 - ACTION_BAR_WIDTH, 40));
+#if PBL_DISPLAY_WIDTH >= 200
+  uint16_t time_height = 48;
+#else
+  uint16_t time_height = 40;
+#endif
+  rw->time_layer = btext_layer_create(GRect(0, 5, bounds.size.w - ACTION_BAR_WIDTH, time_height));
   text_layer_set_text_alignment(rw->time_layer, GTextAlignmentCenter);
+#if PBL_DISPLAY_WIDTH >= 200
+  text_layer_set_font(rw->time_layer, fonts_get_system_font(FONT_KEY_LECO_42_NUMBERS));
+#else
   text_layer_set_font(rw->time_layer, fonts_get_system_font(FONT_KEY_LECO_36_BOLD_NUMBERS));
+#endif
   text_layer_set_text(rw->time_layer, "12:34");
   text_layer_set_background_color(rw->time_layer, GColorClear);
   layer_add_child(window_get_root_layer(rw->window), (Layer *)rw->time_layer);
-  rw->talking_horse_layer = talking_horse_layer_create(GRect(0, 56, 144 - ACTION_BAR_WIDTH, 112));
+  rw->talking_horse_layer = talking_horse_layer_create(GRect(0, time_height + 16, bounds.size.w - ACTION_BAR_WIDTH, bounds.size.h - time_height - 16));
   layer_add_child(window_get_root_layer(rw->window), (Layer *)rw->talking_horse_layer);
   rw->talking_horse_overridden = false;
   if (version_is_updated() || rand() < RAND_MAX / 10) {

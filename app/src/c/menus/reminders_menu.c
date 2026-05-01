@@ -15,6 +15,7 @@
  */
 
 #include "reminders_menu.h"
+#include "../util/fonts.h"
 #include "../util/style.h"
 #include "../util/vector_sequence_layer.h"
 #include "../util/vector_layer.h"
@@ -74,6 +75,7 @@ static void prv_show_empty(Window *window) {
   RemindersMenuData *data = window_get_user_data(window);
   Layer *root_layer = window_get_root_layer(window);
   GRect bounds = layer_get_bounds(root_layer);
+  const FontsConfig *fonts = fonts_get_config();
 
   // Remove the menu and loading animation if present
   layer_remove_from_parent(menu_layer_get_layer(data->menu_layer));
@@ -85,10 +87,10 @@ static void prv_show_empty(Window *window) {
 
   // Create empty state text if not exists
   if (!data->empty_text_layer) {
-    data->empty_text_layer = btext_layer_create(GRect(10, 20, bounds.size.w - 20, 80));
+    data->empty_text_layer = btext_layer_create(GRect(10, 20, bounds.size.w - 20, bounds.size.h - 60));
     text_layer_set_text_color(data->empty_text_layer, gcolor_legible_over(ACCENT_COLOUR));
     text_layer_set_background_color(data->empty_text_layer, GColorClear);
-    text_layer_set_font(data->empty_text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
+    text_layer_set_font(data->empty_text_layer, fonts->title_font);
     text_layer_set_text_alignment(data->empty_text_layer, GTextAlignmentCenter);
     text_layer_set_text(data->empty_text_layer, "No reminders.\nAsk Bobby to set some.");
   }

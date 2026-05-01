@@ -16,6 +16,7 @@
 
 #include "alarm_menu.h"
 #include "../alarms/manager.h"
+#include "../util/fonts.h"
 #include "../util/style.h"
 #include "../util/time.h"
 #include "../util/vector_layer.h"
@@ -67,6 +68,7 @@ static void prv_window_load(Window* window) {
   AlarmMenuWindowData* data = window_get_user_data(window);
   Layer* root_layer = window_get_root_layer(window);
   GRect window_bounds = layer_get_frame(root_layer);
+  const FontsConfig *fonts = fonts_get_config();
   data->menu_layer = bmenu_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT, window_bounds.size.w, window_bounds.size.h - STATUS_BAR_LAYER_HEIGHT));
   menu_layer_set_highlight_colors(data->menu_layer, SELECTION_HIGHLIGHT_COLOUR, gcolor_legible_over(SELECTION_HIGHLIGHT_COLOUR));
   menu_layer_set_callbacks(data->menu_layer, window, (MenuLayerCallbacks) {
@@ -77,10 +79,10 @@ static void prv_window_load(Window* window) {
   data->sleeping_horse_image = NULL;
   data->sleeping_horse_layer = NULL;
   data->status_bar = bstatus_bar_layer_create();
-  data->empty_text_layer = btext_layer_create(GRect(10, 20, window_bounds.size.w - 20, 80));
+  data->empty_text_layer = btext_layer_create(GRect(10, 20, window_bounds.size.w - 20, window_bounds.size.h - 60));
   text_layer_set_text_color(data->empty_text_layer, gcolor_legible_over(ACCENT_COLOUR));
   text_layer_set_background_color(data->empty_text_layer, GColorClear);
-  text_layer_set_font(data->empty_text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
+  text_layer_set_font(data->empty_text_layer, fonts->title_font);
   text_layer_set_text_alignment(data->empty_text_layer, GTextAlignmentCenter);
   text_layer_set_text(data->empty_text_layer, data->for_timers ? "No timers set. Ask Bobby to set some." : "No alarms set. Ask Bobby to set some.");
   if (prv_get_num_rows(data->menu_layer, 0, window) == 0) {

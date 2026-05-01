@@ -18,7 +18,7 @@
 #include "../logging.h"
 #include <pebble.h>
 
-#include <@smallstoneapps/linked-list/linked-list.h>
+#include <@rebble/linked-list/linked-list.h>
 
 static LinkedRoot *s_callback_list = NULL;
 int s_max_priority = 0;
