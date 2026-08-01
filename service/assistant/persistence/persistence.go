@@ -19,17 +19,17 @@ import (
 	"encoding/json"
 	"github.com/google/uuid"
 	"github.com/honeycombio/beeline-go"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/llm"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/util"
 	"github.com/redis/go-redis/v9"
-	"google.golang.org/genai"
 	"time"
 )
 
 type SerializedMessage struct {
-	Role             string                  `json:"role"`
-	Content          string                  `json:"content"`
-	FunctionCall     *genai.FunctionCall     `json:"functionCall,omitempty"`
-	FunctionResponse *genai.FunctionResponse `json:"functionResponse,omitempty"`
+	Role             llm.Role              `json:"role"`
+	Content          string                `json:"content"`
+	FunctionCall     *llm.FunctionCall     `json:"functionCall,omitempty"`
+	FunctionResponse *llm.FunctionResponse `json:"functionResponse,omitempty"`
 }
 
 type StoredContext struct {

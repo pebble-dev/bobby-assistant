@@ -17,7 +17,6 @@ package assistant
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"github.com/honeycombio/beeline-go"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/persistence"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
@@ -31,12 +30,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/pebble-dev/bobby-assistant/service/assistant/config"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/functions"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/llm"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/query"
 	"github.com/redis/go-redis/v9"
-	"google.golang.org/api/iterator"
-	"google.golang.org/genai"
 	"nhooyr.io/websocket"
 )
 
@@ -79,20 +76,17 @@ func NewPromptSession(redisClient *redis.Client, rw http.ResponseWriter, r *http
 
 func (ps *PromptSession) Run(ctx context.Context) {
 	ctx = query.ContextWith(ctx, ps.query)
-	geminiClient, err := genai.NewClient(ctx, &genai.ClientConfig{
-		APIKey:  config.GetConfig().GeminiKey,
-		Backend: genai.BackendGeminiAPI,
-	})
+	llmService, err := llm.New(ctx)
 	if err != nil {
-		log.Printf("error creating Gemini client: %v\n", err)
+		log.Printf("error creating LLM client: %v\n", err)
 		_ = ps.conn.Close(websocket.StatusInternalError, "Error creating client.")
 		return
 	}
 
-	var messages []*genai.Content
-	messages = append(messages, &genai.Content{
-		Parts: []*genai.Part{{Text: ps.prompt}},
-		Role:  "user",
+	var messages []*llm.Content
+	messages = append(messages, &llm.Content{
+		Parts: []*llm.Part{{Text: ps.prompt}},
+		Role:  llm.RoleUser,
 	})
 
 	if ps.originalThreadId != "" {
@@ -142,57 +136,45 @@ func (ps *PromptSession) Run(ctx context.Context) {
 			ctx, span := beeline.StartSpan(ctx, "chat_iteration")
 			defer span.Send()
 			iterations++
-			var tools []*genai.Tool
+			var tools []*llm.FunctionDeclaration
 			if iterations <= 10 {
-				tools = []*genai.Tool{{FunctionDeclarations: functions.GetFunctionDefinitionsForCapabilities(query.SupportedActionsFromContext(ctx))}}
+				tools = functions.GetFunctionDefinitionsForCapabilities(query.SupportedActionsFromContext(ctx))
 			}
 			systemPrompt := ps.generateSystemPrompt(ctx)
 			streamCtx, streamSpan := beeline.StartSpan(ctx, "chat_stream")
 			temperature := float32(0.5)
 			zero := int32(0)
-			s := geminiClient.Models.GenerateContentStream(streamCtx, "models/gemini-2.5-flash", messages, &genai.GenerateContentConfig{
-				SystemInstruction: &genai.Content{Parts: []*genai.Part{{Text: systemPrompt}}},
-				Temperature:       &temperature,
-				CandidateCount:    1,
-				Tools:             tools,
-				ThinkingConfig: &genai.ThinkingConfig{
-					IncludeThoughts: false,
-					ThinkingBudget:  &zero,
-				},
+			s := llmService.StreamChat(streamCtx, &llm.Request{
+				Model:          llm.ModelDefault,
+				SystemPrompt:   systemPrompt,
+				Messages:       messages,
+				Temperature:    &temperature,
+				Tools:          tools,
+				ThinkingBudget: &zero,
 			})
-			var functionCall *genai.FunctionCall
+			var functionCall *llm.FunctionCall
 			content := ""
-			var usageData *genai.GenerateContentResponseUsageMetadata
+			var usageData *llm.Usage
 			bufferedContent := ""
 			leftTrimming := false
 		read_loop:
-			for resp, err := range s {
-				if errors.Is(err, iterator.Done) {
-					break
-				}
+			for chunk, err := range s {
 				if err != nil {
 					streamSpan.AddField("error", err)
-					log.Printf("recv from Google failed: %v\n", err)
-					// This comes up when Google is over capacity, which does happen sometimes.
+					log.Printf("recv from LLM provider failed: %v\n", err)
+					// This comes up when the provider is over capacity, which does happen sometimes.
 					// There's nothing we can really do here, though we could blame them instead of ourselves.
 					_ = ps.conn.Close(websocket.StatusInternalError, "Bobby is unavailable right now. Please try again in a few moments.")
 					streamSpan.Send()
 					return false, err
 				}
-				usageData = resp.UsageMetadata
-				if len(resp.Candidates) == 0 {
-					continue
+				if chunk.Usage != nil {
+					usageData = chunk.Usage
 				}
-				choice := resp.Candidates[0]
-				ourContent := ""
-				for _, c := range choice.Content.Parts {
-					if c.Text != "" {
-						ourContent += fixUnsupportedCharacters(c.Text)
-					}
-					if c.FunctionCall != nil {
-						fc := *c.FunctionCall
-						functionCall = &fc
-					}
+				ourContent := fixUnsupportedCharacters(chunk.Text)
+				if chunk.FunctionCall != nil {
+					fc := *chunk.FunctionCall
+					functionCall = &fc
 				}
 				if bufferedContent != "" {
 					bufferedContent += ourContent
@@ -268,32 +250,32 @@ func (ps *PromptSession) Run(ctx context.Context) {
 			}
 			streamSpan.Send()
 			if usageData != nil {
-				if usageData.PromptTokenCount != 0 {
-					_, err = qt.ChargeInputQuota(ctx, int(usageData.PromptTokenCount), int(usageData.CachedContentTokenCount))
+				if usageData.InputTokens != 0 {
+					_, err = qt.ChargeInputQuota(ctx, usageData.InputTokens, usageData.CachedInputTokens)
 					if err != nil {
 						log.Printf("charge input quota failed: %v\n", err)
 					}
-					totalInputTokens += int(usageData.PromptTokenCount)
-					totalCachedInputTokens += int(usageData.CachedContentTokenCount)
+					totalInputTokens += usageData.InputTokens
+					totalCachedInputTokens += usageData.CachedInputTokens
 				}
-				if usageData.CandidatesTokenCount != 0 {
-					_, err = qt.ChargeOutputQuota(ctx, int(usageData.CandidatesTokenCount))
+				if usageData.OutputTokens != 0 {
+					_, err = qt.ChargeOutputQuota(ctx, usageData.OutputTokens)
 					if err != nil {
 						log.Printf("charge output quota failed: %v\n", err)
 					}
-					totalOutputTokens += int(usageData.CandidatesTokenCount)
+					totalOutputTokens += usageData.OutputTokens
 				}
 			}
 			if len(strings.TrimSpace(content)) > 0 {
-				messages = append(messages, &genai.Content{
-					Parts: []*genai.Part{{Text: content}},
-					Role:  "model",
+				messages = append(messages, &llm.Content{
+					Parts: []*llm.Part{{Text: content}},
+					Role:  llm.RoleAssistant,
 				})
 			}
 			if functionCall != nil {
-				messages = append(messages, &genai.Content{
-					Role: "model",
-					Parts: []*genai.Part{
+				messages = append(messages, &llm.Content{
+					Role: llm.RoleAssistant,
+					Parts: []*llm.Part{
 						{FunctionCall: functionCall},
 					},
 				})
@@ -317,10 +299,10 @@ func (ps *PromptSession) Run(ctx context.Context) {
 				}
 				var mapResult map[string]any
 				_ = json.Unmarshal([]byte(result), &mapResult)
-				messages = append(messages, &genai.Content{
-					Role: "function",
-					Parts: []*genai.Part{
-						{FunctionResponse: &genai.FunctionResponse{
+				messages = append(messages, &llm.Content{
+					Role: llm.RoleFunction,
+					Parts: []*llm.Part{
+						{FunctionResponse: &llm.FunctionResponse{
 							Name:     functionCall.Name,
 							Response: mapResult,
 						}},
@@ -396,13 +378,13 @@ func fixUnsupportedCharacters(s string) string {
 	return strings.ReplaceAll(s, "\u202f", "\u00a0")
 }
 
-func (ps *PromptSession) storeThread(ctx context.Context, messages []*genai.Content) error {
+func (ps *PromptSession) storeThread(ctx context.Context, messages []*llm.Content) error {
 	ctx, span := beeline.StartSpan(ctx, "store_thread")
 	defer span.Send()
 	var toStore []persistence.SerializedMessage
 	for _, m := range messages {
 		if len(m.Parts) != 0 {
-			if m.Role == "user" || m.Role == "model" {
+			if m.Role == llm.RoleUser || m.Role == llm.RoleAssistant {
 				sm := persistence.SerializedMessage{
 					Role:         m.Role,
 					Content:      m.Parts[0].Text,
@@ -411,7 +393,7 @@ func (ps *PromptSession) storeThread(ctx context.Context, messages []*genai.Cont
 				if sm.FunctionCall != nil || len(strings.TrimSpace(m.Parts[0].Text)) > 0 {
 					toStore = append(toStore, sm)
 				}
-			} else if m.Role == "function" && m.Parts[0].FunctionResponse != nil {
+			} else if m.Role == llm.RoleFunction && m.Parts[0].FunctionResponse != nil {
 				fr := *m.Parts[0].FunctionResponse
 				fnInfo := functions.GetFunctionRegistration(fr.Name)
 				if fnInfo != nil && fnInfo.RedactOutputInChatHistory {
@@ -439,12 +421,17 @@ func (ps *PromptSession) restoreContext(ctx context.Context, oldThreadId string)
 	return ctx, threadContext, nil
 }
 
-func (ps *PromptSession) restoreThread(threadContext *persistence.ThreadContext) []*genai.Content {
-	var result []*genai.Content
+func (ps *PromptSession) restoreThread(threadContext *persistence.ThreadContext) []*llm.Content {
+	var result []*llm.Content
 	for _, m := range threadContext.Messages {
-		result = append(result, &genai.Content{
-			Parts: []*genai.Part{{Text: m.Content, FunctionCall: m.FunctionCall, FunctionResponse: m.FunctionResponse}},
-			Role:  m.Role,
+		role := m.Role
+		// Threads stored before the provider abstraction used Gemini's "model" role.
+		if role == "model" {
+			role = llm.RoleAssistant
+		}
+		result = append(result, &llm.Content{
+			Parts: []*llm.Part{{Text: m.Content, FunctionCall: m.FunctionCall, FunctionResponse: m.FunctionResponse}},
+			Role:  role,
 		})
 	}
 	return result

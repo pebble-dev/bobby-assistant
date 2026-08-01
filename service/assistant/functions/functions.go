@@ -24,8 +24,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pebble-dev/bobby-assistant/service/assistant/llm"
 	"golang.org/x/exp/slices"
-	"google.golang.org/genai"
 	"nhooyr.io/websocket"
 )
 
@@ -37,7 +37,7 @@ const MaxResponseSize = 20000
 
 type Registration struct {
 	// The function definition. The Parameters field will be filled out automatically and can be omitted.
-	Definition genai.FunctionDeclaration
+	Definition llm.FunctionDeclaration
 	// Aliases for the function, in case the model gets the name of the function wrong.
 	Aliases []string
 	// The function to call, for a simple function
@@ -211,19 +211,19 @@ func SummariseFunction(fn, args string) string {
 	}
 }
 
-func GetFunctionDefinitionsByCapability() map[string][]genai.FunctionDeclaration {
-	definitions := map[string][]genai.FunctionDeclaration{}
+func GetFunctionDefinitionsByCapability() map[string][]llm.FunctionDeclaration {
+	definitions := map[string][]llm.FunctionDeclaration{}
 	for _, reg := range functionMap {
 		if _, ok := definitions[reg.Capability]; !ok {
-			definitions[reg.Capability] = []genai.FunctionDeclaration{}
+			definitions[reg.Capability] = []llm.FunctionDeclaration{}
 		}
 		definitions[reg.Capability] = append(definitions[reg.Capability], reg.Definition)
 	}
 	return definitions
 }
 
-func GetFunctionDefinitionsForCapabilities(capabilities []string) []*genai.FunctionDeclaration {
-	var definitions []*genai.FunctionDeclaration
+func GetFunctionDefinitionsForCapabilities(capabilities []string) []*llm.FunctionDeclaration {
+	var definitions []*llm.FunctionDeclaration
 	for _, reg := range functionMap {
 		if (reg.Capability == "" || slices.Contains(capabilities, reg.Capability)) &&
 			(reg.AntiCapability == "" || !slices.Contains(capabilities, reg.AntiCapability)) {
