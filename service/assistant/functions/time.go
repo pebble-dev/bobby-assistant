@@ -3,7 +3,7 @@ package functions
 import (
 	"context"
 	"fmt"
-	"google.golang.org/genai"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/llm"
 	"strings"
 	"time"
 
@@ -25,20 +25,20 @@ type GetTimeInput struct {
 func init() {
 	f := false
 	registerFunction(Registration{
-		Definition: genai.FunctionDeclaration{
+		Definition: llm.FunctionDeclaration{
 			Name:        "get_time_elsewhere",
 			Description: "Get the current time in a given valid tzdb timezone. Not all cities have a tzdb entry - be sure to use one that exists. Call multiple times to find the time in multiple timezones.",
-			Parameters: &genai.Schema{
-				Type:     genai.TypeObject,
+			Parameters: &llm.Schema{
+				Type:     llm.TypeObject,
 				Nullable: &f,
-				Properties: map[string]*genai.Schema{
+				Properties: map[string]*llm.Schema{
 					"timezone": {
-						Type:        genai.TypeString,
+						Type:        llm.TypeString,
 						Description: "The timezone, e.g. 'America/Los_Angeles'.",
 						Nullable:    &f,
 					},
 					"offset": {
-						Type:        genai.TypeNumber,
+						Type:        llm.TypeNumber,
 						Description: "The number of seconds to add to the current time, if checking a different time. Omit or set to zero for current time.",
 						Format:      "double",
 					},

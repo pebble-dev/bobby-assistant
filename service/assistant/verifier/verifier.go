@@ -21,9 +21,8 @@ import (
 	"time"
 
 	"github.com/honeycombio/beeline-go"
-	"google.golang.org/genai"
 
-	"github.com/pebble-dev/bobby-assistant/service/assistant/config"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/llm"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
 )
 
@@ -63,10 +62,7 @@ type ActionCheck struct {
 func DetermineActions(ctx context.Context, qt *quota.Tracker, message string) ([]ActionCheck, error) {
 	ctx, span := beeline.StartSpan(ctx, "determine_actions")
 	defer span.Send()
-	geminiClient, err := genai.NewClient(ctx, &genai.ClientConfig{
-		APIKey:  config.GetConfig().GeminiKey,
-		Backend: genai.BackendGeminiAPI,
-	})
+	llmService, err := llm.New(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -76,24 +72,26 @@ func DetermineActions(ctx context.Context, qt *quota.Tracker, message string) ([
 	// We don't want to hold up the user for too long - if the model is responding slowly, just give up.
 	// Under normal circumstances, the P99 response time is around 600ms.
 	timeoutCtx, cancelTimeout := context.WithTimeout(ctx, 1500*time.Millisecond)
-	response, err := geminiClient.Models.GenerateContent(timeoutCtx, "models/gemini-2.5-flash-lite", []*genai.Content{
-		genai.NewContentFromText(message, genai.RoleUser),
-	}, &genai.GenerateContentConfig{
-		SystemInstruction: genai.NewContentFromText(SYSTEM_PROMPT, genai.RoleUser),
-		Temperature:       &temperature,
-		ResponseMIMEType:  "application/json",
-		ResponseSchema: &genai.Schema{
-			Type: genai.TypeArray,
-			Items: &genai.Schema{
-				Type: genai.TypeObject,
-				Properties: map[string]*genai.Schema{
+	response, err := llmService.Complete(timeoutCtx, &llm.Request{
+		Model:        llm.ModelLite,
+		SystemPrompt: SYSTEM_PROMPT,
+		Messages: []*llm.Content{{
+			Role:  llm.RoleUser,
+			Parts: []*llm.Part{{Text: message}},
+		}},
+		Temperature: &temperature,
+		ResponseSchema: &llm.Schema{
+			Type: llm.TypeArray,
+			Items: &llm.Schema{
+				Type: llm.TypeObject,
+				Properties: map[string]*llm.Schema{
 					"topic": {
-						Type:     genai.TypeString,
+						Type:     llm.TypeString,
 						Enum:     []string{"alarm", "timer", "reminder", "settings"},
 						Nullable: &f,
 					},
 					"action": {
-						Type:     genai.TypeString,
+						Type:     llm.TypeString,
 						Enum:     []string{"setting", "reporting"},
 						Nullable: &f,
 					},
@@ -109,24 +107,22 @@ func DetermineActions(ctx context.Context, qt *quota.Tracker, message string) ([
 
 	inputTokens := 0
 	outputTokens := 0
-	if response.UsageMetadata != nil {
-		inputTokens = int(response.UsageMetadata.PromptTokenCount)
-		outputTokens = int(response.UsageMetadata.CandidatesTokenCount)
+	if response.Usage != nil {
+		inputTokens = response.Usage.InputTokens
+		outputTokens = response.Usage.OutputTokens
 	}
 
 	_ = qt.ChargeCredits(ctx, inputTokens*quota.LiteInputTokenCredits+outputTokens*quota.LiteOutputTokenCredits)
 
-	text := response.Text()
-
 	var checks []ActionCheck
-	if err := json.Unmarshal([]byte(text), &checks); err != nil {
+	if err := json.Unmarshal([]byte(response.Text), &checks); err != nil {
 		return nil, err
 	}
 
 	return checks, nil
 }
 
-func FindLies(ctx context.Context, qt *quota.Tracker, message []*genai.Content) ([]string, error) {
+func FindLies(ctx context.Context, qt *quota.Tracker, message []*llm.Content) ([]string, error) {
 	// If there are no messages, there can be no lies.
 	if len(message) == 0 {
 		return nil, nil
@@ -134,9 +130,9 @@ func FindLies(ctx context.Context, qt *quota.Tracker, message []*genai.Content) 
 
 	// We're assuming it's probably okay to only inspect the last message - the assistant probably won't make claims
 	// before then.
-	var lastAssistantMessage *genai.Content
+	var lastAssistantMessage *llm.Content
 	for i := len(message) - 1; i >= 0; i-- {
-		if message[i].Role == "model" {
+		if message[i].Role == llm.RoleAssistant {
 			lastAssistantMessage = message[i]
 			break
 		}
@@ -203,10 +199,10 @@ func FindLies(ctx context.Context, qt *quota.Tracker, message []*genai.Content) 
 	return lies, nil
 }
 
-func getFunctionCalls(message []*genai.Content) map[string]bool {
+func getFunctionCalls(message []*llm.Content) map[string]bool {
 	functionCalls := make(map[string]bool)
 	for _, content := range message {
-		if content.Role != "model" {
+		if content.Role != llm.RoleAssistant {
 			continue
 		}
 		for _, part := range content.Parts {
