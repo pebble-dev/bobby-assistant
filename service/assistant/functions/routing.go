@@ -21,11 +21,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/honeycombio/beeline-go"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/llm"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/query"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
 	"google.golang.org/api/option"
 	"google.golang.org/api/places/v1"
-	"google.golang.org/genai"
 	"google.golang.org/genproto/googleapis/type/latlng"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -51,7 +51,7 @@ func init() {
 		panic(err)
 	}
 	registerFunction(Registration{
-		Definition: genai.FunctionDeclaration{
+		Definition: llm.FunctionDeclaration{
 			Name: "find_route",
 			Description: "Find a travel route between two locations, by car, bicycle, foot, or transit. " +
 				"When using the result of this method, consider adding a ROUTE-MAP widget to show the route on a map. " +
@@ -60,32 +60,32 @@ func init() {
 				"If the user doesn't specify a starting point, assume 'here'. Because of the destination lookup, " +
 				"*ALWAYS* mention the returned origin and destination name in your response if they are provided and don't exactly match what the user said - " +
 				"failure to do so may mislead the user.",
-			Parameters: &genai.Schema{
-				Type: genai.TypeObject,
-				Properties: map[string]*genai.Schema{
+			Parameters: &llm.Schema{
+				Type: llm.TypeObject,
+				Properties: map[string]*llm.Schema{
 					"destination": {
-						Type:        genai.TypeString,
+						Type:        llm.TypeString,
 						Description: "The routing destination. A place name or even vague description (like 'train station') is sufficient, it doesn't need to be an address. If you provide 'here', uses the user's current location is used. The origin and destination cannot be the same.",
 					},
 					"origin": {
-						Type:        genai.TypeString,
+						Type:        llm.TypeString,
 						Description: "Optional. The routing origin. A place name or even vague description (like 'train station') is sufficient, it doesn't have to be an address. If you provide 'here', uses the user's current location is used. You should always assume the origin is 'here' unless the users says otherwise - you MUST NOT ask them.",
 					},
 					"departureTime": {
-						Type:        genai.TypeString,
+						Type:        llm.TypeString,
 						Description: "The time to depart. If omitted, uses the current time. Mutually exclusive with arrivalTime. Use ISO 8601 format, e.g. '2023-07-12T00:00:00-07:00'",
 					},
 					"arrivalTime": {
-						Type:        genai.TypeString,
+						Type:        llm.TypeString,
 						Description: "The time to arrive. Mutually exclusive with departureTime. Use ISO 8601 format, e.g. '2023-07-12T00:00:00-07:00'",
 					},
 					"travelMode": {
-						Type:        genai.TypeString,
+						Type:        llm.TypeString,
 						Description: "The mode of transport to use. If omitted, uses the default mode.",
 						Enum:        []string{"driving", "bicycle", "walking", "transit"},
 					},
 					"languageCode": {
-						Type:        genai.TypeString,
+						Type:        llm.TypeString,
 						Description: "The language code (e.g. `es` or `pt-BR`) to use for the search results.",
 					},
 				},

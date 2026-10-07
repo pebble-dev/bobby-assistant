@@ -24,9 +24,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pebble-dev/bobby-assistant/service/assistant/llm"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/query"
 	"github.com/yuin/gopher-lua"
-	"google.golang.org/genai"
 )
 
 type LuaInput struct {
@@ -40,20 +40,20 @@ func init() {
 	f := false
 	t := true
 	registerFunction(Registration{
-		Definition: genai.FunctionDeclaration{
+		Definition: llm.FunctionDeclaration{
 			Name:        "lua",
 			Description: "Runs the provided Lua 5.2 script, and gives the value returned in a return statement. ONLY STANDARD LIBRARY FUNCTIONS ARE AVAILABLE. DO NOT CALL ANYTHING ELSE. Do not use `print` to return a result -- instead, use `return`.",
-			Parameters: &genai.Schema{
-				Type:     genai.TypeObject,
+			Parameters: &llm.Schema{
+				Type:     llm.TypeObject,
 				Nullable: &f,
-				Properties: map[string]*genai.Schema{
+				Properties: map[string]*llm.Schema{
 					"script": {
-						Type:        genai.TypeString,
+						Type:        llm.TypeString,
 						Description: "The Lua 5.2 script to run. Remember the return statements -- don't use print!",
 						Nullable:    &f,
 					},
 					"timezone": {
-						Type:        genai.TypeString,
+						Type:        llm.TypeString,
 						Description: "If necessary, the timezone name to assume when running the script. Defaults to the user's local time.",
 						Nullable:    &t,
 					},

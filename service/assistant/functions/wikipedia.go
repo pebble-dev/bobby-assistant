@@ -26,8 +26,8 @@ import (
 	"strings"
 
 	"github.com/honeycombio/beeline-go"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/llm"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
-	"google.golang.org/genai"
 )
 
 type WikiRequest struct {
@@ -48,26 +48,26 @@ var urlMap = map[string]string{
 func init() {
 	f := false
 	registerFunction(Registration{
-		Definition: genai.FunctionDeclaration{
+		Definition: llm.FunctionDeclaration{
 			Name:        "wikipedia",
 			Description: "Look up the content of a single named wiki article, from Wikipedia or topic-specific wikis like Bulbapedia. Never say the wiki page didn't have the information needed without first trying to fetch the complete article.",
-			Parameters: &genai.Schema{
-				Type:     genai.TypeObject,
+			Parameters: &llm.Schema{
+				Type:     llm.TypeObject,
 				Nullable: &f,
-				Properties: map[string]*genai.Schema{
+				Properties: map[string]*llm.Schema{
 					"wiki": {
-						Type:        genai.TypeString,
+						Type:        llm.TypeString,
 						Description: "The Wiki to search.",
 						Nullable:    &f,
 						Enum:        []string{"wikipedia", "bulbapedia"},
 					},
 					"article_name": {
-						Type:        genai.TypeString,
+						Type:        llm.TypeString,
 						Description: "The name of the article to look up",
 						Nullable:    &f,
 					},
 					"complete_article": {
-						Type:        genai.TypeBoolean,
+						Type:        llm.TypeBoolean,
 						Description: "Whether to return the complete article or just the summary. Prefer to fetch only the summary. If the summary didn't have the information you expected, you can try again with the complete article.",
 						Nullable:    &f,
 					},

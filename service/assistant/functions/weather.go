@@ -18,11 +18,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/honeycombio/beeline-go"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/llm"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/query"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/util/mapbox"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/util/weather"
-	"google.golang.org/genai"
 	"strings"
 )
 
@@ -39,26 +39,26 @@ func init() {
 	t := true
 	f := false
 	registerFunction(Registration{
-		Definition: genai.FunctionDeclaration{
+		Definition: llm.FunctionDeclaration{
 			Name:        "get_weather",
 			Description: "Given a location, return the current or future weather, and sunrise/sunset times. Do not specify a location if you want the user's local weather.",
-			Parameters: &genai.Schema{
-				Type:     genai.TypeObject,
+			Parameters: &llm.Schema{
+				Type:     llm.TypeObject,
 				Nullable: &f,
-				Properties: map[string]*genai.Schema{
+				Properties: map[string]*llm.Schema{
 					"location": {
-						Type:        genai.TypeString,
+						Type:        llm.TypeString,
 						Description: "The city, state, and country, e.g. 'Redwood City, CA, USA'. Omit for the user's current location.",
 						Nullable:    &t,
 					},
 					"unit": {
-						Type:        genai.TypeString,
+						Type:        llm.TypeString,
 						Description: "The user's unit preference",
 						Nullable:    &f,
 						Enum:        []string{"imperial", "metric", "uk hybrid"},
 					},
 					"kind": {
-						Type:        genai.TypeString,
+						Type:        llm.TypeString,
 						Description: "The kind of weather to return: current weather, the next 7 days, or the next 24 hours.",
 						Nullable:    &f,
 						Enum:        []string{"current", "forecast daily", "forecast hourly"},

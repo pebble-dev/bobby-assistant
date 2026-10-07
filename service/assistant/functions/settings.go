@@ -16,8 +16,8 @@ package functions
 
 import (
 	"context"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/llm"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
-	"google.golang.org/genai"
 	"strings"
 )
 
@@ -33,19 +33,19 @@ type UpdateSettingsInput struct {
 func init() {
 	t := true
 	registerFunction(Registration{
-		Definition: genai.FunctionDeclaration{
+		Definition: llm.FunctionDeclaration{
 			Name:        "update_settings",
 			Description: "Update the user's settings, e.g. their preferred unit system. Call if and only if the user asks you to change something. Properties not specified won't be changed. No property is required. For security reasons, changing the location permission can't be done with this method - the user must go to the settings page.",
-			Parameters: &genai.Schema{
-				Type: genai.TypeObject,
-				Properties: map[string]*genai.Schema{
+			Parameters: &llm.Schema{
+				Type: llm.TypeObject,
+				Properties: map[string]*llm.Schema{
 					"unit_system": {
-						Type:        genai.TypeString,
+						Type:        llm.TypeString,
 						Description: "Whether the user prefers metric, imperial, 'UK hybrid' (temperature in celsius, distance in miles), or both metric and imperial. Or, 'auto' to figure it out based on the user's location.",
 						Enum:        []string{"auto", "imperial", "metric", "uk hybrid", "both"},
 					},
 					"response_language": {
-						Type:        genai.TypeString,
+						Type:        llm.TypeString,
 						Description: "The user's preferred response language. This is the language in which the assistant will respond to the user, or 'automatic' to use the language of the user's last message.",
 						Enum: []string{"auto", "af_ZA", "id_ID", "ms_MY", "cs_CZ", "da_DK", "de_DE",
 							"en_US", "es_ES", "fil_PH", "fr_FR", "gl_ES", "hr_HR", "is_IS", "it_IT", "sw_TZ", "lv_LV",
@@ -53,22 +53,22 @@ func init() {
 							"fi_FI", "sv_SE", "tr_TR", "zu_ZA"},
 					},
 					"alarm_vibration_pattern": {
-						Type:        genai.TypeString,
+						Type:        llm.TypeString,
 						Description: "The user's preferred alarm vibration pattern, used when alarms go off.",
 						Enum:        []string{"Reveille", "Mario", "Nudge Nudge", "Jackhammer", "Standard"},
 					},
 					"timer_vibration_pattern": {
-						Type:        genai.TypeString,
+						Type:        llm.TypeString,
 						Description: "The user's preferred timer vibration pattern, used when timers go off.",
 						Enum:        []string{"Reveille", "Mario", "Nudge Nudge", "Jackhammer", "Standard"},
 					},
 					"quick_launch_behaviour": {
-						Type:        genai.TypeString,
+						Type:        llm.TypeString,
 						Description: "The user's preferred quick launch behaviour. The app can open the home screen (same as a non-quick launch), open the conversation but time out and quit after a minute, or open the conversation and stick around.",
 						Enum:        []string{"open home screen", "start conversation and time out", "start conversation and stay open"},
 					},
 					"confirm_prompts": {
-						Type:        genai.TypeBoolean,
+						Type:        llm.TypeBoolean,
 						Description: "Whether the user wants to be asked to confirm their all of their queries before acting on them",
 						Nullable:    &t,
 					},
