@@ -21,6 +21,7 @@
 #include "../util/memory/pressure.h"
 #include "../util/logging.h"
 #include "../util/strings.h"
+#include "../consent/consent.h"
 
 #include <pebble-events/pebble-events.h>
 #include <pebble.h>
@@ -28,6 +29,8 @@
 
 struct ConversationManager {
   Conversation* conversation;
+  // A prompt waiting for the user to accept updated consent before it can be sent.
+  char* held_prompt;
   EventHandle app_message_handle;
   void* context;
   ConversationManagerUpdateHandler handler;
@@ -46,6 +49,8 @@ static void prv_process_highlight_widget(int widget_type, DictionaryIterator *it
 static void prv_process_map_widget(int widget_type, DictionaryIterator *iter, ConversationManager *manager);
 #endif
 static bool prv_handle_memory_pressure(void *context);
+static void prv_send_prompt(ConversationManager* manager, const char* input);
+static void prv_consent_completed(bool accepted, void* context);
 
 static ConversationManager* s_conversation_manager;
 
@@ -57,6 +62,7 @@ void conversation_manager_init() {
 ConversationManager* conversation_manager_create() {
   ConversationManager* manager = bmalloc(sizeof(ConversationManager));
   manager->conversation = conversation_create();
+  manager->held_prompt = NULL;
   manager->handler = NULL;
   manager->app_message_handle = events_app_message_subscribe_handlers((EventAppMessageHandlers){
       .sent = prv_handle_app_message_outbox_sent,
@@ -71,6 +77,9 @@ ConversationManager* conversation_manager_create() {
 }
 
 void conversation_manager_destroy(ConversationManager* manager) {
+  if (manager->held_prompt) {
+    free(manager->held_prompt);
+  }
   conversation_destroy(manager->conversation);
   events_app_message_unsubscribe(manager->app_message_handle);
   if (s_conversation_manager == manager) {
@@ -97,10 +106,45 @@ void conversation_manager_set_deletion_handler(ConversationManager* manager, Con
 }
 
 void conversation_manager_add_input(ConversationManager* manager, const char* input) {
-  DictionaryIterator *iter;
-  AppMessageResult result = app_message_outbox_begin(&iter);
   conversation_add_prompt(manager->conversation, input);
   prv_conversation_updated(manager, true);
+  if (must_present_consent()) {
+    // The service's terms changed since the user last agreed to them (e.g. after a quick launch straight into
+    // dictation). Hold the prompt until they've reviewed the new terms.
+    BOBBY_LOG(APP_LOG_LEVEL_INFO, "Consent is out of date; holding prompt.");
+    if (manager->held_prompt) {
+      free(manager->held_prompt);
+    }
+    manager->held_prompt = bmalloc(strlen(input) + 1);
+    strcpy(manager->held_prompt, input);
+    consent_window_push_for_prompt(prv_consent_completed, manager);
+    return;
+  }
+  prv_send_prompt(manager, input);
+}
+
+static void prv_consent_completed(bool accepted, void* context) {
+  ConversationManager* manager = context;
+  if (conversation_manager_get_current() != manager) {
+    return;
+  }
+  char* prompt = manager->held_prompt;
+  manager->held_prompt = NULL;
+  if (prompt == NULL) {
+    return;
+  }
+  if (accepted) {
+    prv_send_prompt(manager, prompt);
+  } else {
+    conversation_add_error(manager->conversation, "You need to agree to Bobby's updated terms before Bobby can respond.");
+    prv_conversation_updated(manager, true);
+  }
+  free(prompt);
+}
+
+static void prv_send_prompt(ConversationManager* manager, const char* input) {
+  DictionaryIterator *iter;
+  AppMessageResult result = app_message_outbox_begin(&iter);
   if (result != APP_MSG_OK) {
     BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Preparing outbox failed: %d.", result);
     conversation_add_error(manager->conversation, "Sending to service failed.");
@@ -115,6 +159,7 @@ void conversation_manager_add_input(ConversationManager* manager, const char* in
   strings_fix_android_bridge_bodge(bridge_bodge);
   dict_write_cstring(iter, MESSAGE_KEY_PROMPT, bridge_bodge);
   free(bridge_bodge);
+  dict_write_int32(iter, MESSAGE_KEY_CONSENT_VERSION, consent_accepted_version());
 
   const char* thread_id = conversation_get_thread_id(manager->conversation);
   if (thread_id[0] != 0) {
@@ -148,6 +193,10 @@ static void prv_handle_app_message_outbox_sent(DictionaryIterator *iterator, voi
 
 static void prv_handle_app_message_outbox_failed(DictionaryIterator *iterator, AppMessageResult reason, void *context) {
   BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Sending message failed: %d", reason);
+  if (iterator != NULL && dict_find(iterator, MESSAGE_KEY_PROMPT) == NULL) {
+    // Something other than a prompt failed to send (e.g. a consent page request); that's not our problem.
+    return;
+  }
   ConversationManager* manager = context;
   conversation_add_error(manager->conversation, "Sending to service failed.");
   prv_conversation_updated(manager, true);
@@ -155,6 +204,17 @@ static void prv_handle_app_message_outbox_failed(DictionaryIterator *iterator, A
 
 static void prv_handle_app_message_inbox_received(DictionaryIterator *iter, void *context) {
   ConversationManager* manager = context;
+  Tuple *close_code = dict_find(iter, MESSAGE_KEY_CLOSE_CODE);
+  if (close_code != NULL && close_code->value->int32 == CONSENT_CLOSE_CODE_REQUIRED) {
+    // The service has newer terms than we knew about. Ask the user to review them; they'll need to ask again.
+    BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Service rejected our consent version.");
+    consent_mark_outdated();
+    conversation_complete_response(manager->conversation);
+    conversation_add_error(manager->conversation, "Bobby's terms have changed. Once you've reviewed them, please ask again.");
+    prv_conversation_updated(manager, true);
+    consent_window_push_for_prompt(NULL, NULL);
+    return;
+  }
   for (Tuple *tuple = dict_read_first(iter); tuple; tuple = dict_read_next(iter)) {
     if (tuple->key == MESSAGE_KEY_CHAT) {
       bool added_entry = conversation_add_response_fragment(manager->conversation, tuple->value->cstring);

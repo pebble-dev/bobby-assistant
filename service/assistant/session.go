@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/honeycombio/beeline-go"
+	"github.com/pebble-dev/bobby-assistant/service/assistant/consent"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/persistence"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/quota"
 	"github.com/pebble-dev/bobby-assistant/service/assistant/verifier"
@@ -74,7 +75,27 @@ func NewPromptSession(redisClient *redis.Client, rw http.ResponseWriter, r *http
 	}, nil
 }
 
+// StatusConsentRequired tells the app that the user must accept the current consent text before
+// the query can be processed.
+const StatusConsentRequired websocket.StatusCode = 4001
+
+// checkConsent closes the connection and returns false if the client has not accepted the current consent version.
+func (ps *PromptSession) checkConsent() bool {
+	switch consent.Check(ps.query.Get("consentVersion")) {
+	case consent.UpdateRequired:
+		_ = ps.conn.Close(websocket.StatusPolicyViolation, "Please update Bobby to continue.")
+		return false
+	case consent.ConsentRequired:
+		_ = ps.conn.Close(StatusConsentRequired, "consent_required")
+		return false
+	}
+	return true
+}
+
 func (ps *PromptSession) Run(ctx context.Context) {
+	if !ps.checkConsent() {
+		return
+	}
 	ctx = query.ContextWith(ctx, ps.query)
 	llmService, err := llm.New(ctx)
 	if err != nil {

@@ -23,6 +23,7 @@ var customConfigFunction = require('./custom_config');
 var config = require('./config');
 var reminders = require('./reminders');
 var feedback = require('./lib/feedback');
+var consent = require('./consent');
 var package_json = require('package.json');
 
 
@@ -31,6 +32,7 @@ var clay = new Clay(clayConfig, customConfigFunction);
 function main() {
     doQuotaWarning();
     location.update();
+    consent.refresh();
     Pebble.addEventListener('appmessage', handleAppMessage);
 }
 
@@ -51,7 +53,7 @@ function handleAppMessage(e) {
     var data = e.payload;
     if (data.PROMPT) {
         console.log("Starting a new Session...");
-        var s = new session.Session(data.PROMPT, data.THREAD_ID);
+        var s = new session.Session(data.PROMPT, data.THREAD_ID, data.CONSENT_VERSION);
         s.run();
         return;
     }
@@ -60,6 +62,10 @@ function handleAppMessage(e) {
         return;
     }
 
+    if (data.CONSENT_REQUEST) {
+        console.log("Sending consent pages...");
+        consent.handleRequest();
+    }
     if (data.QUOTA_REQUEST) {
         console.log("Requesting quota...");
         quota.handleQuotaRequest();
