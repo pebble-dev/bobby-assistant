@@ -40,6 +40,7 @@ static void prv_init(void) {
   memory_pressure_init();
   version_init();
   consent_migrate();
+  consent_init();
   settings_init();
   conversation_manager_init();
 #if ENABLE_FEATURE_IMAGE_MANAGER
@@ -68,12 +69,16 @@ int main(void) {
   if (alarm_manager_maybe_alarm()) {
     // don't actually have anything to do here - the alarm manager already did it.
   } else {
-    if (must_present_consent()) {
-      consent_window_push();
+    QuickLaunchBehaviour quick_launch_behaviour = settings_get_quick_launch_behaviour();
+    bool quick_launch_to_session = launch_reason() == APP_LAUNCH_QUICK_LAUNCH &&
+                                   quick_launch_behaviour != QuickLaunchBehaviourHomeScreen;
+    // If the user has accepted an older consent version, quick launch still goes straight to dictation.
+    // The conversation manager asks them to review the new terms before anything is sent.
+    if (consent_accepted_version() == 0 || (must_present_consent() && !quick_launch_to_session)) {
+      consent_window_push_for_launch();
     } else {
       if (launch_reason() == APP_LAUNCH_QUICK_LAUNCH) {
-        QuickLaunchBehaviour quick_launch_behaviour = settings_get_quick_launch_behaviour();
-        if (quick_launch_behaviour != QuickLaunchBehaviourHomeScreen) {
+        if (quick_launch_to_session) {
           session_window_push(quick_launch_behaviour == QuickLaunchBehaviourConverseWithTimeout ? QUICK_LAUNCH_TIMEOUT_MS : 0, NULL);
         } else {
           s_root_window = root_window_create();

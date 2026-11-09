@@ -20,7 +20,7 @@
 // These keys are stored centrally so we can avoid accidental collisions.
 // Remember: these numbers can *never* be changed.
 
-// next key: 14
+// next key: 15
 
 // We write the alarm count twice - once before doing any work, and once after.
 // If they disagree we assume the lower number is correct.
@@ -34,8 +34,12 @@
 // Store whether we have successfully requested location consent.
 #define PERSIST_KEY_LOCATION_ENABLED 6
 
-// Store whether the user has accepted the consents
+// The consent version the user has accepted (0 or absent if never).
+// Before consent versions were introduced this was set to 1, which is the first consent version.
 #define PERSIST_KEY_CONSENTS_COMPLETED 12
+
+// The consent version the service requires, as last reported by the phone.
+#define PERSIST_KEY_CONSENT_REQUIRED_VERSION 14
 
 // Contains the version we were running the last time we were launched
 #define PERSIST_KEY_VERSION 7

@@ -4,9 +4,11 @@ var emulatorSession = require("./emulator_session");
 var quota = require("../quota");
 var config = require("../config");
 var feedback = require("../lib/feedback");
+var consent = require("../consent");
 
 function main() {
     location.update();
+    consent.refresh();
     Pebble.addEventListener('appmessage', handleAppMessage);
 }
 
@@ -26,6 +28,10 @@ function handleAppMessage(e) {
         return;
     }
 
+    if (data.CONSENT_REQUEST) {
+        console.log("Sending consent pages...");
+        consent.handleRequest();
+    }
     if (data.QUOTA_REQUEST) {
         console.log("Requesting quota...");
         quota.handleQuotaRequest();
