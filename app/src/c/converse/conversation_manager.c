@@ -29,8 +29,8 @@
 
 struct ConversationManager {
   Conversation* conversation;
-  // A prompt waiting for the user to accept updated consent before it can be sent.
-  char* held_prompt;
+  // True while the latest prompt is waiting for the user to accept updated consent.
+  bool prompt_held;
   EventHandle app_message_handle;
   void* context;
   ConversationManagerUpdateHandler handler;
@@ -51,6 +51,7 @@ static void prv_process_map_widget(int widget_type, DictionaryIterator *iter, Co
 static bool prv_handle_memory_pressure(void *context);
 static void prv_send_prompt(ConversationManager* manager, const char* input);
 static void prv_consent_completed(bool accepted, void* context);
+static void prv_hold_prompt_for_consent(ConversationManager* manager);
 
 static ConversationManager* s_conversation_manager;
 
@@ -62,7 +63,7 @@ void conversation_manager_init() {
 ConversationManager* conversation_manager_create() {
   ConversationManager* manager = bmalloc(sizeof(ConversationManager));
   manager->conversation = conversation_create();
-  manager->held_prompt = NULL;
+  manager->prompt_held = false;
   manager->handler = NULL;
   manager->app_message_handle = events_app_message_subscribe_handlers((EventAppMessageHandlers){
       .sent = prv_handle_app_message_outbox_sent,
@@ -77,9 +78,6 @@ ConversationManager* conversation_manager_create() {
 }
 
 void conversation_manager_destroy(ConversationManager* manager) {
-  if (manager->held_prompt) {
-    free(manager->held_prompt);
-  }
   conversation_destroy(manager->conversation);
   events_app_message_unsubscribe(manager->app_message_handle);
   if (s_conversation_manager == manager) {
@@ -112,15 +110,21 @@ void conversation_manager_add_input(ConversationManager* manager, const char* in
     // The service's terms changed since the user last agreed to them (e.g. after a quick launch straight into
     // dictation). Hold the prompt until they've reviewed the new terms.
     BOBBY_LOG(APP_LOG_LEVEL_INFO, "Consent is out of date; holding prompt.");
-    if (manager->held_prompt) {
-      free(manager->held_prompt);
-    }
-    manager->held_prompt = bmalloc(strlen(input) + 1);
-    strcpy(manager->held_prompt, input);
-    consent_window_push_for_prompt(prv_consent_completed, manager);
+    prv_hold_prompt_for_consent(manager);
     return;
   }
   prv_send_prompt(manager, input);
+}
+
+// Shows the consent flow, then sends the conversation's latest prompt once the user accepts.
+// The prompt text stays in the conversation, so nothing extra is kept in memory.
+static void prv_hold_prompt_for_consent(ConversationManager* manager) {
+  if (manager->prompt_held) {
+    // A consent window is already showing for this prompt.
+    return;
+  }
+  manager->prompt_held = true;
+  consent_window_push_for_prompt(prv_consent_completed, manager);
 }
 
 static void prv_consent_completed(bool accepted, void* context) {
@@ -128,18 +132,17 @@ static void prv_consent_completed(bool accepted, void* context) {
   if (conversation_manager_get_current() != manager) {
     return;
   }
-  char* prompt = manager->held_prompt;
-  manager->held_prompt = NULL;
-  if (prompt == NULL) {
+  if (!manager->prompt_held) {
     return;
   }
-  if (accepted) {
+  manager->prompt_held = false;
+  const char* prompt = conversation_get_last_prompt(manager->conversation);
+  if (accepted && prompt != NULL) {
     prv_send_prompt(manager, prompt);
   } else {
     conversation_add_error(manager->conversation, "You need to agree to Bobby's updated terms before Bobby can respond.");
     prv_conversation_updated(manager, true);
   }
-  free(prompt);
 }
 
 static void prv_send_prompt(ConversationManager* manager, const char* input) {
@@ -206,13 +209,18 @@ static void prv_handle_app_message_inbox_received(DictionaryIterator *iter, void
   ConversationManager* manager = context;
   Tuple *close_code = dict_find(iter, MESSAGE_KEY_CLOSE_CODE);
   if (close_code != NULL && close_code->value->int32 == CONSENT_CLOSE_CODE_REQUIRED) {
-    // The service has newer terms than we knew about. Ask the user to review them; they'll need to ask again.
+    // The service has newer terms than we knew about. Ask the user to review them, then retry the prompt.
+    // The service rejects before restoring the thread, so retrying with the same thread ID is safe.
     BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Service rejected our consent version.");
     consent_mark_outdated();
     conversation_complete_response(manager->conversation);
-    conversation_add_error(manager->conversation, "Bobby's terms have changed. Once you've reviewed them, please ask again.");
-    prv_conversation_updated(manager, true);
-    consent_window_push_for_prompt(NULL, NULL);
+    if (conversation_get_last_prompt(manager->conversation) != NULL) {
+      prv_hold_prompt_for_consent(manager);
+    } else {
+      conversation_add_error(manager->conversation, "Bobby's terms have changed. Once you've reviewed them, please ask again.");
+      prv_conversation_updated(manager, true);
+      consent_window_push_for_prompt(NULL, NULL);
+    }
     return;
   }
   for (Tuple *tuple = dict_read_first(iter); tuple; tuple = dict_read_next(iter)) {
