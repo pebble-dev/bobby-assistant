@@ -203,6 +203,16 @@ static void prv_append_to_response(ConversationResponse *response, const char* f
   strcat(response->response, fragment);
 }
 
+const char* conversation_get_last_prompt(Conversation* conversation) {
+  for (int i = conversation->entry_count - 1; i >= conversation->deleted_entries; --i) {
+    ConversationEntry* entry = &conversation->entries[i];
+    if (entry->type == EntryTypePrompt) {
+      return entry->content.prompt->prompt;
+    }
+  }
+  return NULL;
+}
+
 static ConversationResponse* prv_find_last_open_response(Conversation* conversation) {
   for (int i = conversation->entry_count - 1; i >= conversation->deleted_entries; --i) {
     ConversationEntry* entry = &conversation->entries[i];

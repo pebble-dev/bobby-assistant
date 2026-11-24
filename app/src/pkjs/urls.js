@@ -19,6 +19,7 @@ exports.QUERY_URL = 'wss://bobby-api.rebble.io/query';
 exports.QUOTA_URL = 'https://bobby-api.rebble.io/quota';
 exports.FEEDBACK_URL = 'https://bobby-api.rebble.io/feedback';
 exports.REPORT_URL = 'https://bobby-api.rebble.io/report';
+exports.CONSENT_URL = 'https://bobby-api.rebble.io/consent';
 
 var override = require('./urls_override');
 
@@ -33,4 +34,7 @@ if (override.FEEDBACK_URL) {
 }
 if (override.REPORT_URL) {
     exports.REPORT_URL = override.REPORT_URL;
+}
+if (override.CONSENT_URL) {
+    exports.CONSENT_URL = override.CONSENT_URL;
 }

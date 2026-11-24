@@ -28,53 +28,132 @@
 #include <pebble-events/pebble-events.h>
 
 
-#define STAGE_LLM_WARNING 0
-#define STAGE_GEMINI_CONSENT 1
-#define STAGE_LOCATION_CONSENT 2
+#define MAX_CONSENT_PAGES 8
+#define LOAD_TIMEOUT_MS 15000
+#define REQUEST_RETRY_MS 1000
+
+typedef enum {
+  ConsentStateIntro,
+  ConsentStateLoading,
+  ConsentStateError,
+  ConsentStatePage,
+} ConsentState;
+
+typedef struct {
+  char *title;
+  char *text;
+} ConsentPage;
 
 typedef struct {
   ScrollLayer *scroll_layer;
   TextLayer *title_layer;
   TextLayer *text_layer;
   Layer *content_indicator_layer;
-  char* current_text;
-  const char* title_text;
   GBitmap* select_indicator_bitmap;
   BitmapLayer* select_indicator_layer;
   ActionMenu* action_menu;
-  int stage;
-  int expected_app_response;
+  ConsentState state;
+  // Index of the page being shown, when state is ConsentStatePage.
+  int page;
+  ConsentPage *pages;
+  int page_count;
+  int pages_received;
+  int consent_version;
+  AppTimer *load_timeout;
+  AppTimer *request_retry;
+  bool awaiting_location_reply;
+  bool accepted;
+  bool show_root_after;
+  ConsentCompleteCallback callback;
+  void *callback_context;
   EventHandle app_message_handle;
 } ConsentWindowData;
 
-static void prv_set_stage(Window* window, int stage);
+static EventHandle s_required_version_handle;
+
+static void prv_window_push(bool show_intro, bool show_root_after, ConsentCompleteCallback callback, void *context);
 static void prv_window_load(Window *window);
 static void prv_window_unload(Window *window);
-static void prv_window_appear(Window *window);
 static void prv_click_config_provider(void *context);
 static void prv_select_click_handler(ClickRecognizerRef recognizer, void *context);
 static bool prv_did_scroll_to_bottom(Window* window);
+static void prv_show_text(Window *window, const char *title, const char *text);
+static void prv_set_state(Window *window, ConsentState state);
+static void prv_show_page(Window *window, int page);
+static void prv_start_loading(Window *window);
+static void prv_send_request(void *context);
+static void prv_load_timed_out(void *context);
+static void prv_free_pages(ConsentWindowData *data);
 static void prv_present_consent_menu(Window* window);
 static void prv_consent_menu_select_callback(ActionMenu *action_menu, const ActionMenuItem *action, void *context);
 static void prv_action_menu_close(ActionMenu* action_menu, const ActionMenuItem* item, void* context);
 static void prv_app_message_handler(DictionaryIterator *iter, void *context);
-static void prv_mark_consents_complete();
+static void prv_app_message_failed(DictionaryIterator *iter, AppMessageResult reason, void *context);
+static void prv_retry_request_soon(Window *window);
+static void prv_handle_page(Window *window, DictionaryIterator *iter);
+static void prv_handle_location_reply(Window *window, Tuple *tuple);
+static void prv_required_version_handler(DictionaryIterator *iter, void *context);
 
-void consent_window_push() {
+void consent_init() {
+  s_required_version_handle = events_app_message_register_inbox_received(prv_required_version_handler, NULL);
+}
+
+static void prv_required_version_handler(DictionaryIterator *iter, void *context) {
+  Tuple *tuple = dict_find(iter, MESSAGE_KEY_CONSENT_REQUIRED_VERSION);
+  if (tuple == NULL) {
+    return;
+  }
+  int required = tuple->value->int32;
+  BOBBY_LOG(APP_LOG_LEVEL_INFO, "Service requires consent version %d.", required);
+  persist_write_int(PERSIST_KEY_CONSENT_REQUIRED_VERSION, required);
+}
+
+int consent_accepted_version() {
+  return persist_read_int(PERSIST_KEY_CONSENTS_COMPLETED);
+}
+
+static int prv_required_version() {
+  if (!persist_exists(PERSIST_KEY_CONSENT_REQUIRED_VERSION)) {
+    return 1;
+  }
+  int required = persist_read_int(PERSIST_KEY_CONSENT_REQUIRED_VERSION);
+  return required < 1 ? 1 : required;
+}
+
+bool must_present_consent() {
+  return consent_accepted_version() < prv_required_version();
+}
+
+void consent_mark_outdated() {
+  int accepted = consent_accepted_version();
+  if (prv_required_version() <= accepted) {
+    persist_write_int(PERSIST_KEY_CONSENT_REQUIRED_VERSION, accepted + 1);
+  }
+}
+
+void consent_window_push_for_launch() {
+  prv_window_push(false, true, NULL, NULL);
+}
+
+void consent_window_push_for_prompt(ConsentCompleteCallback callback, void *context) {
+  vibes_double_pulse();
+  prv_window_push(true, false, callback, context);
+}
+
+static void prv_window_push(bool show_intro, bool show_root_after, ConsentCompleteCallback callback, void *context) {
   Window* window = bwindow_create();
   ConsentWindowData* data = bmalloc(sizeof(ConsentWindowData));
   memset(data, 0, sizeof(ConsentWindowData));
+  data->state = show_intro ? ConsentStateIntro : ConsentStateLoading;
+  data->show_root_after = show_root_after;
+  data->callback = callback;
+  data->callback_context = context;
   window_set_user_data(window, data);
   window_set_window_handlers(window, (WindowHandlers) {
     .load = prv_window_load,
     .unload = prv_window_unload,
-    .appear = prv_window_appear,
   });
   window_stack_push(window, true);
-}
-
-bool must_present_consent() {
-  return persist_read_int(PERSIST_KEY_CONSENTS_COMPLETED) < 1;
 }
 
 void consent_migrate() {
@@ -134,67 +213,173 @@ static void prv_window_load(Window *window) {
     .click_config_provider = prv_click_config_provider,
   });
   scroll_layer_set_context(data->scroll_layer, window);
-  data->app_message_handle = events_app_message_register_inbox_received(prv_app_message_handler, window);
+  data->app_message_handle = events_app_message_subscribe_handlers((EventAppMessageHandlers) {
+    .received = prv_app_message_handler,
+    .failed = prv_app_message_failed,
+  }, window);
+
+  // The intro, if any, is shown while the pages load in the background.
+  ConsentState initial_state = data->state;
+  prv_start_loading(window);
+  prv_set_state(window, initial_state);
 }
 
 static void prv_click_config_provider(void *context) {
   window_single_click_subscribe(BUTTON_ID_SELECT, prv_select_click_handler);
 }
 
-
-static void prv_window_appear(Window *window) {
-  prv_set_stage(window, STAGE_LLM_WARNING);
-}
-
 static void prv_window_unload(Window *window) {
   ConsentWindowData* data = window_get_user_data(window);
+  if (data->load_timeout) {
+    app_timer_cancel(data->load_timeout);
+  }
+  if (data->request_retry) {
+    app_timer_cancel(data->request_retry);
+  }
+  if (data->app_message_handle) {
+    events_app_message_unsubscribe(data->app_message_handle);
+  }
   scroll_layer_destroy(data->scroll_layer);
   text_layer_destroy(data->title_layer);
   text_layer_destroy(data->text_layer);
   gbitmap_destroy(data->select_indicator_bitmap);
   bitmap_layer_destroy(data->select_indicator_layer);
   layer_destroy(data->content_indicator_layer);
+  prv_free_pages(data);
+  ConsentCompleteCallback callback = data->callback;
+  void *callback_context = data->callback_context;
+  bool accepted = data->accepted;
   free(data);
+  window_destroy(window);
+  if (callback) {
+    callback(accepted, callback_context);
+  }
 }
 
-static void prv_set_stage(Window* window, int stage) {
-  ConsentWindowData *data = window_get_user_data(window);
-  if (data->current_text) {
-    free(data->current_text);
-    data->current_text = NULL;
-  }
-  ResHandle res_handle = NULL;
-  switch (stage) {
-  case STAGE_LLM_WARNING:
-    res_handle = resource_get_handle(RESOURCE_ID_LLM_WARNING_TEXT);
-    data->title_text = "Important";
-    break;
-  case STAGE_GEMINI_CONSENT:
-    res_handle = resource_get_handle(RESOURCE_ID_GEMINI_CONSENT_TEXT);
-    data->title_text = "Privacy";
-    break;
-  case STAGE_LOCATION_CONSENT:
-    res_handle = resource_get_handle(RESOURCE_ID_LOCATION_CONSENT_TEXT);
-    data->title_text = "Location";
-    break;
-  default:
-    BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Unknown consent stage: %d", stage);
+static void prv_free_pages(ConsentWindowData *data) {
+  if (data->pages == NULL) {
     return;
   }
-  if (res_handle != NULL) {
-    size_t res_size = resource_size(res_handle);
-    data->current_text = bmalloc(res_size + 1);
-    resource_load(res_handle, (uint8_t*)data->current_text, res_size);
-    data->current_text[res_size] = '\0';
+  for (int i = 0; i < data->page_count; ++i) {
+    free(data->pages[i].title);
+    free(data->pages[i].text);
   }
-  data->stage = stage;
+  free(data->pages);
+  data->pages = NULL;
+  data->page_count = 0;
+  data->pages_received = 0;
+}
+
+static void prv_start_loading(Window *window) {
+  ConsentWindowData *data = window_get_user_data(window);
+  prv_free_pages(data);
+  if (data->load_timeout) {
+    app_timer_cancel(data->load_timeout);
+  }
+  data->load_timeout = app_timer_register(LOAD_TIMEOUT_MS, prv_load_timed_out, window);
+  if (data->request_retry) {
+    app_timer_cancel(data->request_retry);
+    data->request_retry = NULL;
+  }
+  prv_send_request(window);
+}
+
+static void prv_send_request(void *context) {
+  Window *window = context;
+  ConsentWindowData *data = window_get_user_data(window);
+  data->request_retry = NULL;
+  DictionaryIterator *iter;
+  AppMessageResult result = app_message_outbox_begin(&iter);
+  if (result == APP_MSG_OK) {
+    dict_write_uint8(iter, MESSAGE_KEY_CONSENT_REQUEST, 1);
+    result = app_message_outbox_send();
+  }
+  if (result != APP_MSG_OK) {
+    // Most likely the outbox is busy. Keep trying until we time out.
+    BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Requesting consent pages failed: %d. Retrying.", result);
+    prv_retry_request_soon(window);
+  }
+}
+
+static void prv_retry_request_soon(Window *window) {
+  ConsentWindowData *data = window_get_user_data(window);
+  // Only retry while we're still waiting for pages.
+  if (data->load_timeout == NULL || data->request_retry != NULL) {
+    return;
+  }
+  data->request_retry = app_timer_register(REQUEST_RETRY_MS, prv_send_request, window);
+}
+
+static void prv_app_message_failed(DictionaryIterator *iter, AppMessageResult reason, void *context) {
+  if (iter == NULL || dict_find(iter, MESSAGE_KEY_CONSENT_REQUEST) == NULL) {
+    return;
+  }
+  // This usually means the phone's JavaScript wasn't running yet.
+  BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Consent page request wasn't delivered: %d. Retrying.", reason);
+  prv_retry_request_soon(context);
+}
+
+static void prv_load_timed_out(void *context) {
+  Window *window = context;
+  ConsentWindowData *data = window_get_user_data(window);
+  data->load_timeout = NULL;
+  if (data->request_retry) {
+    app_timer_cancel(data->request_retry);
+    data->request_retry = NULL;
+  }
+  if (data->page_count > 0 && data->pages_received == data->page_count) {
+    return;
+  }
+  BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Timed out waiting for consent pages.");
+  prv_free_pages(data);
+  if (data->state == ConsentStateLoading) {
+    prv_set_state(window, ConsentStateError);
+  }
+}
+
+static bool prv_pages_ready(ConsentWindowData *data) {
+  return data->page_count > 0 && data->pages_received == data->page_count;
+}
+
+static void prv_set_state(Window *window, ConsentState state) {
+  ConsentWindowData *data = window_get_user_data(window);
+  data->state = state;
+  switch (state) {
+    case ConsentStateIntro:
+      prv_show_text(window, "Hold up!", "Bobby's privacy terms have changed since you last agreed to them. Please review them to continue.");
+      break;
+    case ConsentStateLoading:
+      if (prv_pages_ready(data)) {
+        prv_show_page(window, 0);
+      } else {
+        prv_show_text(window, "Bobby", "Loading...");
+      }
+      break;
+    case ConsentStateError:
+      prv_show_text(window, "Bobby", "Couldn't load Bobby's terms from your phone. Make sure your phone is connected and the Pebble app is open, then press select to try again.");
+      break;
+    case ConsentStatePage:
+      prv_show_page(window, data->page);
+      break;
+  }
+}
+
+static void prv_show_page(Window *window, int page) {
+  ConsentWindowData *data = window_get_user_data(window);
+  data->state = ConsentStatePage;
+  data->page = page;
+  prv_show_text(window, data->pages[page].title, data->pages[page].text);
+}
+
+static void prv_show_text(Window *window, const char *title, const char *text) {
+  ConsentWindowData *data = window_get_user_data(window);
   GSize window_size = layer_get_frame(window_get_root_layer(window)).size;
-  text_layer_set_text(data->title_layer, data->title_text);
+  text_layer_set_text(data->title_layer, title);
   text_layer_set_size(data->title_layer, GSize(window_size.w, 100));
   GSize title_size = text_layer_get_content_size(data->title_layer);
   title_size.h += 10;
   text_layer_set_size(data->title_layer, GSize(window_size.w, title_size.h));
-  text_layer_set_text(data->text_layer, data->current_text);
+  text_layer_set_text(data->text_layer, text);
   text_layer_set_size(data->text_layer, GSize(window_size.w - 20, 1000));
   GSize text_size = text_layer_get_content_size(data->text_layer);
   text_size.h += 10;
@@ -217,15 +402,23 @@ static void prv_select_click_handler(ClickRecognizerRef recognizer, void *contex
     BOBBY_LOG(APP_LOG_LEVEL_DEBUG, "User clicked select but hasn't scrolled to bottom; ignoring.");
     return;
   }
-  switch (data->stage) {
-    case STAGE_LLM_WARNING:
-      prv_set_stage(window, STAGE_GEMINI_CONSENT);
+  switch (data->state) {
+    case ConsentStateIntro:
+      prv_set_state(window, ConsentStateLoading);
       break;
-    case STAGE_GEMINI_CONSENT:
-      prv_set_stage(window, STAGE_LOCATION_CONSENT);
+    case ConsentStateLoading:
       break;
-    case STAGE_LOCATION_CONSENT:
-      prv_present_consent_menu(window);
+    case ConsentStateError:
+      prv_start_loading(window);
+      prv_set_state(window, ConsentStateLoading);
+      break;
+    case ConsentStatePage:
+      if (data->page < data->page_count - 1) {
+        prv_show_page(window, data->page + 1);
+      } else {
+        // The final page is always the location page.
+        prv_present_consent_menu(window);
+      }
       break;
   }
 }
@@ -251,7 +444,7 @@ static void prv_present_consent_menu(Window* window) {
 static void prv_consent_menu_select_callback(ActionMenu *action_menu, const ActionMenuItem *action, void *context) {
   Window *window = context;
   ConsentWindowData *data = window_get_user_data(window);
-  data->expected_app_response = STAGE_LOCATION_CONSENT;
+  data->awaiting_location_reply = true;
   bool choice = (int)action_menu_item_get_action_data(action);
   action_menu_freeze(action_menu);
   // We need to inform the phone of the user's choice.
@@ -263,31 +456,113 @@ static void prv_consent_menu_select_callback(ActionMenu *action_menu, const Acti
 
 static void prv_app_message_handler(DictionaryIterator *iter, void *context) {
   Window* window = context;
-  ConsentWindowData* data = window_get_user_data(window);
-  if (data->expected_app_response != STAGE_LOCATION_CONSENT) {
-    BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Ignoring unexpected location consent response.");
+  ConsentWindowData *data = window_get_user_data(window);
+  if (dict_find(iter, MESSAGE_KEY_CONSENT_REQUIRED_VERSION) && data->pages_received == 0) {
+    // The phone just started up, so it may have missed our request. Ask again.
+    prv_retry_request_soon(window);
+  }
+  if (dict_find(iter, MESSAGE_KEY_CONSENT_PAGE_INDEX) || dict_find(iter, MESSAGE_KEY_CONSENT_ERROR)) {
+    prv_handle_page(window, iter);
     return;
   }
   Tuple *tuple = dict_find(iter, MESSAGE_KEY_LOCATION_ENABLED);
-  if (tuple == NULL) {
+  if (tuple != NULL) {
+    prv_handle_location_reply(window, tuple);
+  }
+}
+
+static char *prv_copy_string(const char *str) {
+  char *copy = bmalloc(strlen(str) + 1);
+  strcpy(copy, str);
+  return copy;
+}
+
+static void prv_handle_page(Window *window, DictionaryIterator *iter) {
+  ConsentWindowData *data = window_get_user_data(window);
+  if (data->state == ConsentStatePage || data->awaiting_location_reply) {
+    // We already have everything we need; this is probably a late duplicate.
     return;
   }
-  data->expected_app_response = 0;
+  if (dict_find(iter, MESSAGE_KEY_CONSENT_ERROR)) {
+    BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Phone couldn't provide consent pages.");
+    if (data->load_timeout) {
+      app_timer_cancel(data->load_timeout);
+      data->load_timeout = NULL;
+    }
+    prv_free_pages(data);
+    if (data->state == ConsentStateLoading) {
+      prv_set_state(window, ConsentStateError);
+    }
+    return;
+  }
+  Tuple *version = dict_find(iter, MESSAGE_KEY_CONSENT_VERSION);
+  Tuple *count = dict_find(iter, MESSAGE_KEY_CONSENT_PAGE_COUNT);
+  Tuple *index = dict_find(iter, MESSAGE_KEY_CONSENT_PAGE_INDEX);
+  Tuple *title = dict_find(iter, MESSAGE_KEY_CONSENT_PAGE_TITLE);
+  Tuple *text = dict_find(iter, MESSAGE_KEY_CONSENT_PAGE_TEXT);
+  if (!version || !count || !index || !title || !text) {
+    BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Ignoring incomplete consent page.");
+    return;
+  }
+  int page_count = count->value->int32;
+  int page_index = index->value->int32;
+  if (page_count < 1 || page_count > MAX_CONSENT_PAGES || page_index < 0 || page_index >= page_count) {
+    BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Ignoring consent page %d of %d.", page_index, page_count);
+    return;
+  }
+  if (data->pages && (data->consent_version != version->value->int32 || data->page_count != page_count)) {
+    // A retry produced a different set of pages; start over with the new ones.
+    prv_free_pages(data);
+  }
+  if (data->pages == NULL) {
+    data->pages = bmalloc(sizeof(ConsentPage) * page_count);
+    memset(data->pages, 0, sizeof(ConsentPage) * page_count);
+    data->page_count = page_count;
+    data->pages_received = 0;
+    data->consent_version = version->value->int32;
+  }
+  ConsentPage *page = &data->pages[page_index];
+  if (page->text != NULL) {
+    return;
+  }
+  page->title = prv_copy_string(title->value->cstring);
+  page->text = prv_copy_string(text->value->cstring);
+  data->pages_received++;
+  if (!prv_pages_ready(data)) {
+    return;
+  }
+  BOBBY_LOG(APP_LOG_LEVEL_INFO, "Received all %d pages of consent version %d.", page_count, data->consent_version);
+  if (data->load_timeout) {
+    app_timer_cancel(data->load_timeout);
+    data->load_timeout = NULL;
+  }
+  if (data->state == ConsentStateLoading || data->state == ConsentStateError) {
+    prv_show_page(window, 0);
+  }
+}
+
+static void prv_handle_location_reply(Window *window, Tuple *tuple) {
+  ConsentWindowData* data = window_get_user_data(window);
+  if (!data->awaiting_location_reply) {
+    BOBBY_LOG(APP_LOG_LEVEL_WARNING, "Ignoring unexpected location consent response.");
+    return;
+  }
+  data->awaiting_location_reply = false;
   BOBBY_LOG(APP_LOG_LEVEL_INFO, "Got location enabled reply, dismissing dialog.");
   events_app_message_unsubscribe(data->app_message_handle);
+  data->app_message_handle = NULL;
   bool location_enabled = tuple->value->int16;
   persist_write_bool(PERSIST_KEY_LOCATION_ENABLED, location_enabled);
-  prv_mark_consents_complete();
-  RootWindow *root_window = root_window_create();
-  action_menu_set_result_window(data->action_menu, root_window_get_window(root_window));
+  persist_write_int(PERSIST_KEY_CONSENTS_COMPLETED, data->consent_version);
+  data->accepted = true;
+  if (data->show_root_after) {
+    RootWindow *root_window = root_window_create();
+    action_menu_set_result_window(data->action_menu, root_window_get_window(root_window));
+  }
   action_menu_close(data->action_menu, true);
   window_stack_remove(window, false);
 }
 
 static void prv_action_menu_close(ActionMenu* action_menu, const ActionMenuItem* item, void* context) {
   action_menu_hierarchy_destroy(action_menu_get_root_level(action_menu), NULL, NULL);
-}
-
-static void prv_mark_consents_complete() {
-  persist_write_int(PERSIST_KEY_CONSENTS_COMPLETED, 1);
 }

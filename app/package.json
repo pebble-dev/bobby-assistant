@@ -108,7 +108,15 @@
       "MAP_WIDGET_IMAGE_ID",
       "MAP_WIDGET_USER_LOCATION",
       "CONFIRM_TRANSCRIPTS",
-      "ACTION_SETTINGS_UPDATED"
+      "ACTION_SETTINGS_UPDATED",
+      "CONSENT_REQUEST",
+      "CONSENT_REQUIRED_VERSION",
+      "CONSENT_VERSION",
+      "CONSENT_PAGE_COUNT",
+      "CONSENT_PAGE_INDEX",
+      "CONSENT_PAGE_TITLE",
+      "CONSENT_PAGE_TEXT",
+      "CONSENT_ERROR"
     ],
     "resources": {
       "media": [
@@ -211,21 +219,6 @@
         {
           "file": "text/about.txt",
           "name": "ABOUT_TEXT",
-          "type": "raw"
-        },
-        {
-          "file": "text/gemini_consent.txt",
-          "name": "GEMINI_CONSENT_TEXT",
-          "type": "raw"
-        },
-        {
-          "file": "text/llm_warning.txt",
-          "name": "LLM_WARNING_TEXT",
-          "type": "raw"
-        },
-        {
-          "file": "text/location_consent.txt",
-          "name": "LOCATION_CONSENT_TEXT",
           "type": "raw"
         },
         {

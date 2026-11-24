@@ -26,9 +26,10 @@ var features = require('./features');
 var API_URL = require('./urls').QUERY_URL;
 var package_json = require('package.json');
 
-function Session(prompt, threadId) {
+function Session(prompt, threadId, consentVersion) {
     this.prompt = prompt;
     this.threadId = threadId;
+    this.consentVersion = consentVersion;
     this.ws = undefined;
     this.hasOpenDialog = false;
 }
@@ -63,6 +64,9 @@ Session.prototype.run = function() {
     url += '&units=' + settings['UNIT_PREFERENCE'] || '';
     url += '&lang=' + settings['LANGUAGE_CODE'] || '';
     url += '&version=' + package_json['version'];
+    if (this.consentVersion) {
+        url += '&consentVersion=' + this.consentVersion;
+    }
 
     // Figure out our colour support
     if (Pebble.getActiveWatchInfo) {
